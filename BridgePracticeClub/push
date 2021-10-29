@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+python3 copytodir.py
+rsync -avh -e ssh ~/Downloads/server root@199.19.75.97:~
+ssh root@199.19.75.97 'screen -r -X stuff "stop\n" ; cd server && screen -dm bash -c "java -Xms5000M -Xmx5000M -XX:+UseG1GC -jar "spigot-1.8.8.jar" nogui > ./runlog"'

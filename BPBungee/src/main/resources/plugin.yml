@@ -1,0 +1,111 @@
+name: BPBungee
+main: net.bridgepractice.bpbungee.BPBungee
+version: 1.0
+author: Fozzie1000
+api-version: 1.8
+commands:
+  l:
+    description: Sends you to the lobby
+    usage: /l [lobby_name]
+  lobby:
+    description: Sends you to the lobby
+    usage: /lobby [lobby_name]
+  hub:
+    description: Sends you to the lobby
+    usage: /hub
+  discord:
+    description: Displays the discord invite link
+    usage: /discord
+  stat:
+    description: Staff only command
+    usage: /stat (remove|set) <player> statName [value]
+
+  msg:
+    description: Send a message to a player
+    usage: /msg <player> <text>
+  message:
+    description: Send a message to a player
+    usage: /message <player> <text>
+  w:
+    description: Send a message to a player
+    usage: /w <player> <text>
+  r:
+    description: Reply to the person that sent you a message most recently
+    usage: /r <text>
+  reply:
+    description: Reply to the person that sent you a message most recently
+    usage: /reply <text>
+
+  freeze:
+    description: Staff only command
+    usage: /freeze <player>
+  unfreeze:
+    description: Staff only command
+    usage: /unfreeze <player>
+
+  mute:
+    description: Staff only command
+    usage: /mute <player> days
+  unmute:
+    description: Staff only command
+    usage: /unmute <player>
+
+  warn:
+    description: Staff only command
+    usage: /warn <player> reason
+
+  help:
+    description: See all available commands
+    usage: /help <page>
+  h:
+    description: See all available commands
+    usage: /h <page>
+  rules:
+    description: View the server rules
+    usage: /rules
+
+  play:
+    description: Play a game
+    usage: /play <game>
+  q:
+    description: Play a game (alias of /play)
+    usage: /q <game>
+
+  changemultiplayer:
+    description: Staff only command
+    usage: /changemultiplayer (enable|disable)
+  cm:
+    description: Staff only command
+    usage: /cm (enable|disable)
+
+  staffchat:
+    description: Staff only command
+    usage: /staffchat <message>
+  sc:
+    description: Staff only command
+    usage: /sc <message>
+  staffc:
+    description: Staff only command
+    usage: /staffc <message>
+  schat:
+    description: Staff only command
+    usage: /schat <message>
+
+  ban:
+    description: Staff only command
+    usage: /ban <player> <days> [reason]
+  unban:
+    description: Staff only command
+    usage: /unban <player>
+  pardon:
+    description: Staff only command
+    usage: /pardon <player>
+  mutechat:
+    description: Staff only command
+    usage: /mutechat
+  unmutechat:
+    description: Staff only command
+    usage: /unmutechat
+
+  rainbow:
+    description: Makes your text rainbow! Only available to certain ranked players

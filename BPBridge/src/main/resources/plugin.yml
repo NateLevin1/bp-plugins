@@ -1,0 +1,10 @@
+name: BPBridge
+version: 1.0
+api-version: 1.8
+main: net.bridgepractice.bpbridge.BPBridge
+depend: [LunarClient-API]
+
+commands:
+  map:
+    description: Get the map you are currently playing
+    usage: /map

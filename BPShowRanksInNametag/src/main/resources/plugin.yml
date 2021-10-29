@@ -1,0 +1,6 @@
+name: BPShowRanksInNametag
+description: Show ranks of players in their nametag
+version: 1.0
+api-version: 1.8
+main: net.bridgepractice.bpshowranksinnametag.Main
+depend: [LuckPerms]

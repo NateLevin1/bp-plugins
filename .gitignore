@@ -1,0 +1,7 @@
+RavenAntiCheat/
+.DS_Store
+target/
+BridgePracticeClub/out/
+BridgePracticeClub/club/
+.idea/
+__pycache__/

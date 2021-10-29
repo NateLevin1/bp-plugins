@@ -1,0 +1,62 @@
+name: BridgePractice
+version: 0.1.0
+author: Fozzie1000
+main: club.bridgepractice.Bridge.Bridge
+depend: [ProtocolLib]
+
+commands:
+  wing:
+    description: Enter wing practice
+    usage: /wing
+  prebow:
+    description: Enter prebow practice
+    usage: /prebow
+  bypass:
+    description: Enter bypass practice
+    usage: /bypass
+  bot:
+    description: Enter into a bot 1v1
+    usage: /bot
+  spawn:
+    description: Go back to spawn
+    usage: /spawn
+  l:
+    description: Go back to spawn
+    usage: /l
+  lobby:
+    description: Go back to spawn
+    usage: /lobby
+  leave:
+    description: Go back to spawn
+    usage: /leave
+  hub:
+    description: Go back to spawn
+    usage: /hub
+  whereami:
+    description: Says which mode you are in
+    usage: /whereami
+  whereis:
+    description: Gets which mode a player is playing
+    usage: /whereis <player>
+  rin:
+    description: Staff only command
+    usage: /rin
+  leavequeue:
+    description: Leave your current queue
+    usage: /leavequeue
+  leaveq:
+    description: Leave your current queue
+    usage: /leaveq
+  lq:
+    description: Leave your current queue
+    usage: /lq
+  dq:
+    description: Staff only command
+    usage: /dq game
+  eq:
+    description: Staff only command
+    usage: /eq game
+  rainbow:
+    description: Makes your text rainbow! Only available to certain ranked players
+    permission: bridgepractice.command.rainbow
+    permission-message: §cYou must have a rank to use this command

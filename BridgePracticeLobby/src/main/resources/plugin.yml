@@ -1,0 +1,19 @@
+name: BridgePracticeLobby
+version: 1.0
+api-version: 1.8
+main: net.bridgepractice.BridgePracticeLobby.BridgePracticeLobby
+depend: [ProtocolLib]
+
+commands:
+  rainbow:
+    description: Makes your text rainbow! Only available to certain ranked players
+    permission: bridgepractice.command.rainbow
+    permission-message: §cYou must have a rank to use this command!
+  fw:
+    description: Launch a firework!
+    permission: bridgepractice.command.fw
+    permission-message: §cYou must have a rank to use this command!
+  cookie:
+    description: Gives you the cookie gadget. Have a bite!
+    permission: bridgepractice.command.cookie
+    permission-message: §cYou must have a rank to use this command!

@@ -1,0 +1,14 @@
+name: BPReport
+version: 1.0
+main: net.bridgepractice.bpreport.BPReport
+api-version: 1.8
+commands:
+  report:
+    description: Report a player
+    usage: /report <player>
+  wdr:
+    description: Report a player
+    usage: /wdr <player>
+  chatreport:
+    description: Report a player for chat abuse/scam
+    usage: /chatreport <player>
