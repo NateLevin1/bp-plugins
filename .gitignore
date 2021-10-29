@@ -5,3 +5,11 @@ BridgePracticeClub/out/
 BridgePracticeClub/club/
 .idea/
 __pycache__/
+BPBridge/pom.xml
+BPBungee/pom.xml
+BPNick/pom.xml
+BPReport/pom.xml
+BPShowRanks/pom.xml
+BPShowRanksInNametag/pom.xml
+BridgePracticeLobby/pom.xml
+
