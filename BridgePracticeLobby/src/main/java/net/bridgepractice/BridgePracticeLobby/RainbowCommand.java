@@ -20,8 +20,8 @@ public class RainbowCommand implements CommandExecutor {
             player.sendMessage("§cYou must provide a message for this command!");
             return true;
         }
-        if(System.currentTimeMillis() - startTimes.getOrDefault(player.getUniqueId(), 0L) < 1*60*1000) {
-            player.sendMessage("§cYou must wait 1 minute between each use!");
+        if(System.currentTimeMillis() - startTimes.getOrDefault(player.getUniqueId(), 0L) < 2*60*1000) {
+            player.sendMessage("§cYou must wait 2 minutes between each use!");
             return true;
         }
         startTimes.put(player.getUniqueId(), System.currentTimeMillis());
@@ -30,7 +30,7 @@ public class RainbowCommand implements CommandExecutor {
             public void run() {
                 startTimes.remove(player.getUniqueId());
             }
-        }).runTaskLater(BridgePracticeLobby.instance, 1*60*20);
+        }).runTaskLater(BridgePracticeLobby.instance, 2*60*20);
         StringBuilder message = new StringBuilder();
         int i = 0;
         for(String letter : String.join(" ", args).split("")) {
