@@ -762,9 +762,13 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     }
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
+
         Player player = event.getPlayer();
-        if(player.getLocation().getY() < 80) {
-            player.teleport(respawnLocation.getOrDefault(player.getUniqueId(), new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0)));
+        if(player.getLocation().getY() < 80 || player.getLocation().getY() > 150
+        || player.getLocation().getX() < -40 || player.getLocation().getX() > 80
+        || player.getLocation().getZ() < -40 || player.getLocation().getZ() > 40 ) {
+
+                player.teleport(respawnLocation.getOrDefault(player.getUniqueId(), new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0)));
         }
     }
     @EventHandler
