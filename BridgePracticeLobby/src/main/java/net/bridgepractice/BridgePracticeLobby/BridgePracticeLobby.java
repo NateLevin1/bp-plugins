@@ -905,8 +905,14 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 }
                 break;
             case GOLD_SPADE:
-                player.teleport(new Location(player.getWorld(), 50.5, 103, 0.5, -90, 0));
-                break;
+                if(player.getLocation().getX() > 45 && player.getLocation().getX() < 65
+                    && player.getLocation().getZ() > -8 && player.getLocation().getZ() < 7 ) {
+                    player.teleport(respawnLocation.getOrDefault(player.getUniqueId(), new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0)));
+                    break;
+                }else {
+                    player.teleport(new Location(player.getWorld(), 50.5, 103, 0.5, -90, 0));
+                    break;
+                }
             case BOOK:
                 if(System.currentTimeMillis() - lastPlayerHotbarEdits.getOrDefault(player.getUniqueId(), 0L) > 3000) {
                     lastPlayerHotbarEdits.put(player.getUniqueId(), System.currentTimeMillis());
