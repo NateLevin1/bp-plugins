@@ -905,14 +905,16 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 }
                 break;
             case GOLD_SPADE:
-                if(player.getLocation().getX() > 45 && player.getLocation().getX() < 65
-                    && player.getLocation().getZ() > -8 && player.getLocation().getZ() < 7 ) {
+                Inventory inven = player.getInventory();
+                if(player.getLocation().getX() > 43 && player.getLocation().getX() < 66
+                    && player.getLocation().getZ() > -10 && player.getLocation().getZ() < 9 ) {
                     player.teleport(respawnLocation.getOrDefault(player.getUniqueId(), new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0)));
-                    break;
+                    inven.setItem(8, Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Leaderboards §7(Right Click)", "§7View the leaderboards")));
                 }else {
                     player.teleport(new Location(player.getWorld(), 50.5, 103, 0.5, -90, 0));
-                    break;
+                    inven.setItem(8, Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Spawn §7(Right Click)", "§7Go back to spawn")));
                 }
+                break;
             case BOOK:
                 if(System.currentTimeMillis() - lastPlayerHotbarEdits.getOrDefault(player.getUniqueId(), 0L) > 3000) {
                     lastPlayerHotbarEdits.put(player.getUniqueId(), System.currentTimeMillis());
