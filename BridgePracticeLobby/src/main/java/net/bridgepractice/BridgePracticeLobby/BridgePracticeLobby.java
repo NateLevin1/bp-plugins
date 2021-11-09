@@ -764,12 +764,29 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     public void onPlayerMove(PlayerMoveEvent event) {
 
         Player player = event.getPlayer();
+        Inventory inv = player.getInventory();
         if(player.getLocation().getY() < 80 || player.getLocation().getY() > 150
         || player.getLocation().getX() < -40 || player.getLocation().getX() > 80
         || player.getLocation().getZ() < -40 || player.getLocation().getZ() > 40 ) {
 
                 player.teleport(respawnLocation.getOrDefault(player.getUniqueId(), new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0)));
         }
+
+        //SWITCH SPADE NAME ON EXIT
+        ItemStack LeaderboardsSpade = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Leaderboards §7(Right Click)", "§7View the leaderboards"));
+        ItemStack SpawnSpade = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Spawn §7(Right Click)", "§7Go back to spawn"));
+
+        if(player.getLocation().getX() > 43 && player.getLocation().getX() < 66
+        && player.getLocation().getZ() > -10 && player.getLocation().getZ() < 9 ) {
+            if (!inv.getItem(8).equals(SpawnSpade)) {
+                inv.setItem(8, SpawnSpade);
+            }
+        }else {
+            if (!inv.getItem(8).equals(LeaderboardsSpade)) {
+                inv.setItem(8, LeaderboardsSpade);
+            }
+        }
+
     }
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
