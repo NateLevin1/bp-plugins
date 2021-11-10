@@ -49,6 +49,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.NameTagVisibility;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.Vector;
 
 import java.io.*;
 import java.math.RoundingMode;
@@ -235,6 +236,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         getCommand("rainbow").setExecutor(new RainbowCommand());
         getCommand("fw").setExecutor(new FireworkCommand());
         getCommand("cookie").setExecutor(new CookieCommand());
+        getCommand("telestick").setExecutor(new TelestickCommand());
     }
     @Override
     public void onDisable() {
@@ -1053,6 +1055,25 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 PlayerInventory inv = player.getInventory();
                 giveGadgets(player, inv);
                 player.sendMessage("§cParkour canceled.");
+            case BLAZE_ROD:
+                double blockTeleDistance = 5d;
+                Vector playerLookDir = player.getEyeLocation().getDirection();
+                Location telePlace = player.getEyeLocation().clone().add(playerLookDir.clone().multiply(blockTeleDistance));
+                for (double d = -1; d <= blockTeleDistance; d += 0.5) {
+                    Location currentDistance = player.getEyeLocation().clone().add(playerLookDir.clone().multiply(d));
+                    if (!currentDistance.getBlock().getType().equals(Material.AIR)){
+                        if (d <= 1.5){
+                            telePlace = player.getEyeLocation().clone().add(playerLookDir.clone().multiply(0));
+                        }else{
+                            telePlace = player.getEyeLocation().clone().add(playerLookDir.clone().multiply(d-0.5));
+                        }
+                        break;
+                    }
+                }
+                telePlace = new Location(player.getWorld(), telePlace.getBlockX(), telePlace.getBlockY() - 1, telePlace.getBlockZ(), telePlace.getYaw(), telePlace.getPitch());
+
+                player.teleport(telePlace);
+                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 5*20, 5, false, false));
                 break;
         }
     }

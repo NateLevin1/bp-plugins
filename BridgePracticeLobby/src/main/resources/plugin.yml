@@ -17,3 +17,7 @@ commands:
     description: Gives you the cookie gadget. Have a bite!
     permission: bridgepractice.command.cookie
     permission-message: §cYou must have a rank to use this command!
+  telestick:
+    description: Get a stick that makes you teleport!
+    #permission: bridgepractice.command.telestick
+    #permission-message: §cYou must have a rank to use this command!
