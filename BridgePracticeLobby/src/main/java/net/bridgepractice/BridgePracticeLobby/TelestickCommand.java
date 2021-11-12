@@ -19,23 +19,16 @@ public class TelestickCommand implements CommandExecutor{
             if(current.fifthSlotItem.getType() == Material.BLAZE_ROD) {
                 // unrod
                 BridgePracticeLobby.instance.setGadget(player, null);
-
-                ItemStack empty = new ItemStack(Material.AIR);
-                player.getInventory().setBoots(empty);
-
-
             } else {
-                player.setFoodLevel(20);
-
                 ItemStack telestick = Utils.makeItem(Material.BLAZE_ROD, "§6Telestick §7(Right Click!)", "§7Click me to §eteleport","§7speed boost for §a3s§7.");
                 BridgePracticeLobby.instance.setGadget(player, new BridgePracticeLobby.Gadget(current.fourthSlotItem, telestick));
                 player.getInventory().setHeldItemSlot(5);
 
-                ItemStack toeProtection = Utils.getUnbreakable(Utils.makeItem(Material.LEATHER_BOOTS, "§6Toe Protection", "§7Toe protection just in case of a hard fall"));
-                LeatherArmorMeta toeProtMeta = (LeatherArmorMeta) toeProtection.getItemMeta();
-                toeProtMeta.setColor(Color.ORANGE);
-                toeProtection.setItemMeta(toeProtMeta);
-                player.getInventory().setBoots(toeProtection);
+                ItemStack wizardBoots = Utils.getUnbreakable(Utils.makeItem(Material.LEATHER_BOOTS, "§6Wizard Boots", "§7Special Boots that brace hard falls", "§7and trails §6teleportation§7 particles"));
+                LeatherArmorMeta wizardBootMeta = (LeatherArmorMeta) wizardBoots.getItemMeta();
+                wizardBootMeta.setColor(Color.fromRGB(255, 60, 0));
+                wizardBoots.setItemMeta(wizardBootMeta);
+                player.getInventory().setBoots(wizardBoots);
             }
             BridgePracticeLobby.instance.giveGadgets(player, player.getInventory());
             return true;

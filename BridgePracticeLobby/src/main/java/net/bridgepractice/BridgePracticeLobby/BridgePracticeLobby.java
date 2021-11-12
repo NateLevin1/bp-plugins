@@ -7,6 +7,7 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
@@ -66,6 +67,9 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     private final HashMap<UUID, Long> lastPlayerHotbarEdits = new HashMap<>();
     private final HashMap<UUID, Long> lastPlayerGetFromHypixel = new HashMap<>();
     private final HashMap<UUID, Long> lastShop = new HashMap<>();
+    private final HashMap<UUID, Long> lastSpade = new HashMap<>();
+    private final HashMap<UUID, Long> lastTele = new HashMap<>();
+
     private final HashMap<UUID, Location> respawnLocation = new HashMap<>();
     private final HashMap<UUID, Leaderboard[]> clickableLeaderboards = new HashMap<>();
     public static final String hypixelKey = "b3b3895d-1604-4ef7-b0bb-bd14f169be95";
@@ -599,6 +603,20 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             }
         }).runTaskAsynchronously(this);
     }
+    public void removeGadgetEffects(Player player){
+        Gadget gadget = getGadget(player);
+        if (gadget == null) return;
+        switch (gadget.fifthSlotItem.getType()){
+            case COOKIE:
+                player.setFoodLevel(20);
+                break;
+            case BLAZE_ROD:
+                player.getInventory().setBoots(null);
+                //player.getInventory().setBoots(new ItemStack(Material.AIR));
+                break;
+        }
+
+    }
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
@@ -606,6 +624,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         player.getInventory().setHeldItemSlot(0);
         Inventory inv = player.getInventory();
         inv.clear();
+        player.getInventory().setBoots(new ItemStack(Material.AIR));
         player.setFoodLevel(20);
         player.teleport(new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0));
 
@@ -758,6 +777,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         respawnLocation.remove(uuid);
         playerNpcTimes.remove(uuid);
         lastShop.remove(uuid);
+        lastSpade.remove(uuid);
+        lastTele.remove(uuid);
         currentGadgets.remove(uuid);
 
         event.setQuitMessage("");
@@ -788,7 +809,6 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 inv.setItem(8, LeaderboardsSpade);
             }
         }
-
     }
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
@@ -828,6 +848,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         }
 
         if(event.getItem() == null) return;
+
         switch(event.getMaterial()) {
             case COMPASS:
                 player.openInventory(gameMenu.getInventory());
@@ -861,7 +882,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                         m.allowForGarbageCollection();
                                         p.closeInventory();
                                         sendToStore(p);
-                                    }),
+                                    }),//menu item end
                                     new MenuItem(1, 5, Utils.makeItem(Material.MOB_SPAWNER, "§aCages", "§7Select a cage to spawn within", "§7before each round of The Bridge.", "", "§7Currently Selected:", "§a" + cage.toString(), "", "§eClick to View!"), (p, m) -> {
                                         m.allowForGarbageCollection();
                                         Menu cages = new Menu("§rChoose a cage", 4, true,
@@ -924,14 +945,20 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 }
                 break;
             case GOLD_SPADE:
-                Inventory inven = player.getInventory();
-                if(player.getLocation().getX() > 43 && player.getLocation().getX() < 66
-                    && player.getLocation().getZ() > -10 && player.getLocation().getZ() < 9 ) {
-                    player.teleport(respawnLocation.getOrDefault(player.getUniqueId(), new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0)));
-                    inven.setItem(8, Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Leaderboards §7(Right Click)", "§7View the leaderboards")));
-                }else {
-                    player.teleport(new Location(player.getWorld(), 50.5, 103, 0.5, -90, 0));
-                    inven.setItem(8, Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Spawn §7(Right Click)", "§7Go back to spawn")));
+                double timeSinceSpade = System.currentTimeMillis() - lastSpade.getOrDefault(player.getUniqueId(), 0L);
+                if (timeSinceSpade > 500) {
+                    lastSpade.put(player.getUniqueId(), System.currentTimeMillis());
+                    Inventory inven = player.getInventory();
+                    if (player.getLocation().getX() > 43 && player.getLocation().getX() < 66
+                            && player.getLocation().getZ() > -10 && player.getLocation().getZ() < 9) {
+                        player.teleport(new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0));
+                        inven.setItem(8, Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Leaderboards §7(Right Click)", "§7View the leaderboards")));
+                    } else {
+                        player.teleport(new Location(player.getWorld(), 50.5, 103, 0.5, -90, 0));
+                        inven.setItem(8, Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Spawn §7(Right Click)", "§7Go back to spawn")));
+                    }
+                } else if(timeSinceSpade > 10){
+                    player.sendMessage("§cYou must wait §e0.5s§c between uses!");
                 }
                 break;
             case BOOK:
@@ -1055,25 +1082,61 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 PlayerInventory inv = player.getInventory();
                 giveGadgets(player, inv);
                 player.sendMessage("§cParkour canceled.");
-            case BLAZE_ROD:
-                double blockTeleDistance = 5d;
-                Vector playerLookDir = player.getEyeLocation().getDirection();
-                Location telePlace = player.getEyeLocation().clone().add(playerLookDir.clone().multiply(blockTeleDistance));
-                for (double d = -1; d <= blockTeleDistance; d += 0.5) {
-                    Location currentDistance = player.getEyeLocation().clone().add(playerLookDir.clone().multiply(d));
-                    if (!currentDistance.getBlock().getType().equals(Material.AIR)){
-                        if (d <= 1.5){
-                            telePlace = player.getEyeLocation().clone().add(playerLookDir.clone().multiply(0));
-                        }else{
-                            telePlace = player.getEyeLocation().clone().add(playerLookDir.clone().multiply(d-0.5));
-                        }
-                        break;
-                    }
-                }
-                telePlace = new Location(player.getWorld(), telePlace.getBlockX(), telePlace.getBlockY() - 1, telePlace.getBlockZ(), telePlace.getYaw(), telePlace.getPitch());
+                break;
 
-                player.teleport(telePlace);
-                player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 5*20, 5, false, false));
+            case BLAZE_ROD:
+
+                if (System.currentTimeMillis() - lastTele.getOrDefault(player.getUniqueId(), 0L) > 500) {
+                    lastTele.put(player.getUniqueId(), System.currentTimeMillis());
+
+                    double blockTeleDistance = 8d;
+                    Vector playerLookDir = player.getEyeLocation().getDirection();
+                    Location raycastPoint = null;
+                    Location lastRaycastPoint = null;
+
+                    for (double d = 0; d <= blockTeleDistance; d += 0.5) {
+                        //get raycast ad a distance of D
+                        raycastPoint = player.getEyeLocation().clone().add(playerLookDir.clone().multiply(d));
+
+                        //packets for making a flame
+                        Location particalLoc = raycastPoint.clone();
+                        particalLoc.setY(particalLoc.getY() - 1.5d);
+                        PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(EnumParticle.FLAME, true, (float) (particalLoc.getX()), (float) (particalLoc.getY()), (float) (particalLoc.getZ()), 0, 0, 0, 0, 1);
+                        for (Player online : Bukkit.getOnlinePlayers()) {
+                            ((CraftPlayer) online).getHandle().playerConnection.sendPacket(packet);
+                        }
+
+                        //check block above and below
+                        Location blockAbove = raycastPoint.clone();
+                        blockAbove.setY(raycastPoint.getY() + 1);
+                        Location blockBelow = raycastPoint.clone();
+                        blockBelow.setY(raycastPoint.getY() - 1);
+
+                        if (raycastPoint.getBlock().getType().equals(Material.AIR)) {
+                            if (blockAbove.getBlock().getType().equals(Material.AIR)) {
+                                lastRaycastPoint = raycastPoint;
+                            } else if (blockBelow.getBlock().getType().equals(Material.AIR)) {
+                                raycastPoint = blockBelow;
+                                lastRaycastPoint = raycastPoint;
+                            } else {//break out and go to last able location
+                                raycastPoint = lastRaycastPoint;
+                                break;
+                            }
+                        } else {
+                            raycastPoint = lastRaycastPoint;
+                            break;
+                        }
+                    }//block checking for loop
+
+                    //loop broken or gone 5 blocks
+                    raycastPoint.setY(raycastPoint.getBlock().getLocation().getY() + 0.5);
+                    raycastPoint.setX(raycastPoint.getBlock().getLocation().getX() + 0.5);
+                    raycastPoint.setZ(raycastPoint.getBlock().getLocation().getZ() + 0.5);
+                    player.teleport(raycastPoint);
+
+                } else {
+                    player.sendMessage("§cYou're clicking to fast!");
+                }
                 break;
         }
     }
@@ -1090,6 +1153,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         return currentGadgets.get(player.getUniqueId());
     }
     public void setGadget(Player player, Gadget gadget) {
+        removeGadgetEffects(player);
         currentGadgets.put(player.getUniqueId(), gadget);
     }
     public void giveGadgets(Player player, Inventory inv) {
