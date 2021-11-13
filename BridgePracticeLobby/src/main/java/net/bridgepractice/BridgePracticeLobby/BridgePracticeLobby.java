@@ -612,7 +612,6 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 break;
             case BLAZE_ROD:
                 player.getInventory().setBoots(null);
-                //player.getInventory().setBoots(new ItemStack(Material.AIR));
                 break;
         }
 
@@ -624,7 +623,11 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         player.getInventory().setHeldItemSlot(0);
         Inventory inv = player.getInventory();
         inv.clear();
-        player.getInventory().setBoots(new ItemStack(Material.AIR));
+
+        ItemStack[] armorSet = new ItemStack[player.getInventory().getArmorContents().length];
+        for (int i = 0; i < armorSet.length; i++) {armorSet[i] = new ItemStack(Material.AIR);}
+        player.getInventory().setArmorContents(armorSet);
+
         player.setFoodLevel(20);
         player.teleport(new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0));
 
@@ -796,17 +799,17 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         }
 
         //SWITCH SPADE NAME ON EXIT
-        ItemStack LeaderboardsSpade = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Leaderboards §7(Right Click)", "§7View the leaderboards"));
-        ItemStack SpawnSpade = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Spawn §7(Right Click)", "§7Go back to spawn"));
+        ItemStack leaderboardsSpade = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Teleport to Leaderboards §7(Right Click)", "§7View the leaderboards"));
+        ItemStack spawnSpade = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Teleport to Spawn §7(Right Click)", "§7Go back to spawn"));
 
         if(player.getLocation().getX() > 43 && player.getLocation().getX() < 66
         && player.getLocation().getZ() > -10 && player.getLocation().getZ() < 9 ) {
-            if (!inv.getItem(8).equals(SpawnSpade)) {
-                inv.setItem(8, SpawnSpade);
+            if (!inv.getItem(8).equals(spawnSpade)) {
+                inv.setItem(8, spawnSpade);
             }
         }else {
-            if (!inv.getItem(8).equals(LeaderboardsSpade)) {
-                inv.setItem(8, LeaderboardsSpade);
+            if (!inv.getItem(8).equals(leaderboardsSpade)) {
+                inv.setItem(8, leaderboardsSpade);
             }
         }
     }
