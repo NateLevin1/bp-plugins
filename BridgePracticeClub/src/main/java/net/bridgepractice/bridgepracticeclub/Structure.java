@@ -1,4 +1,4 @@
-package club.bridgepractice.Bridge;
+package net.bridgepractice.bridgepracticeclub;
 
 import org.bukkit.Location;
 import org.bukkit.Material;

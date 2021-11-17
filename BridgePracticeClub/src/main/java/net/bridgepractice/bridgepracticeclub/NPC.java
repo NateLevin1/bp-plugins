@@ -1,4 +1,4 @@
-package club.bridgepractice.Bridge;
+package net.bridgepractice.bridgepracticeclub;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.UUID;
 
-import static club.bridgepractice.Bridge.Bridge.*;
+import static net.bridgepractice.bridgepracticeclub.Bridge.*;
 
 public class NPC {
     Player player;

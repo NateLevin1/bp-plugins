@@ -1,4 +1,4 @@
-package club.bridgepractice.Bridge;
+package net.bridgepractice.bridgepracticeclub;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -16,11 +16,10 @@ import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static club.bridgepractice.Bridge.Bridge.nmsWorld;
+import static net.bridgepractice.bridgepracticeclub.Bridge.nmsWorld;
 
 public class Leaderboard {
     EntityArmorStand titleStand;

@@ -1,4 +1,4 @@
-package club.bridgepractice.Bridge;
+package net.bridgepractice.bridgepracticeclub;
 
 import net.bridgepractice.RavenAntiCheat.RavenAntiCheat;
 import net.minecraft.server.v1_8_R3.PacketPlayOutAnimation;

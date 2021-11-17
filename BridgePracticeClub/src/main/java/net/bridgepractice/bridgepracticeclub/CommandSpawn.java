@@ -1,9 +1,8 @@
-package club.bridgepractice.Bridge;
+package net.bridgepractice.bridgepracticeclub;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import net.minecraft.server.v1_8_R3.*;
-import org.apache.commons.lang.time.DurationFormatUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -48,8 +47,7 @@ public class CommandSpawn implements CommandExecutor {
                 }
             }).runTaskLater(Bridge.instance, 3);
 
-
-            Scoreboard board = Bridge.createScoreboard("   §b§lBridge §c§lPractice   ", new String[]{
+            Scoreboard board = Bridge.createScoreboard(" §b§lBridge §c§lPractice ", new String[]{
                     "",
                     "  Players Online: §a" + Bridge.instance.getServer().getOnlinePlayers().size(),
                     "",
