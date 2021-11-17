@@ -1,4 +1,4 @@
-package club.bridgepractice.Bridge;
+package net.bridgepractice.bridgepracticeclub;
 
 public class AllowedLocation {
     int xStart, xEnd, zStart, zEnd, yStart, yEnd;

@@ -1,4 +1,4 @@
-package club.bridgepractice.Bridge;
+package net.bridgepractice.bridgepracticeclub;
 
 public interface PlayerInfoHandler {
     void call(PlayerInfo info);

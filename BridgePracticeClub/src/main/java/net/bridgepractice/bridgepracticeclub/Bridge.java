@@ -1,4 +1,4 @@
-package club.bridgepractice.Bridge;
+package net.bridgepractice.bridgepracticeclub;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -13,7 +13,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import com.sun.istack.internal.NotNull;
+import org.jetbrains.annotations.NotNull;
 import net.bridgepractice.RavenAntiCheat.RavenAntiCheat;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Material;

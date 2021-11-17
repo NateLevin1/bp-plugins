@@ -1,7 +1,7 @@
 name: BridgePractice
 version: 0.1.0
-author: Fozzie1000
-main: club.bridgepractice.Bridge.Bridge
+authors: [Fozzie1000, LOSTED]
+main: net.bridgepractice.bridgepracticeclub.Bridge
 depend: [ProtocolLib]
 
 commands:
