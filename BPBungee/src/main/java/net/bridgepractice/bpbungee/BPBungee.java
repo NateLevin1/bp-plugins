@@ -145,9 +145,6 @@ public class BPBungee extends Plugin implements Listener {
             if(!res.next()) {
                 checkIpForAbuse(event.getConnection());
                 return; // perfectly acceptable since the player might have never logged in
-            } else {
-                // TODO: REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE REMOVE
-                checkIpForAbuse(event.getConnection());
             }
             boolean frozen = res.getBoolean("frozen");
             if(frozen) {
