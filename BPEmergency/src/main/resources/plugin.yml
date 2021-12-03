@@ -1,0 +1,9 @@
+name: BPEmergency
+main: net.bridgepractice.bpemergency.BPEmergency
+version: 1.0
+author: Fozzie1000
+
+commands:
+  emergency:
+    usage: /emergency (enable|disable|kick)
+    description: Staff only command
