@@ -606,7 +606,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         inv.clear();
         player.setFoodLevel(20);
         player.teleport(new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0));
-
+        event.setJoinMessage(null);
         clickableLeaderboards.remove(player.getUniqueId());
 
         for(Player p : playersHidingPlayers) {
@@ -707,23 +707,11 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             player.setFlySpeed(0.07f);
         }
 
-        // spigot is *so dumb*:
-        // join messages just ARENT SENT when using bungeecord
-        // WTF???
-        // like...... WTF????????????
-        // so now we have to use this awful hack.
-        String joinMessage = null;
         if(player.hasPermission("bridgepractice.lobby.announce")) {
             if(player.hasPermission("bridgepractice.lobby.announce.loud")) {
-                joinMessage = " §b>§c>§a> "+player.getCustomName()+" §6joined the lobby! §a<§c<§b<";
+                event.setJoinMessage(" §b>§c>§a> "+player.getCustomName()+" §6joined the lobby! §a<§c<§b<");
             } else {
-                joinMessage = player.getCustomName()+" §6joined the lobby!";
-            }
-        }
-        if(joinMessage != null) {
-            player.sendMessage(joinMessage);
-            for(Player p : player.getWorld().getPlayers()) {
-                p.sendMessage(joinMessage);
+                event.setJoinMessage(player.getCustomName()+" §6joined the lobby!");
             }
         }
 
