@@ -301,6 +301,9 @@ public class BPBungee extends Plugin implements Listener {
         msg = msg.replace(":check:", "§a✔§f");
         msg = msg.replace(":tm:", "§b™§f");
         msg = msg.replace(":cry:", "§9（>﹏<）§f");
+        msg = msg.replace(":why:", "§6(｢•-•)｢ why?§f");
+        msg = msg.replace(":sunglasses:", "§68§e)§f");
+        msg = msg.replace(":sunglasses2:", "§6B§e)§f");
         return msg;
     }
 
