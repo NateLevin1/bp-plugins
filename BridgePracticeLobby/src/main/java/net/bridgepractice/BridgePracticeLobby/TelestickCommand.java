@@ -20,7 +20,7 @@ public class TelestickCommand implements CommandExecutor{
                 // unrod
                 BridgePracticeLobby.instance.setGadget(player, null);
             } else {
-                ItemStack telestick = Utils.makeItem(Material.BLAZE_ROD, "§6Telestick §7(Right Click!)", "§7Click me to §eteleport","§7speed boost for §a3s§7.");
+                ItemStack telestick = Utils.makeItem(Material.BLAZE_ROD, "§6Telestick §7(Right Click!)", "§7Click me to §eteleport");
                 BridgePracticeLobby.instance.setGadget(player, new BridgePracticeLobby.Gadget(current.fourthSlotItem, telestick));
                 player.getInventory().setHeldItemSlot(5);
 

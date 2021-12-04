@@ -7,7 +7,6 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
@@ -33,7 +32,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.weather.WeatherChangeEvent;
@@ -802,8 +800,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         ItemStack leaderboardsSpade = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Teleport to Leaderboards §7(Right Click)", "§7View the leaderboards"));
         ItemStack spawnSpade = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Teleport to Spawn §7(Right Click)", "§7Go back to spawn"));
 
-        if(player.getLocation().getX() > 43 && player.getLocation().getX() < 66
-        && player.getLocation().getZ() > -10 && player.getLocation().getZ() < 9 ) {
+        if(isPlayerInLeaderboards(player)) {
             if (!inv.getItem(8).equals(spawnSpade)) {
                 inv.setItem(8, spawnSpade);
             }
@@ -952,8 +949,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 if (timeSinceSpade > 500) {
                     lastSpade.put(player.getUniqueId(), System.currentTimeMillis());
                     Inventory inven = player.getInventory();
-                    if (player.getLocation().getX() > 43 && player.getLocation().getX() < 66
-                            && player.getLocation().getZ() > -10 && player.getLocation().getZ() < 9) {
+                    if (isPlayerInLeaderboards(player)) {
                         player.teleport(new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0));
                         inven.setItem(8, Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Leaderboards §7(Right Click)", "§7View the leaderboards")));
                     } else {
@@ -1260,5 +1256,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
         event.setCancelled(true);
+    }
+    private boolean isPlayerInLeaderboards(Player player){
+        return player.getLocation().getX() > 43 && player.getLocation().getX() < 66 && player.getLocation().getZ() > -10 && player.getLocation().getZ() < 9;
     }
 }
