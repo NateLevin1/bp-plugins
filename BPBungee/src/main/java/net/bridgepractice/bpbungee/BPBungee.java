@@ -108,6 +108,8 @@ public class BPBungee extends Plugin implements Listener {
             connection = DriverManager.getConnection("jdbc:mysql://"
                             + this.host + ":" + this.port + "/" + this.database + "?characterEncoding=latin1&autoReconnect=true",
                     this.username, this.password);
+
+            CommandQueueChecker.startChecking();
         } catch (SQLException e) {
             e.printStackTrace();
         }
