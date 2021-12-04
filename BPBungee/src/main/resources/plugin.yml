@@ -109,3 +109,8 @@ commands:
 
   rainbow:
     description: Makes your text rainbow! Only available to certain ranked players
+
+  rankinfo:
+    description: Shows you information about your rank
+  rank:
+    description: Shows you information about your rank
