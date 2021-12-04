@@ -16,7 +16,6 @@ public class CookieCommand implements CommandExecutor {
         if(current.fifthSlotItem.getType() == Material.COOKIE) {
             // uncookie
             BridgePracticeLobby.instance.setGadget(player, null);
-            player.setFoodLevel(20);
         } else {
             ItemStack cookieItem = Utils.makeItem(Material.COOKIE, "§aMagical Cookie §7(Eat me!)", "§7Eat to gain speed and","§7jump boost for §a5s§7.");
             BridgePracticeLobby.instance.setGadget(player, new BridgePracticeLobby.Gadget(current.fourthSlotItem, cookieItem));
