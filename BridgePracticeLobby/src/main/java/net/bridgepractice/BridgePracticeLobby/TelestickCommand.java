@@ -20,11 +20,11 @@ public class TelestickCommand implements CommandExecutor{
                 // unrod
                 BridgePracticeLobby.instance.setGadget(player, null);
             } else {
-                ItemStack telestick = Utils.makeItem(Material.BLAZE_ROD, "§6Telestick §7(Right Click!)", "§7Click me to §eteleport");
+                ItemStack telestick = Utils.makeItem(Material.BLAZE_ROD, "§6Telestick §7(Right Click!)", "§7Click to §eteleport", "§7where you're looking!");
                 BridgePracticeLobby.instance.setGadget(player, new BridgePracticeLobby.Gadget(current.fourthSlotItem, telestick));
                 player.getInventory().setHeldItemSlot(5);
 
-                ItemStack wizardBoots = Utils.getUnbreakable(Utils.makeItem(Material.LEATHER_BOOTS, "§6Wizard Boots", "§7Special Boots that brace hard falls", "§7and trails §6teleportation§7 particles"));
+                ItemStack wizardBoots = Utils.getUnbreakable(Utils.makeItem(Material.LEATHER_BOOTS, "§6Wizard Boots", "§eMagical Boots§7 that leave", "§7behind trails of fire!"));
                 LeatherArmorMeta wizardBootMeta = (LeatherArmorMeta) wizardBoots.getItemMeta();
                 wizardBootMeta.setColor(Color.fromRGB(255, 60, 0));
                 wizardBoots.setItemMeta(wizardBootMeta);
