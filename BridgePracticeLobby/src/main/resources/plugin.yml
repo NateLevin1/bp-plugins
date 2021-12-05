@@ -2,7 +2,7 @@ name: BridgePracticeLobby
 version: 1.0
 api-version: 1.8
 main: net.bridgepractice.BridgePracticeLobby.BridgePracticeLobby
-depend: [ProtocolLib]
+depend: [ProtocolLib, LuckPerms]
 
 commands:
   rainbow:
@@ -16,4 +16,9 @@ commands:
   cookie:
     description: Gives you the cookie gadget. Have a bite!
     permission: bridgepractice.command.cookie
+    permission-message: §cYou must have a rank to use this command!
+  announcement:
+    description: Toggle join announcements in chat!
+    permission: bridgepractice.announce
+    usage: <command> [on/off]
     permission-message: §cYou must have a rank to use this command!

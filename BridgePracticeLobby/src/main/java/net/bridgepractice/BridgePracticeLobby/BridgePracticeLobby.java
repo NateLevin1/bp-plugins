@@ -14,6 +14,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import net.luckperms.api.LuckPerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.v1_8_R3.*;
@@ -41,6 +42,7 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.potion.PotionEffect;
@@ -60,6 +62,7 @@ import java.util.*;
 
 public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginMessageListener {
     public static BridgePracticeLobby instance;
+    public static LuckPerms luckperms;
     private final ArrayList<Player> playersHidingPlayers = new ArrayList<>();
     private final HashMap<UUID, Long> lastPlayerVisibilityChanges = new HashMap<>();
     private final HashMap<UUID, Long> lastPlayerHotbarEdits = new HashMap<>();
@@ -94,6 +97,11 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             openConnection();
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+
+        RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+        if (provider != null) {
+            luckperms = provider.getProvider();
         }
 
         // fix time
@@ -235,6 +243,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         getCommand("rainbow").setExecutor(new RainbowCommand());
         getCommand("fw").setExecutor(new FireworkCommand());
         getCommand("cookie").setExecutor(new CookieCommand());
+        getCommand("announcement").setExecutor(new AnnounceConfig());
     }
     @Override
     public void onDisable() {
@@ -707,11 +716,13 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             player.setFlySpeed(0.07f);
         }
 
-        if(player.hasPermission("bridgepractice.lobby.announce")) {
+        if(player.hasPermission("bridgepractice.lobby.announce.show")) {
             if(player.hasPermission("bridgepractice.lobby.announce.loud")) {
                 event.setJoinMessage(" §b>§c>§a> "+player.getCustomName()+" §6joined the lobby! §a<§c<§b<");
+                Bukkit.broadcastMessage(" §b>§c>§a> "+player.getCustomName()+" §6joined the lobby! §a<§c<§b<");
             } else {
                 event.setJoinMessage(player.getCustomName()+" §6joined the lobby!");
+                Bukkit.broadcastMessage(player.getCustomName()+" §6joined the lobby!");
             }
         }
 
