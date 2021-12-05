@@ -242,7 +242,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         getCommand("rainbow").setExecutor(new RainbowCommand());
         getCommand("fw").setExecutor(new FireworkCommand());
         getCommand("cookie").setExecutor(new CookieCommand());
-        getCommand("joinannounce").setExecutor(new AnnounceCommand());
+        getCommand("joinannounce").setExecutor(new JoinAnnounceCommand());
     }
     @Override
     public void onDisable() {
