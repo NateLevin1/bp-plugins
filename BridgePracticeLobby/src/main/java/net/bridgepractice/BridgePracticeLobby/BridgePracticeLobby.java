@@ -33,7 +33,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.weather.WeatherChangeEvent;
@@ -243,7 +242,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         getCommand("rainbow").setExecutor(new RainbowCommand());
         getCommand("fw").setExecutor(new FireworkCommand());
         getCommand("cookie").setExecutor(new CookieCommand());
-        getCommand("announcement").setExecutor(new AnnounceConfig());
+        getCommand("joinannounce").setExecutor(new AnnounceCommand());
     }
     @Override
     public void onDisable() {
