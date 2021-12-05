@@ -31,10 +31,22 @@ public class Lobby extends Command {
             } else {
                 p.connect(ProxyServer.getInstance().getServerInfo("lobby"));
             }
+        } else if (args[0] == null) {
+            if(p.getServer().getInfo().getName().equals("singleplayer")) {
+                ByteArrayDataOutput out = ByteStreams.newDataOutput();
+                out.writeUTF("Commands"); // the channel could be whatever you want
+                out.writeUTF("lobby"); // this data could be whatever you want
+                out.writeUTF(p.getUniqueId().toString());
+
+                p.getServer().getInfo().sendData("bp:messages", out.toByteArray());
+            } else {
+                p.connect(ProxyServer.getInstance().getServerInfo("lobby"));
+            }
         } else {
             String lobbyName = args[0];
             String serverName;
             switch(lobbyName) {
+                case "":
                 case "hub":
                     serverName = "lobby";
                     break;
