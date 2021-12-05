@@ -18,7 +18,11 @@ commands:
     permission: bridgepractice.command.cookie
     permission-message: §cYou must have a rank to use this command!
   joinannounce:
-    description: Toggle join announcements in chat!
+    description: Toggle join announcements in chat
     permission: bridgepractice.announce
-    usage: <command> [on/off]
+    permission-message: §cYou must have a rank to use this command!
+    usage: /<command> [on|off]
+  telestick:
+    description: Get a stick that makes you teleport!
+    permission: bridgepractice.command.telestick
     permission-message: §cYou must have a rank to use this command!
