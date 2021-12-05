@@ -2,7 +2,7 @@ name: BridgePracticeLobby
 version: 1.0
 api-version: 1.8
 main: net.bridgepractice.BridgePracticeLobby.BridgePracticeLobby
-depend: [ProtocolLib]
+depend: [ProtocolLib, LuckPerms]
 
 commands:
   rainbow:
@@ -17,6 +17,11 @@ commands:
     description: Gives you the cookie gadget. Have a bite!
     permission: bridgepractice.command.cookie
     permission-message: §cYou must have a rank to use this command!
+  joinannounce:
+    description: Toggle join announcements in chat
+    permission: bridgepractice.announce
+    permission-message: §cYou must have a rank to use this command!
+    usage: /<command> [on|off]
   telestick:
     description: Get a stick that makes you teleport!
     permission: bridgepractice.command.telestick
