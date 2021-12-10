@@ -114,3 +114,6 @@ commands:
     description: Shows you information about your rank
   rank:
     description: Shows you information about your rank
+
+  changetag:
+    description: Change your [CUSTOM] tag

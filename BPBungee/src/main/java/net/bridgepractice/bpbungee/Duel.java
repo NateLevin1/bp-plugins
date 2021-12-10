@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class Duel extends Command {
     public static Duel instance;
     public Duel() {
-        super("Duel");
+        super("Duel", null, "d");
         instance = this;
     }
 
