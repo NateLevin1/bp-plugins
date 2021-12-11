@@ -258,13 +258,14 @@ public class BPBungee extends Plugin implements Listener {
             }, 0, TimeUnit.MILLISECONDS);
             event.setCancelled(true);
             return;
-        } else if(event.getMessage().replaceAll("(https?://)?bridgepractice\\.net", "").matches(".*(http|[\\w(\\[{#^'\".,|]+[.,][a-zA-Z]+(\\W|$)).*")) {
+        } else if(event.getMessage().replaceAll("(https?://)?bridgepractice\\.net", "").matches(".*(http|[\\w(\\[{#^'\".,|]+[.,][a-zA-Z]+(\\W|$)|gg/.+).*")) {
             player.sendMessage(new ComponentBuilder()
                     .append(new ComponentBuilder("---------------------------------------").color(ChatColor.GOLD).strikethrough(true).create())
                     .append(new ComponentBuilder("\nAdvertising is against the rules. You will be\npermanently banned from the server if you\nattempt to advertise.\n").color(ChatColor.RED).strikethrough(false).create())
                     .append(new ComponentBuilder("---------------------------------------").color(ChatColor.GOLD).strikethrough(true).create())
                     .create());
             event.setCancelled(true);
+            Utils.log("§e"+player.getName()+" §3attempted to §aadvertise§3: §f"+event.getMessage());
             return;
         }
 
@@ -415,7 +416,7 @@ public class BPBungee extends Plugin implements Listener {
                     String reporterName = in.readUTF();
                     String reportedName = in.readUTF();
                     String reason = in.readUTF();
-                    Utils.broadcastToPermission("group.helper", new ComponentBuilder("[REPORT] ").color(ChatColor.RED)
+                    Utils.log(new ComponentBuilder("[REPORT] ").color(ChatColor.RED)
                             .append(new ComponentBuilder(reporterName).color(ChatColor.GOLD).create())
                             .append(new ComponentBuilder(" reported ").color(ChatColor.RED).create())
                             .append(new ComponentBuilder(reportedName).color(ChatColor.YELLOW).create())
@@ -429,9 +430,9 @@ public class BPBungee extends Plugin implements Listener {
                     String reportedName = in.readUTF();
                     String reason = in.readUTF();
                     String messages = in.readUTF();
-                    Utils.broadcastToPermission("group.helper", new ComponentBuilder("[REPORT] ").color(ChatColor.RED)
+                    Utils.log(new ComponentBuilder("[REPORT] ").color(ChatColor.RED)
                             .append(new ComponentBuilder(reporterName).color(ChatColor.GOLD).create())
-                            .append(new ComponentBuilder(" reported ").color(ChatColor.RED).create())
+                            .append(new ComponentBuilder(" chat reported ").color(ChatColor.RED).create())
                             .append(new ComponentBuilder(reportedName).color(ChatColor.YELLOW).create())
                             .append(new ComponentBuilder(" for ").color(ChatColor.RED).create())
                             .append(new ComponentBuilder(reason).color(ChatColor.YELLOW).create())
@@ -462,7 +463,7 @@ public class BPBungee extends Plugin implements Listener {
             if(responseCode < 200 || responseCode >= 300) {
                 try(BufferedReader response = new BufferedReader(new InputStreamReader(req.getErrorStream()))) {
                     String errno = response.readLine();
-                    Utils.broadcastToPermission("group.helper", new ComponentBuilder("[IPCheck]").color(ChatColor.DARK_RED).append(new ComponentBuilder(" Error checking IP for abuse: " + responseCode + " " + req.getResponseMessage() + " " + errno).color(ChatColor.RED).create()).create());
+                    Utils.log(new ComponentBuilder("[IPCheck]").color(ChatColor.DARK_RED).append(new ComponentBuilder(" Error checking IP for abuse: " + responseCode + " " + req.getResponseMessage() + " " + errno).color(ChatColor.RED).create()).create());
                     getLogger().severe("Error checking IP for abuse: " + responseCode + " " + req.getResponseMessage() + " Error number=" + errno);
                 }
                 return;
@@ -485,7 +486,7 @@ public class BPBungee extends Plugin implements Listener {
                             .append("https://bridgepractice.net/discord").color(ChatColor.AQUA).underlined(true)
                             .create());
                 } else if(res >= 0.9) {
-                    Utils.broadcastToPermission("group.helper", new ComponentBuilder("[IPCheck]").color(ChatColor.DARK_RED).append(new ComponentBuilder("Player ").color(ChatColor.RED).create()).append(new ComponentBuilder(playerName).color(ChatColor.YELLOW).create()).append(new ComponentBuilder(" has a suspicious IP ("+((res-0.9)*1000)+"%)").color(ChatColor.RED).create()).create());
+                    Utils.log(new ComponentBuilder("[IPCheck]").color(ChatColor.DARK_RED).append(new ComponentBuilder("Player ").color(ChatColor.RED).create()).append(new ComponentBuilder(playerName).color(ChatColor.YELLOW).create()).append(new ComponentBuilder(" has a suspicious IP ("+((res-0.9)*1000)+"%)").color(ChatColor.RED).create()).create());
                 }
             }
         } catch (IOException e) {

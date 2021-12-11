@@ -150,4 +150,14 @@ public class Utils {
                 .append(new ComponentBuilder("\nThen accept the rules, go to #support, and click the \"Support\" button.").underlined(false).color(ChatColor.GOLD).create())
                 .create();
     }
+
+    public static void log(BaseComponent[] components, String permission) {
+        broadcastToPermission(permission, new ComponentBuilder("|||").color(ChatColor.DARK_AQUA).obfuscated(true).append(" ").obfuscated(false).appendLegacy("§3[§bB§cP§3] ").append(components).create());
+    }
+    public static void log(String message) {
+        log(new ComponentBuilder().appendLegacy(message).create(), "bridgepractice.moderation.chat");
+    }
+    public static void log(BaseComponent[] components) {
+        log(components, "bridgepractice.moderation.chat");
+    }
 }
