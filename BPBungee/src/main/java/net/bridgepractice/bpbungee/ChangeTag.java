@@ -10,6 +10,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
 public class ChangeTag extends Command {
@@ -25,11 +26,11 @@ public class ChangeTag extends Command {
                 statement.setString(1, player.getUniqueId().toString()); // uuid, set to player uuid
                 ResultSet res = statement.executeQuery();
                 if(!res.next()) {
-                    player.sendMessage(new ComponentBuilder("Something went wrong.").color(ChatColor.RED).create());
+                    player.sendMessage(new ComponentBuilder("Something went wrong. (You have permission to change your tag but you don't have a rank)").color(ChatColor.RED).create());
                     return;
                 }
                 Date editedAt = res.getDate("editedAt");
-                if(!res.wasNull() && ChronoUnit.DAYS.between(editedAt.toInstant(), new Date(System.currentTimeMillis()).toInstant()) < 7) {
+                if(!res.wasNull() && ChronoUnit.DAYS.between(editedAt.toLocalDate(), LocalDate.now()) < 7) {
                     player.sendMessage(new ComponentBuilder("You must wait 7 days between changing your tag!").color(ChatColor.RED).create());
                     return;
                 }
@@ -57,9 +58,10 @@ public class ChangeTag extends Command {
                     player.sendMessage(new ComponentBuilder("----------------------------------------").color(ChatColor.AQUA).strikethrough(true).create());
                     player.sendMessage(new ComponentBuilder("^^ You need to provide a color to change your tag with! Choose one from the list above").color(ChatColor.GREEN).bold(true).create());
                 } else {
-                    String colorChar = colorNameToNumber(args[2]);
+                    String color = args[1];
+                    String colorChar = colorNameToNumber(color);
                     if(colorChar == null) {
-                        player.sendMessage(new ComponentBuilder("Unknown color '"+args[2]+"'").color(ChatColor.RED).create());
+                        player.sendMessage(new ComponentBuilder("Unknown color '"+color+"'").color(ChatColor.RED).create());
                         return;
                     }
                     try(PreparedStatement updateTag = BPBungee.connection.prepareStatement("UPDATE rankedPlayers SET tag = ?, color = ?, editedAt = CURDATE(), approved = 0 WHERE uuid = ?;")) {
@@ -67,14 +69,18 @@ public class ChangeTag extends Command {
                         updateTag.setString(2, colorChar);
                         updateTag.setString(3, player.getUniqueId().toString());
                         updateTag.executeUpdate();
-                        player.sendMessage(new ComponentBuilder("\n\nWoohoo!").color(ChatColor.GREEN).bold(true).append(" Your new custom tag, ["+newTag+"], is awaiting approval from our moderators!").create());
 
-                        // TODO: IPC to discord bot to send a message for accepting
+                        try(PreparedStatement sendAcceptTagButton = BPBungee.connection.prepareStatement("INSERT INTO commandQueue (target, type, content) VALUES ('webserver', 'ctag', ?);")) {
+                            sendAcceptTagButton.setString(1, player.getName()+"|"+player.getUniqueId().toString()+"|"+newTag+"|"+color);
+                            sendAcceptTagButton.executeUpdate();
+
+                            player.sendMessage(new ComponentBuilder("\n\nWoohoo!").color(ChatColor.GREEN).bold(true).append(" Your new custom tag, ["+newTag+"], is awaiting approval from our moderators!").create());
+                        }
                     }
                 }
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
-                player.sendMessage(new ComponentBuilder("Something went wrong.").color(ChatColor.RED).create());
+                player.sendMessage(new ComponentBuilder("An SQL error occurred while attempting to run this command.").color(ChatColor.RED).create());
             }
         });
     }
