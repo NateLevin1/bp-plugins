@@ -97,7 +97,7 @@ public class Ban extends Command {
         }
 
         if(playerIp != null) {
-            try(PreparedStatement statement = BPBungee.connection.prepareStatement("INSERT INTO bannedIps (ip, uuid) VALUES (?, ?);")) {
+            try(PreparedStatement statement = BPBungee.connection.prepareStatement("REPLACE INTO bannedIps (ip, uuid) VALUES (?, ?);")) {
                 statement.setString(1, playerIp);
                 statement.setString(2, playerUuid); // uuid, set to player uuid
                 statement.executeUpdate();
