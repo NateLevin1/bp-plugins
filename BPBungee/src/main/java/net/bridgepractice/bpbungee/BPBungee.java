@@ -222,7 +222,7 @@ public class BPBungee extends Plugin implements Listener {
             playerSessionLogOnTime.remove(uuid);
         }
     }
-    String[] blockedCommandsIfMuted = {"msg", "r", "w", "message", "reply"};
+    List<String> blockedCommandsIfMuted = Arrays.asList("msg", "r", "w", "message", "reply", "rainbow");
     List<String> blockedCommands = Arrays.asList("/worldedit:/calc", "/worldedit:/calculate", "/worldedit:/eval", "/worldedit:/evaluate", "/worldedit:/solve");
     @EventHandler
     public void onPlayerChat(ChatEvent event) {
@@ -242,38 +242,42 @@ public class BPBungee extends Plugin implements Listener {
             event.setMessage(addEmojisToMessage(event.getMessage()));
         }
 
-        if(event.getMessage().replaceAll(/* remove jokes */"(?:1\\.){3}1|(?:(?:69|420)\\.){3}(?:69|420)", "").matches(".*(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\s*[.,|!\\s]\\s*|$)){4}).*")) {
-            // INSTANTLY BAN IF SEND AN IP ADDRESS
-            BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
-                Ban.applyBan(player.getName(), 30, "Doxxing/Attempt to dox", player.getUniqueId().toString(), null);
-                Utils.sendPunishmentWebhook("automatically banned", "Doxxing/Attempt to dox\n> " + event.getMessage() + "", 30, "Server", "SERVER", player.getName(), null);
-            }, 0, TimeUnit.MILLISECONDS);
-            event.setCancelled(true);
-            return;
-        } else if(event.getMessage().matches(".* >[\\w\\d]{4,11}<")) {
-            // liquidbounce always follows this format
-            BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
-                Ban.applyBan(player.getName(), 7, "Chat Abuse/Scam", player.getUniqueId().toString(), null);
-                Utils.sendPunishmentWebhook("automatically banned", "Chat Abuse/Scam\n> " + event.getMessage() + "", 7, "Server", "SERVER", player.getName(), null);
-            }, 0, TimeUnit.MILLISECONDS);
-            event.setCancelled(true);
-            return;
-        } else if(event.getMessage().replaceAll("(https?://)?bridgepractice\\.net", "").matches(".*(http|[\\w(\\[{#^'\".,|]+[.,][a-zA-Z]+(\\W|$)|gg/.+).*")) {
-            player.sendMessage(new ComponentBuilder()
-                    .append(new ComponentBuilder("---------------------------------------").color(ChatColor.GOLD).strikethrough(true).create())
-                    .append(new ComponentBuilder("\nAdvertising is against the rules. You will be\npermanently banned from the server if you\nattempt to advertise.\n").color(ChatColor.RED).strikethrough(false).create())
-                    .append(new ComponentBuilder("---------------------------------------").color(ChatColor.GOLD).strikethrough(true).create())
-                    .create());
-            event.setCancelled(true);
-            Utils.log("§e"+player.getName()+" §3attempted to §aadvertise§3: §f"+event.getMessage());
-            return;
+        boolean isMessageToOthers = !event.isCommand() || blockedCommandsIfMuted.contains(event.getMessage().split(" ")[0].substring(1));
+
+        if(isMessageToOthers) {
+            if(event.getMessage().replaceAll(/* remove jokes */"(?:1\\.){3}1|(?:(?:69|420)\\.){3}(?:69|420)", "").matches(".*(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\s*[.,|!\\s]\\s*|$)){4}).*")) {
+                // INSTANTLY BAN IF SEND AN IP ADDRESS
+                BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
+                    Ban.applyBan(player.getName(), 30, "Doxxing/Attempt to dox", player.getUniqueId().toString(), null);
+                    Utils.sendPunishmentWebhook("automatically banned", "Doxxing/Attempt to dox\n> " + event.getMessage() + "", 30, "Server", "SERVER", player.getName(), null);
+                }, 0, TimeUnit.MILLISECONDS);
+                event.setCancelled(true);
+                return;
+            } else if(event.getMessage().matches(".* >[\\w\\d]{4,11}<")) {
+                // liquidbounce always follows this format
+                BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
+                    Ban.applyBan(player.getName(), 7, "Chat Abuse/Scam", player.getUniqueId().toString(), null);
+                    Utils.sendPunishmentWebhook("automatically banned", "Chat Abuse/Scam\n> " + event.getMessage() + "", 7, "Server", "SERVER", player.getName(), null);
+                }, 0, TimeUnit.MILLISECONDS);
+                event.setCancelled(true);
+                return;
+            } else if(event.getMessage().replaceAll("(https?://)?bridgepractice\\.net", "").matches(".*(http|[\\w(\\[{#^'\".,|]+[.,][a-zA-Z]+(\\W|$)|gg/.+).*")) {
+                player.sendMessage(new ComponentBuilder()
+                        .append(new ComponentBuilder("---------------------------------------").color(ChatColor.GOLD).strikethrough(true).create())
+                        .append(new ComponentBuilder("\nAdvertising is against the rules. You will be\npermanently banned from the server if you\nattempt to advertise.\n").color(ChatColor.RED).strikethrough(false).create())
+                        .append(new ComponentBuilder("---------------------------------------").color(ChatColor.GOLD).strikethrough(true).create())
+                        .create());
+                event.setCancelled(true);
+                Utils.log("§e"+player.getName()+" §3attempted to §aadvertise§3: §f"+event.getMessage());
+                return;
+            }
         }
 
         // if player is muted
         boolean isMuted = mutedPlayers.containsKey(player.getUniqueId());
         if(isMuted) {
             // if is command and is not a command in the blocked list
-            if(event.isCommand() && !Arrays.asList(blockedCommandsIfMuted).contains(event.getMessage().split(" ")[0].substring(1))) {
+            if(event.isCommand() && !blockedCommandsIfMuted.contains(event.getMessage().split(" ")[0].substring(1))) {
                 return;
             }
             event.setCancelled(true);
