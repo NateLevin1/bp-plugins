@@ -760,7 +760,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                     if(!res.next()) {
                         return; // perfectly valid, they have no messages!
                     }
-                    String text = res.getString("text");
+                    String text = res.getString("text").replaceAll("\\[([^]]+)]\\((http[^)]+)\\)", "§3$1 §0(§1§n$2§0)");
                     int messageId = res.getInt("messageId");
 
                     // open a book
@@ -773,7 +773,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                             BookMeta meta = ((BookMeta) book.getItemMeta());
                             meta.setDisplayName("§aYou have a message!");
                             meta.setTitle("§aYou have a message!");
-                            meta.setPages(text);
+                            meta.setPages(text.split("\\[!NEWPAGE!]"));
                             book.setItemMeta(meta);
 
                             ItemStack previousItemInHand = player.getInventory().getItemInHand();
