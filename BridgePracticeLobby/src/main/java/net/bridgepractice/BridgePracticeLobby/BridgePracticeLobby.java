@@ -746,10 +746,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         if(player.hasPermission("bridgepractice.lobby.announce.show")) {
             if(player.hasPermission("bridgepractice.lobby.announce.loud")) {
                 event.setJoinMessage(" §b>§c>§a> "+player.getCustomName()+" §6joined the lobby! §a<§c<§b<");
-                Bukkit.broadcastMessage(" §b>§c>§a> "+player.getCustomName()+" §6joined the lobby! §a<§c<§b<");
             } else {
                 event.setJoinMessage(player.getCustomName()+" §6joined the lobby!");
-                Bukkit.broadcastMessage(player.getCustomName()+" §6joined the lobby!");
             }
         }
 
