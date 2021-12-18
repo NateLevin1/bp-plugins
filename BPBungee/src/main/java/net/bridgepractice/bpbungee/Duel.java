@@ -63,8 +63,7 @@ public class Duel extends Command {
                     }
                 }
                 sender.sendMessage(new ComponentBuilder().append(divider).append(new ComponentBuilder("\nYou haven't been invited to a Duel, or the invitation has expired!").color(ChatColor.RED).create()).append(divider).create());
-                return;
-            } else if(args[0].equals("cycle")) {
+            } else if(args[0].equals("cycle")) {//TODO: Disallow cycling if map is set
                 if(args.length <= 2) {
                     sender.sendMessage(new ComponentBuilder("You must provide a game type for this command!").bold(true).color(ChatColor.RED).append(new ComponentBuilder("\nAvailable Games:").color(ChatColor.AQUA).bold(false).create()).append(new ComponentBuilder("\n - Bridge").color(ChatColor.YELLOW).bold(false).create()).append(new ComponentBuilder("\n - PvP_Duel").color(ChatColor.YELLOW).bold(false).create()).create());
                     return;
@@ -114,13 +113,20 @@ public class Duel extends Command {
                     removeFromRequests(request);
                     sender.sendMessage(new ComponentBuilder().append(divider).append(new ComponentBuilder("\nYou have already used all of your cycles!").color(ChatColor.RED).create()).append(divider).create());
                 }
-                return;
+            } else {
+                String playerName = args[0];
+                String gameMode = args[1];
+                String mapName = args.length > 2 ? args[2] : null;
+                if (mapName != null && !sender.hasPermission("group.admin")){
+                    sender.sendMessage(new ComponentBuilder("Error: You do not have permission to set the map.").color(ChatColor.RED).create());
+                    return;
+                }
+                sendDuelRequest(sender, playerName, gameMode, mapName);
             }
-            sendDuelRequest(sender, args[0], args[1]);
         }
     }
 
-    public static void sendDuelRequest(CommandSender sender, String playerName, String gameType) {
+    public static void sendDuelRequest(CommandSender sender, String playerName, String gameType, String mapName) {
         ProxiedPlayer playerToDuel = BPBungee.instance.getProxy().getPlayer(playerName);
         if(playerToDuel == null) {
             sender.sendMessage(new ComponentBuilder().append(divider).append(new ComponentBuilder("\nThere is no player named '" + playerName + "' online!").color(ChatColor.RED).append(divider).create()).create());
@@ -136,13 +142,13 @@ public class Duel extends Command {
             case "bridge":
             case "bridge_duel":
             case "duel": {
-                requestDuelOfPlayer(((ProxiedPlayer) sender), playerToDuel, "unranked", "Bridge Duel");
+                requestDuelOfPlayer(((ProxiedPlayer) sender), playerToDuel, "unranked", "Bridge Duel", mapName);
                 break;
             }
             case "pvpduel":
             case "pvp_duel":
             case "pvp": {
-                requestDuelOfPlayer(((ProxiedPlayer) sender), playerToDuel, "pvp", "PvP Duel");
+                requestDuelOfPlayer(((ProxiedPlayer) sender), playerToDuel, "pvp", "PvP Duel", mapName);
                 break;
             }
             default:
@@ -159,6 +165,7 @@ public class Duel extends Command {
         String gameMode;
         private int cycles = 5;
         boolean accepted = false;
+        String map;
         public DuelRequest(ProxiedPlayer requester, ProxiedPlayer playerToDuel, String gameMode) {
             this.requester = requester;
             this.playerToDuel = playerToDuel;
@@ -190,7 +197,7 @@ public class Duel extends Command {
         }, 15, TimeUnit.SECONDS);
     }
 
-    public static void requestDuelOfPlayer(ProxiedPlayer requester, ProxiedPlayer playerToDuel, String gameMode, String prettyGameName) {
+    public static void requestDuelOfPlayer(ProxiedPlayer requester, ProxiedPlayer playerToDuel, String gameMode, String prettyGameName, String mapName) {
         if(duelRequests.get(playerToDuel.getName()) != null) {
             for(DuelRequest duelRequest : duelRequests.get(playerToDuel.getName())) {
                 if(duelRequest.requester == requester) {
@@ -215,13 +222,18 @@ public class Duel extends Command {
                 }
             }
         }
+        String tempMapName = null;
+        if (mapName != null) {tempMapName = " on " + mapName.substring(0, 1).toUpperCase() + mapName.substring(1);}
 
         // we can assume requester and playerToDuel are both online
         requester.sendMessage(new ComponentBuilder()
                 .append(divider)
                 .append(new ComponentBuilder("\nYou invited ").color(ChatColor.YELLOW).create())
                 .append(new ComponentBuilder(playerToDuel.getName()).color(ChatColor.GREEN).create())
-                .append(new ComponentBuilder(" to a " + prettyGameName + "! They have 60 seconds to accept.\n").color(ChatColor.YELLOW).create())
+                .append(new ComponentBuilder(" to a " + prettyGameName).color(ChatColor.YELLOW).create())
+                .append(new ComponentBuilder(tempMapName).color(ChatColor.GREEN).create())
+                .append(new ComponentBuilder("!").color(ChatColor.YELLOW).create())
+                .append(new ComponentBuilder(" They have 60 seconds to accept.\n").color(ChatColor.YELLOW).create())
                 .append(divider)
                 .create());
 
@@ -232,12 +244,17 @@ public class Duel extends Command {
                 .append(divider)
                 .append(new ComponentBuilder("\n        ").create())
                 .append(new ComponentBuilder(requester.getName()).color(ChatColor.GREEN).create())
-                .append(new ComponentBuilder(" has invited you to a " + prettyGameName + "!").color(ChatColor.AQUA).create())
-                .append(new ComponentBuilder("\n    CLICK HERE").event(hover).event(click).color(ChatColor.GOLD).bold(true).append(new ComponentBuilder(" to accept! You have 60 seconds to accept.").color(ChatColor.YELLOW).bold(false).event(hover).event(click).create()).create())
+                .append(new ComponentBuilder(" has invited you to a " + prettyGameName).color(ChatColor.AQUA).create())
+                .append(new ComponentBuilder(tempMapName).color(ChatColor.GREEN).create())
+                .append(new ComponentBuilder("!").color(ChatColor.AQUA).create())
+                .append(new ComponentBuilder("\n    CLICK HERE").event(hover).event(click).color(ChatColor.GOLD).bold(true).append(new ComponentBuilder(" to accept! You have 60 seconds to accept.").color(ChatColor.YELLOW).bold(false).event(hover).event(click).create()).create()).append("\n")
                 .append(divider.clone()).event((ClickEvent) null).event((HoverEvent) null)
                 .create());
 
         DuelRequest request = new DuelRequest(requester, playerToDuel, gameMode);
+        if(mapName != null) {
+            request.map = mapName;
+        }
         duelRequests.computeIfAbsent(playerToDuel.getName(), (ignored) -> new ArrayList<>());
         duelRequests.get(playerToDuel.getName()).add(request);
         BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
@@ -253,9 +270,11 @@ public class Duel extends Command {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("StartPrivateGame");
         out.writeUTF(request.gameMode);
+        out.writeUTF(request.map == null ? "" : request.map);
         out.writeInt(2); // num of players, only ever 2 for now
         out.writeUTF(request.playerToDuel.getName());
         out.writeUTF(request.requester.getName());
+
         if(multiplayerServer.getPlayers().size() == 0) {
             // if there are no players online we need to connect them so we can send a message
             request.playerToDuel.connect(ProxyServer.getInstance().getServerInfo("multiplayer_1"));

@@ -127,6 +127,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         void run(World world);
     }
     public void loadWorld(String worldName, WorldCallback callback) {
+
         (new BukkitRunnable() {
             @Override
             public void run() {
@@ -589,7 +590,8 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
     private final String[] mapNames = {"aquatica", "atlantis", "boo", "cheesy", "chronon", "condo", "dojo", "flora", "fortress", "galaxy", "hyperfrost", "licorice", "lighthouse", "sorcery", "stumped", "sunstone", "treehouse", "tundra", "twilight", "urban"};
     private final String[] pvpMapNames = {"developedatlantis", "developedgalaxy", "developedsorcery", "developedstumped"};
     private String getRandomUnrankedMap() {
-        return mapNames[ThreadLocalRandom.current().nextInt(mapNames.length)];
+        return "crystal";
+        //return mapNames[ThreadLocalRandom.current().nextInt(mapNames.length)];
     }
     private String getRandomPvpMap() {
         return pvpMapNames[ThreadLocalRandom.current().nextInt(pvpMapNames.length)];

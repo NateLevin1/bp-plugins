@@ -48,6 +48,9 @@ public class Maps {
                 return Utils.getMapSpawnLoc(world, 31, 98, true);
             case "urban":
                 return Utils.getMapSpawnLoc(world, 30, 96, true);
+            case "crystal":
+                return Utils.getMapSpawnLoc(world, 41, 98, true);
+
         }
         return new Location(world, 37.5, 105, 0.5, 90, 0);
     }
@@ -95,6 +98,8 @@ public class Maps {
                 return Utils.getMapSpawnLoc(world, -31, 98, false);
             case "urban":
                 return Utils.getMapSpawnLoc(world, -30, 96, false);
+            case "crystal":
+                return Utils.getMapSpawnLoc(world, -41, 98, false);
         }
         return new Location(world, -36.5, 105, 0.5, -90, 0);
     }
@@ -132,6 +137,7 @@ public class Maps {
                 return 106-5;
             case "urban":
                 return 101-5;
+
         }
         return 99;
     }

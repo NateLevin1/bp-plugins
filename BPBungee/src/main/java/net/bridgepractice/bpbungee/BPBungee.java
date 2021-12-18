@@ -413,7 +413,7 @@ public class BPBungee extends Plugin implements Listener {
                     ProxiedPlayer requester = ((ProxiedPlayer) event.getReceiver());
                     String playerToDuelName = in.readUTF();
                     String gameType = in.readUTF();
-                    Duel.sendDuelRequest(requester, playerToDuelName, gameType);
+                    Duel.sendDuelRequest(requester, playerToDuelName, gameType, null);
                     break;
                 }
                 case "NewBPReport": {
