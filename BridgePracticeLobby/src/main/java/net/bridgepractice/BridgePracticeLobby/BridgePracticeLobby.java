@@ -25,6 +25,7 @@ import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -40,6 +41,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -52,6 +54,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
+import java.awt.print.Book;
 import java.io.*;
 import java.math.RoundingMode;
 import java.sql.*;
@@ -750,6 +753,50 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             }
         }
 
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                try(PreparedStatement statement = connection.prepareStatement("SELECT text, messageId FROM playerMessages WHERE forUuid = ?;")) {
+                    statement.setString(1, player.getUniqueId().toString()); // uuid
+                    ResultSet res = statement.executeQuery();
+                    if(!res.next()) {
+                        return; // perfectly valid, they have no messages!
+                    }
+                    String text = res.getString("text");
+                    int messageId = res.getInt("messageId");
+
+                    // open a book
+                    (new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            player.sendMessage("§aYou have a message!");
+
+                            ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
+                            BookMeta meta = ((BookMeta) book.getItemMeta());
+                            meta.setDisplayName("§aYou have a message!");
+                            meta.setTitle("§aYou have a message!");
+                            meta.setPages(text);
+                            book.setItemMeta(meta);
+
+                            ItemStack previousItemInHand = player.getInventory().getItemInHand();
+                            player.getInventory().setItemInHand(book);
+
+                            ((CraftPlayer) player).getHandle().openBook(CraftItemStack.asNMSCopy(book));
+
+                            player.getInventory().setItemInHand(previousItemInHand);
+                        }
+                    }).runTaskLater(instance, 10);
+
+                    try(PreparedStatement removeStatement = connection.prepareStatement("DELETE FROM playerMessages WHERE messageId = ?;")) {
+                        removeStatement.setInt(1, messageId); // uuid, set to player uuid
+                        removeStatement.executeUpdate();
+                    }
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                    player.sendMessage("§c§lUh oh!§r§c Something went wrong fetching your information from our database. Please open a ticket on the discord!");
+                }
+            }
+        }).runTaskAsynchronously(this);
     }
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
