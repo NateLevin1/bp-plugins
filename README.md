@@ -8,11 +8,6 @@ Please write clear, meaningful commits!
 # go to the right directory
 cd C:\Path\To\bp-plugins
 
-# create a new branch
-git branch some-name-to-describe-the-changes-in-the-pr
-# switch to that branch
-git checkout my-branch
-
 # Now, go to your editor and make some changes!
 
 # If you added new files you will need to run:
@@ -25,6 +20,10 @@ git add .
 git commit -am "BPBridge: Fix issue with xp not adding" # Make sure the string is descriptive!
 git commit -am "BridgePracticeClub: Fix NPE" # Make sure the string is descriptive!
 git commit -am "BridgePracticeLobby: Add cookie gadget" # Make sure the string is descriptive!
+# create a new branch
+git branch some-name-to-describe-the-changes-in-the-pr
+# switch to that branch
+git checkout my-branch
 # send off to github
 git push
 # if that gives you an error message, try this first
