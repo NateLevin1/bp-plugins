@@ -68,6 +68,7 @@ public class BPBungee extends Plugin implements Listener {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Unmutechat());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new RankInfo());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new ChangeTag());
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Store());
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("bp:messages");
 
