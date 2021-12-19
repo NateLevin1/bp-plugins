@@ -54,7 +54,6 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
-import java.awt.print.Book;
 import java.io.*;
 import java.math.RoundingMode;
 import java.sql.*;
@@ -1130,8 +1129,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 break;
 
             case BLAZE_ROD:
-
-                if (System.currentTimeMillis() - lastTele.getOrDefault(player.getUniqueId(), 0L) > 500) {
+                long timeSinceTele = System.currentTimeMillis() - lastTele.getOrDefault(player.getUniqueId(), 0L);
+                if (timeSinceTele > 400) {
                     lastTele.put(player.getUniqueId(), System.currentTimeMillis());
 
                     double blockTeleDistance = 8d;
@@ -1178,9 +1177,11 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                     raycastPoint.setX(raycastPoint.getBlock().getLocation().getX() + 0.5);
                     raycastPoint.setZ(raycastPoint.getBlock().getLocation().getZ() + 0.5);
                     player.teleport(raycastPoint);
-
+                    player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1, 1);
                 } else {
-                    player.sendMessage("§cYou're clicking to fast!");
+                    if(timeSinceTele > 20) {
+                        player.sendMessage("§cYou're clicking to fast!");
+                    }
                 }
                 break;
         }
