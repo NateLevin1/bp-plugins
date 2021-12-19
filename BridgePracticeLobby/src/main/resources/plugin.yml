@@ -19,7 +19,7 @@ commands:
     permission-message: §cYou must have a rank to use this command!
   joinannounce:
     description: Toggle join announcements in chat
-    permission: bridgepractice.announce
+    permission: bridgepractice.lobby.announce
     permission-message: §cYou must have a rank to use this command!
     usage: /<command> [on|off]
   telestick:
