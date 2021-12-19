@@ -590,8 +590,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
     private final String[] mapNames = {"aquatica", "atlantis", "boo", "cheesy", "chronon", "condo", "dojo", "flora", "fortress", "galaxy", "hyperfrost", "licorice", "lighthouse", "sorcery", "stumped", "sunstone", "treehouse", "tundra", "twilight", "urban"};
     private final String[] pvpMapNames = {"developedatlantis", "developedgalaxy", "developedsorcery", "developedstumped"};
     private String getRandomUnrankedMap() {
-        return "crystal";
-        //return mapNames[ThreadLocalRandom.current().nextInt(mapNames.length)];
+        return mapNames[ThreadLocalRandom.current().nextInt(mapNames.length)];
     }
     private String getRandomPvpMap() {
         return pvpMapNames[ThreadLocalRandom.current().nextInt(pvpMapNames.length)];
@@ -706,13 +705,16 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                 }
                 case "StartPrivateGame": {
                     String gameType = in.readUTF();
+                    String serverMap = in.readUTF();
                     int players = in.readInt();
                     String[] playerNames = new String[players];
                     for(int i = 0; i < playerNames.length; i++) {
                         playerNames[i] = in.readUTF();
                     }
                     String map;
-                    if(gameType.equals("unranked")) {
+                    if(serverMap.length() > 0) {
+                        map = serverMap;
+                    } else if(gameType.equals("unranked")) {
                         map = getRandomUnrankedMap();
                     } else if(gameType.equals("pvp")) {
                         map = getRandomPvpMap();
