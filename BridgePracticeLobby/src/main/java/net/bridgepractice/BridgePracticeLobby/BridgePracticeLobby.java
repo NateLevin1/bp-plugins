@@ -1172,6 +1172,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                         }
                     }//block checking for loop
 
+                    if(raycastPoint == null) return;
+
                     //loop broken or gone 5 blocks
                     raycastPoint.setY(raycastPoint.getBlock().getLocation().getY() + 0.5);
                     raycastPoint.setX(raycastPoint.getBlock().getLocation().getX() + 0.5);
