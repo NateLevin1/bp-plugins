@@ -77,6 +77,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     private final HashMap<UUID, Leaderboard[]> clickableLeaderboards = new HashMap<>();
     public static final String hypixelKey = "b3b3895d-1604-4ef7-b0bb-bd14f169be95";
     private final ItemStack hotbarLayoutItem = Utils.getEnchanted(Utils.makeItem(Material.BOOK, "§aEdit Hotbar Layout §7(Right Click)", "§7Customize your hotbar", "§7layout for all modes", "", "§eRight click to edit"));
+    private final ItemStack gadgetsItem = Utils.makeItem(Material.CHEST, "§aGadgets §7(Right Click)", "§7Choose which lobby gadget", "§7to use. ", "§eRight click to choose");
     private final ItemStack duelPlayerItemIron = Utils.getUnbreakable(Utils.makeItem(Material.IRON_SWORD, "§aDuel Player §7(Hit Players to Duel)", "§7Left click on players", "§7to duel them"));
     private final ItemStack duelPlayerItemGold = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SWORD, "§aDuel Player §7(Hit Players to Duel)", "§7Left click on players", "§7to duel them"));
     private final ItemStack duelPlayerItemDiamond = Utils.getUnbreakable(Utils.makeItem(Material.DIAMOND_SWORD, "§aDuel Player §7(Hit Players to Duel)", "§7Left click on players", "§7to duel them"));
@@ -627,6 +628,119 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         }
 
     }
+    public void openHotbarEditor(Player player) {
+        if(System.currentTimeMillis() - lastPlayerHotbarEdits.getOrDefault(player.getUniqueId(), 0L) > 3000) {
+            lastPlayerHotbarEdits.put(player.getUniqueId(), System.currentTimeMillis());
+            (new BukkitRunnable() {
+                @Override
+                public void run() {
+                    Menu editor = new Menu("Hotbar Editor", 6, true,
+                            MenuItem.blocker(3, 0), MenuItem.blocker(3, 1), MenuItem.blocker(3, 2), MenuItem.blocker(3, 3),
+                            MenuItem.blocker(3, 4), MenuItem.blocker(3, 5), MenuItem.blocker(3, 6), MenuItem.blocker(3, 7), MenuItem.blocker(3, 8),
+
+                            MenuItem.close(5, 3),
+                            new MenuItem(5, 4, Utils.makeItem(Material.CHEST, "§aSave Layout", "§7Save your hotbar", "§7layout."), (p, m) -> {
+                                (new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        try(PreparedStatement statement = connection.prepareStatement("UPDATE players SET hotbarCustomized = TRUE, hotbarSword = ?, hotbarBow = ?, hotbarPickaxe = ?, hotbarBlocksOne = ?, hotbarBlocksTwo = ?, hotbarGoldenApple = ?, hotbarArrow = ?, hotbarGlyph = ? WHERE uuid=?;")) {
+                                            Inventory inv = m.getInventory();
+                                            boolean hasSeenBlocks = false;
+                                            int itemsFound = 0;
+                                            for(int i = 0; i < 9 * 5; i++) {
+                                                ItemStack item = inv.getItem(i);
+                                                if(item != null && item.getType() != Material.STAINED_GLASS_PANE) {
+                                                    int rowIncludingSeparation = 4 - ((int) Math.floor(i / 9f));
+                                                    int row = rowIncludingSeparation == 0 ? 0 : 4 - (rowIncludingSeparation - 1);
+                                                    int index = row * 9 + (i % 9);
+                                                    switch(item.getType()) {
+                                                        case IRON_SWORD:
+                                                            statement.setInt(1, index);
+                                                            itemsFound++;
+                                                            break;
+                                                        case BOW:
+                                                            statement.setInt(2, index);
+                                                            itemsFound++;
+                                                            break;
+                                                        case DIAMOND_PICKAXE:
+                                                            statement.setInt(3, index);
+                                                            itemsFound++;
+                                                            break;
+                                                        case STAINED_CLAY:
+                                                            if(!hasSeenBlocks) {
+                                                                hasSeenBlocks = true;
+                                                                statement.setInt(4, index);
+                                                            } else {
+                                                                statement.setInt(5, index);
+                                                            }
+                                                            itemsFound++;
+                                                            break;
+                                                        case GOLDEN_APPLE:
+                                                            statement.setInt(6, index);
+                                                            itemsFound++;
+                                                            break;
+                                                        case ARROW:
+                                                            statement.setInt(7, index);
+                                                            itemsFound++;
+                                                            break;
+                                                        case DIAMOND:
+                                                            statement.setInt(8, index);
+                                                            itemsFound++;
+                                                            break;
+                                                    }
+                                                }
+                                            }
+                                            if(itemsFound != 8) {
+                                                m.allowForGarbageCollection();
+                                                p.closeInventory();
+                                                p.sendMessage("§c✕ Your inventory didn't look right!");
+                                                return;
+                                            }
+                                            statement.setString(9, player.getUniqueId().toString()); // uuid, set to player uuid
+                                            statement.executeUpdate();
+                                            m.allowForGarbageCollection();
+                                            p.closeInventory();
+                                            p.sendMessage("§a✔ Successfully saved your hotbar layout.");
+                                        } catch (SQLException throwables) {
+                                            throwables.printStackTrace();
+                                            player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your information to our database. Please open a ticket on the discord and screenshot your time!");
+                                        }
+                                    }
+                                }).runTaskAsynchronously(instance);
+                            }),
+                            new MenuItem(5, 5, Utils.makeItem(Material.EXPLOSIVE_MINECART, "§cReset Layout", "§7Reset your hotbar layout", "§7to the default"), (p, m) -> {
+                                updateHotbarEditor(m, defaultHotbar());
+                            }),
+                            new MenuItem(5, 7, Utils.makeItem(Material.EXP_BOTTLE, "§aGet From Hypixel", "§7Get your hotbar layout", "§7from Hypixel."), (p, m) -> {
+                                if(System.currentTimeMillis() - lastPlayerGetFromHypixel.getOrDefault(player.getUniqueId(), 0L) > 3000) {
+                                    lastPlayerGetFromHypixel.put(player.getUniqueId(), System.currentTimeMillis());
+                                    (new BukkitRunnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                HotbarItem[] items = getHotbarFromHypixelSync(player);
+                                                updateHotbarEditor(m, items);
+                                                player.sendMessage("§aSuccessfully got your hotbar from Hypixel.");
+                                            } catch (IOException | NullPointerException e) {
+                                                p.sendMessage("§cThere was an error getting your hotbar from Hypixel! Are you banned or have never logged on?");
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }).runTaskAsynchronously(instance);
+                                } else {
+                                    p.sendMessage("§cYou must wait §e3s§c between uses!");
+                                }
+                            })
+                    );
+                    HotbarItem[] hotbar = getHotbarSync(player);
+                    updateHotbarEditor(editor, hotbar);
+                    player.openInventory(editor.getInventory());
+                }
+            }).runTaskAsynchronously(this);
+        } else {
+            player.sendMessage("§cYou must wait §e3s§c between uses!");
+        }
+    }
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
@@ -1006,117 +1120,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 }
                 break;
             case BOOK:
-                if(System.currentTimeMillis() - lastPlayerHotbarEdits.getOrDefault(player.getUniqueId(), 0L) > 3000) {
-                    lastPlayerHotbarEdits.put(player.getUniqueId(), System.currentTimeMillis());
-                    (new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            Menu editor = new Menu("Hotbar Editor", 6, true,
-                                    MenuItem.blocker(3, 0), MenuItem.blocker(3, 1), MenuItem.blocker(3, 2), MenuItem.blocker(3, 3),
-                                    MenuItem.blocker(3, 4), MenuItem.blocker(3, 5), MenuItem.blocker(3, 6), MenuItem.blocker(3, 7), MenuItem.blocker(3, 8),
-
-                                    MenuItem.close(5, 3),
-                                    new MenuItem(5, 4, Utils.makeItem(Material.CHEST, "§aSave Layout", "§7Save your hotbar", "§7layout."), (p, m) -> {
-                                        (new BukkitRunnable() {
-                                            @Override
-                                            public void run() {
-                                                try(PreparedStatement statement = connection.prepareStatement("UPDATE players SET hotbarCustomized = TRUE, hotbarSword = ?, hotbarBow = ?, hotbarPickaxe = ?, hotbarBlocksOne = ?, hotbarBlocksTwo = ?, hotbarGoldenApple = ?, hotbarArrow = ?, hotbarGlyph = ? WHERE uuid=?;")) {
-                                                    Inventory inv = m.getInventory();
-                                                    boolean hasSeenBlocks = false;
-                                                    int itemsFound = 0;
-                                                    for(int i = 0; i < 9 * 5; i++) {
-                                                        ItemStack item = inv.getItem(i);
-                                                        if(item != null && item.getType() != Material.STAINED_GLASS_PANE) {
-                                                            int rowIncludingSeparation = 4 - ((int) Math.floor(i / 9f));
-                                                            int row = rowIncludingSeparation == 0 ? 0 : 4 - (rowIncludingSeparation - 1);
-                                                            int index = row * 9 + (i % 9);
-                                                            switch(item.getType()) {
-                                                                case IRON_SWORD:
-                                                                    statement.setInt(1, index);
-                                                                    itemsFound++;
-                                                                    break;
-                                                                case BOW:
-                                                                    statement.setInt(2, index);
-                                                                    itemsFound++;
-                                                                    break;
-                                                                case DIAMOND_PICKAXE:
-                                                                    statement.setInt(3, index);
-                                                                    itemsFound++;
-                                                                    break;
-                                                                case STAINED_CLAY:
-                                                                    if(!hasSeenBlocks) {
-                                                                        hasSeenBlocks = true;
-                                                                        statement.setInt(4, index);
-                                                                    } else {
-                                                                        statement.setInt(5, index);
-                                                                    }
-                                                                    itemsFound++;
-                                                                    break;
-                                                                case GOLDEN_APPLE:
-                                                                    statement.setInt(6, index);
-                                                                    itemsFound++;
-                                                                    break;
-                                                                case ARROW:
-                                                                    statement.setInt(7, index);
-                                                                    itemsFound++;
-                                                                    break;
-                                                                case DIAMOND:
-                                                                    statement.setInt(8, index);
-                                                                    itemsFound++;
-                                                                    break;
-                                                            }
-                                                        }
-                                                    }
-                                                    if(itemsFound != 8) {
-                                                        m.allowForGarbageCollection();
-                                                        p.closeInventory();
-                                                        p.sendMessage("§c✕ Your inventory didn't look right!");
-                                                        return;
-                                                    }
-                                                    statement.setString(9, player.getUniqueId().toString()); // uuid, set to player uuid
-                                                    statement.executeUpdate();
-                                                    m.allowForGarbageCollection();
-                                                    p.closeInventory();
-                                                    p.sendMessage("§a✔ Successfully saved your hotbar layout.");
-                                                } catch (SQLException throwables) {
-                                                    throwables.printStackTrace();
-                                                    player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your information to our database. Please open a ticket on the discord and screenshot your time!");
-                                                }
-                                            }
-                                        }).runTaskAsynchronously(instance);
-                                    }),
-                                    new MenuItem(5, 5, Utils.makeItem(Material.EXPLOSIVE_MINECART, "§cReset Layout", "§7Reset your hotbar layout", "§7to the default"), (p, m) -> {
-                                        updateHotbarEditor(m, defaultHotbar());
-                                    }),
-                                    new MenuItem(5, 7, Utils.makeItem(Material.EXP_BOTTLE, "§aGet From Hypixel", "§7Get your hotbar layout", "§7from Hypixel."), (p, m) -> {
-                                        if(System.currentTimeMillis() - lastPlayerGetFromHypixel.getOrDefault(player.getUniqueId(), 0L) > 3000) {
-                                            lastPlayerGetFromHypixel.put(player.getUniqueId(), System.currentTimeMillis());
-                                            (new BukkitRunnable() {
-                                                @Override
-                                                public void run() {
-                                                    try {
-                                                        HotbarItem[] items = getHotbarFromHypixelSync(player);
-                                                        updateHotbarEditor(m, items);
-                                                        player.sendMessage("§aSuccessfully got your hotbar from Hypixel.");
-                                                    } catch (IOException | NullPointerException e) {
-                                                        p.sendMessage("§cThere was an error getting your hotbar from Hypixel! Are you banned or have never logged on?");
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-                                            }).runTaskAsynchronously(instance);
-                                        } else {
-                                            p.sendMessage("§cYou must wait §e3s§c between uses!");
-                                        }
-                                    })
-                            );
-                            HotbarItem[] hotbar = getHotbarSync(player);
-                            updateHotbarEditor(editor, hotbar);
-                            player.openInventory(editor.getInventory());
-                        }
-                    }).runTaskAsynchronously(this);
-                } else {
-                    player.sendMessage("§cYou must wait §e3s§c between uses!");
-                }
+                openHotbarEditor(player);
                 break;
             case IRON_PLATE:
                 player.teleport(respawnLocation.get(player.getUniqueId()));
@@ -1127,7 +1131,6 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 giveGadgets(player, inv);
                 player.sendMessage("§cParkour canceled.");
                 break;
-
             case BLAZE_ROD:
                 long timeSinceTele = System.currentTimeMillis() - lastTele.getOrDefault(player.getUniqueId(), 0L);
                 if (timeSinceTele > 400) {
@@ -1182,8 +1185,78 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                     player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1, 1);
                 } else {
                     if(timeSinceTele > 20) {
-                        player.sendMessage("§cYou're clicking to fast!");
+                        player.sendMessage("§cYou're clicking too fast!");
                     }
+                }
+                break;
+            case CHEST:
+                if(player.hasPermission("group.legend")) {
+                    Menu gadgetsMenu;
+                    if(player.hasPermission("group.godlike")) {
+                        MenuItem hotbarLayout = new MenuItem(1, 1, Utils.getEnchanted(Utils.makeItem(Material.BOOK, "§aEdit Hotbar Layout", "§7Customize your hotbar", "§7layout for all modes", "", "§eClick to open editor")), (p, m) -> {
+                            m.allowForGarbageCollection();
+                            p.closeInventory();
+                            openHotbarEditor(p);
+                        });
+                        MenuItem cookieGadget = new MenuItem(1, 3, Utils.makeItem(Material.COOKIE, "§aCookie Gadget", "§7Eat to gain speed and","§7jump boost for §a5s§7.", "", "§eClick to select"), (p, m) -> {
+                            m.allowForGarbageCollection();
+                            p.closeInventory();
+                            CookieCommand.giveGadget(p);
+                        });
+                        MenuItem telestickGadget = new MenuItem(1, 5, Utils.makeItem(Material.BLAZE_ROD, "§aTelestick Gadget", "§7Click to §eteleport§7 in the", "§7direction you're looking!", "", "§eClick to select"), (p, m) -> {
+                            m.allowForGarbageCollection();
+                            p.closeInventory();
+                            TelestickCommand.giveGadget(p);
+                        });
+                        if(player.hasPermission("group.custom")) {
+                            gadgetsMenu = new Menu("Gadgets", 3, true,
+                                    hotbarLayout,
+                                    cookieGadget,
+                                    telestickGadget,
+                                    new MenuItem(1, 7, Utils.makeItem(Material.DIAMOND_SWORD, "§aDuel Sword Gadget", "§7Left click on a", "§7player to duel them!", "", "§eClick to select"), (p, m) -> {
+                                        m.allowForGarbageCollection();
+                                        p.closeInventory();
+                                        BridgePracticeLobby.instance.setGadget(p, null);
+                                        BridgePracticeLobby.instance.giveGadgets(p, p.getInventory());
+                                        p.getInventory().setHeldItemSlot(5);
+                                    })
+                            );
+                        }  else {
+                            gadgetsMenu = new Menu("Gadgets", 3, true,
+                                    hotbarLayout,
+                                    cookieGadget,
+                                    telestickGadget,
+                                    new MenuItem(1, 7, Utils.makeItem(Material.GOLD_SWORD, "§aDuel Sword Gadget", "§7Left click on a", "§7player to duel them!", "", "§eClick to select"), (p, m) -> {
+                                        m.allowForGarbageCollection();
+                                        p.closeInventory();
+                                        BridgePracticeLobby.instance.setGadget(p, null);
+                                        BridgePracticeLobby.instance.giveGadgets(p, p.getInventory());
+                                        p.getInventory().setHeldItemSlot(5);
+                                    })
+                            );
+                        }
+                    } else {
+                        gadgetsMenu = new Menu("Gadgets", 3, true,
+                                new MenuItem(1, 2, Utils.getEnchanted(Utils.makeItem(Material.BOOK, "§aEdit Hotbar Layout", "§7Customize your hotbar", "§7layout for all modes", "", "§eClick to open editor")), (p, m) -> {
+                                    m.allowForGarbageCollection();
+                                    p.closeInventory();
+                                    openHotbarEditor(p);
+                                }),
+                                new MenuItem(1, 4, Utils.makeItem(Material.COOKIE, "§aCookie Gadget", "§7Eat to gain speed and","§7jump boost for §a5s§7.", "", "§eClick to select"), (p, m) -> {
+                                    m.allowForGarbageCollection();
+                                    p.closeInventory();
+                                    CookieCommand.giveGadget(p);
+                                }),
+                                new MenuItem(1, 6, Utils.makeItem(Material.IRON_SWORD, "§aDuel Sword Gadget", "§7Left click on a", "§7player to duel them!", "", "§eClick to select"), (p, m) -> {
+                                    m.allowForGarbageCollection();
+                                    p.closeInventory();
+                                    BridgePracticeLobby.instance.setGadget(p, null);
+                                    BridgePracticeLobby.instance.giveGadgets(p, p.getInventory());
+                                    p.getInventory().setHeldItemSlot(5);
+                                })
+                        );
+                    }
+                    player.openInventory(gadgetsMenu.getInventory());
                 }
                 break;
         }
@@ -1207,7 +1280,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     public void giveGadgets(Player player, Inventory inv) {
         Gadget gadget = getGadget(player);
         if(gadget == null) {
-            ItemStack fourthSlot = hotbarLayoutItem;
+            ItemStack fourthSlot = player.hasPermission("group.legend") ? gadgetsItem : hotbarLayoutItem;
             ItemStack fifthSlot;
             if(player.hasPermission("bridgepractice.lobby.diamondduelitem")) {
                 fifthSlot = duelPlayerItemDiamond;
