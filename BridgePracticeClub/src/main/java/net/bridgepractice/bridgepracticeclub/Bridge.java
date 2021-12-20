@@ -874,7 +874,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         if(getServer().getOnlinePlayers().size() <= 15) {
             event.setJoinMessage("§7[§a+§7] " + event.getPlayer().getDisplayName() + "§7 joined the server!");
         } else {
-            event.setJoinMessage(null);
+            event.setJoinMessage("");
         }
     }
     @EventHandler
