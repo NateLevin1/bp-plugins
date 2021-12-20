@@ -870,17 +870,11 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         // send them to spawn
         player.chat("/spawn");
 
-        // spigot is *so dumb*:
-        // join messages just ARENT SENT when using bungeecord
-        // WTF???
-        // like...... WTF????????????
-        // so now we have to use this awful hack.
+
         if(getServer().getOnlinePlayers().size() <= 15) {
-            String joinMessage = "§7[§a+§7] " + event.getPlayer().getDisplayName() + "§7 joined the server!";
-            player.sendMessage(joinMessage);
-            for(Player p : world.getPlayers()) {
-                p.sendMessage(joinMessage);
-            }
+            event.setJoinMessage("§7[§a+§7] " + event.getPlayer().getDisplayName() + "§7 joined the server!");
+        } else {
+            event.setJoinMessage(null);
         }
     }
     @EventHandler
