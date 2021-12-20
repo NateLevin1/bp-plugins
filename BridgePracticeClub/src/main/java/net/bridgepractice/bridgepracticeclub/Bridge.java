@@ -909,9 +909,9 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         }
     }
     @EventHandler
-    public void onFallDamage(EntityDamageEvent event) {
+    public void onAnyDamage(EntityDamageEvent event) {
         // disable fall damage, water, suffocation
-        if(event.getEntity() instanceof Player) {
+        if(event.getEntity() instanceof Player && event.getCause() != EntityDamageEvent.DamageCause.PROJECTILE) {
             event.setCancelled(true);
         }
     }
@@ -1125,7 +1125,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         if(event.getEntity() instanceof Player) { // don't allow players to hurt other players
             List<MetadataValue> noDamage = event.getDamager().getMetadata("NO_DAMAGE");
             List<MetadataValue> intendedFor = event.getDamager().getMetadata("INTENDED_FOR");
-            if(!intendedFor.isEmpty() && intendedFor.get(0).value() != event.getEntity().getUniqueId()) {
+            if(!intendedFor.isEmpty() && !intendedFor.get(0).value().equals(event.getEntity().getUniqueId())) {
                 event.setCancelled(true);
                 return;
             }
