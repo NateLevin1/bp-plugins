@@ -71,7 +71,7 @@ public class CommandSpawn implements CommandExecutor {
             if(Bridge.instance.playerArrowRegenerations.get(player.getUniqueId()) != null) {
                 Bridge.instance.playerArrowRegenerations.get(player.getUniqueId()).cancel();
             }
-            player.teleport(new Location(player.getWorld(), 0.5, 98, 0.5));
+            player.teleport(new Location(player.getWorld(), 2.5, 100, 0.5, -90, 0));
             player.getInventory().setItem(8, Bridge.makeItem(Material.BED, 1, "§cReturn to Main Lobby §7(Right Click)", new String[0],-1));
 
             Bridge.instance.showPlayerNPCs(player);

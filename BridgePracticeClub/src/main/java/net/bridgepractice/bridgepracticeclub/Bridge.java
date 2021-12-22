@@ -275,10 +275,10 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
 
         nmsServer = ((CraftServer) getServer()).getServer();
         nmsWorld = ((CraftWorld) this.world).getHandle();
-        createNPCForAll(new Location(this.world, 0.5, 99, 4.5, 180f, 0f), "Wing Practice", "fozzie1000", "/wing");
-        createNPCForAll(new Location(this.world, 4.5, 99, 0.5, 90f, 0f), "Prebow Practice", "cruh", "/prebow");
-        createNPCForAll(new Location(this.world, -3.5, 99, 0.5, -90f, 0f), "Bypass Practice", "cheetahh", "/bypass");
-        createNPCForAll(new Location(this.world, 0.5, 99, -3.5, 0f, 0f), "Bot Practice", "parihs", "/bot");
+        createNPCForAll(new Location(this.world, 11.5, 100, -2.5, 90, 0), "Wing Practice", "fozzie1000", "/wing");
+        createNPCForAll(new Location(this.world, 20.5, 99.5, 0.5, 90, 0), "Prebow Practice", "cruh", "/prebow");
+        createNPCForAll(new Location(this.world, 11.5, 100, 3.5, 90, 0), "Bypass Practice", "cheetahh", "/bypass");
+        createNPCForAll(new Location(this.world, 13.5, 100, 0.5, 90, 0), "Bot Practice", "parihs", "/bot");
 
         // load content arrays
         CommandWing.spawnContent = getBlocks(new Location(Bridge.instance.world, 1000, 97, -5), 4, 3, 4);
@@ -344,7 +344,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         // see https://www.spigotmc.org/threads/how-to-create-and-modify-npcs.400753/
         GameProfile gameProfile = new GameProfile(UUID.randomUUID(), name); // max 16 characters
         EntityPlayer npc = new EntityPlayer(nmsServer, nmsWorld, gameProfile, new PlayerInteractManager(nmsWorld)); // This will be the EntityPlayer (NPC) we send with the sendNPCPacket method.
-        npc.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
+        npc.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw() + 46, loc.getPitch());
         entityInteractChat.put(npc.getId(), chatOnInteract);
         npcs.add(npc);
 
@@ -723,7 +723,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         for(EntityPlayer npc : npcs) {
             connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, npc));
             connection.sendPacket(new PacketPlayOutNamedEntitySpawn(npc)); // Spawns the NPC for the player client.
-            connection.sendPacket(new PacketPlayOutEntityHeadRotation(npc, (byte) (npc.yaw * 256 / 360))); // Correct head rotation when spawned in player look direction.
+            connection.sendPacket(new PacketPlayOutEntityHeadRotation(npc, (byte) ((npc.yaw - 45) * 256 / 360))); // Correct head rotation when spawned in player look direction.
 
             // apply skins
             DataWatcher watcher = npc.getDataWatcher();
@@ -737,7 +737,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
                     connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, npc));
                 }
             };
-            removeFromTab.runTaskLater(Bridge.instance, 60);
+            removeFromTab.runTaskLater(this, 60);
         }
     }
     public static BlockState[][] deepClone2D(BlockState[][] input) {
