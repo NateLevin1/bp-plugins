@@ -195,13 +195,8 @@ public class BPBungee extends Plugin implements Listener {
         User luckPermsUser = luckPerms.getPlayerAdapter(ProxiedPlayer.class).getUser(player);
         String prefix = luckPermsUser.getCachedData().getMetaData().getPrefix();
         if(prefix == null) return;
-        String rankedName;
-        if(prefix.startsWith("§") && prefix.length() > 2) {
-            rankedName = prefix + "§" + prefix.charAt(1) + player.getName();
-        } else {
-            rankedName = prefix + player.getName();
-        }
-        player.setDisplayName(rankedName);
+        // TODO: make this add another color between prefix and player name in case of line wrapping
+        player.setDisplayName(prefix + player.getName());
         playerSessionLogOnTime.put(player.getUniqueId(), System.currentTimeMillis());
     }
     @EventHandler
