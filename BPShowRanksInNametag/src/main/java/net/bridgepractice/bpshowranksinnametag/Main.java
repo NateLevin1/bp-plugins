@@ -27,7 +27,8 @@ public class Main extends JavaPlugin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         User luckPermsUser = luckPerms.getPlayerAdapter(Player.class).getUser(player);
-        String prefix = luckPermsUser.getCachedData().getMetaData().getPrefix();
+        String prefix = getPrefix(luckPermsUser, player);
+
         (new BukkitRunnable() {
             @Override
             public void run() {
@@ -43,7 +44,7 @@ public class Main extends JavaPlugin implements Listener {
 
                     // show other players to the joining player
                     User lpu = luckPerms.getPlayerAdapter(Player.class).getUser(p);
-                    String pre = lpu.getCachedData().getMetaData().getPrefix();
+                    String pre = getPrefix(lpu, p);
                     addEntry(psb, pre, p);
                 }
             }
@@ -67,8 +68,23 @@ public class Main extends JavaPlugin implements Listener {
         for(Player p : players) {
             // show other players to the joining player
             User lpu = luckPerms.getPlayerAdapter(Player.class).getUser(p);
-            String pre = lpu.getCachedData().getMetaData().getPrefix();
+            String pre = getPrefix(lpu, p);
             addEntry(psb, pre, p);
         }
+    }
+
+    private static String getPrefix(User luckPermsUser, Player player) {
+        String prefix = luckPermsUser.getCachedData().getMetaData().getPrefix();
+        assert prefix != null;
+        if(prefix.length() > 16) {
+            if(player.hasPermission("group.godlike")) {
+                prefix = "§d[GODLIKE] ";
+            } else if(player.hasPermission("group.legend")) {
+                prefix = "§c[LEGEND] ";
+            } else {
+                prefix = "§f";
+            }
+        }
+        return prefix;
     }
 }
