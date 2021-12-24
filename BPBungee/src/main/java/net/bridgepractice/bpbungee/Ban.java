@@ -68,7 +68,7 @@ public class Ban extends Command {
                 senderName = sender.getName();
             }
 
-            BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n §c§l✕ §b" + playerName + "§c §cwas §d§lbanned§c by " + senderName + "§c!\n").create());
+            BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n §c§l✕ §a" + playerName + "§c §cwas §d§lbanned§c by " + senderName + "§c!\n").create());
 
             Utils.sendPunishmentWebhook("banned", finalReason, days, sender.getName(), sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
         }, 0, TimeUnit.MILLISECONDS);

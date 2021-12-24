@@ -58,7 +58,7 @@ public class Freeze extends Command {
                     senderName = sender.getName();
                 }
 
-                BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n§7[§c>§7]§c Player '§b" + playerName + "§c' was §ffrozen§c by " + senderName + "§c!").create());
+                BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n§7[§c>§7]§c Player '§a" + playerName + "§c' was §ffrozen§c by " + senderName + "§c!").create());
                 BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n").create());
             }, 0, TimeUnit.MILLISECONDS);
         } else {
