@@ -16,6 +16,7 @@ import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -76,11 +77,12 @@ public class Leaderboard {
                     int i = 0;
                     while(res.next()) {
                         String uuid = res.getString(1);
+                        UUID realUuid = UUID.fromString(uuid);
                         double value = columnType == ColumnType.Float ? res.getFloat(2) : res.getInt(2);
                         if(value == 0) continue;
-                        OfflinePlayer offlinePlayer = Bridge.instance.getServer().getOfflinePlayer(uuid);
+                        OfflinePlayer offlinePlayer = Bridge.instance.getServer().getOfflinePlayer(realUuid);
                         String leaderboardPlayerName = offlinePlayer != null && offlinePlayer.hasPlayedBefore() ? offlinePlayer.getName() : getNameFromUuidSyncCached(uuid);
-                        if(player.getName().equals(leaderboardPlayerName)) {
+                        if(player.getUniqueId().equals(realUuid)) {
                             isPlayerShownAlready = true;
                         }
                         topPlayers[i].setCustomName(utilPadString("§f" + (i + 1) + ". §" + (player.getName().equals(leaderboardPlayerName) ? "e" : "6") + leaderboardPlayerName) + "§a" +
@@ -99,10 +101,10 @@ public class Leaderboard {
                                 if(playerValueRes.wasNull() || value == 0) {
                                     // set to N/A
                                     playerStand.setCustomName(utilPadString("§cN/A. §6" + player.getName()) + "§a0.00");
-                                    return;
+                                } else {
+                                    playerStand.setCustomName(utilPadString("§f" + (getPlace(col, ((float) value))) + ". §e" + player.getName()) +
+                                            (columnType == ColumnType.Float ? Bridge.padWithZeroes(String.valueOf(value / 1000)) : String.valueOf(Math.round(value))));
                                 }
-                                playerStand.setCustomName(utilPadString("§f" + (getPlace(col, ((float) value))) + ". §e" + player.getName()) +
-                                        (columnType == ColumnType.Float ? Bridge.padWithZeroes(String.valueOf(value / 1000)) : String.valueOf(Math.round(value))));
                             }
                         }
                     }

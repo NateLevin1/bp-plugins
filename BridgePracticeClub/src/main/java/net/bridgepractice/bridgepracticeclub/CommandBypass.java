@@ -235,6 +235,7 @@ public class CommandBypass implements CommandExecutor {
                                 statement.setFloat(1, timeTakenNum); // set to the new PB
                                 statement.setString(2, player.getUniqueId().toString()); // uuid, set to player uuid
                                 statement.executeUpdate();
+                                leaderboard[0].loadColumn(info.locSettings.mode); // update leaderboard
                             } catch (SQLException throwables) {
                                 throwables.printStackTrace();
                                 player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your information to our database. Please open a ticket on the discord and screenshot your time!");
@@ -246,8 +247,6 @@ public class CommandBypass implements CommandExecutor {
                     board.getTeam("pb").setPrefix("§e " + timeTaken);
                     Bridge.sendTitle(player, "§bNew PB! §e" + timeTaken, "");
                     pbs.put(info.locSettings.mode, timeTakenNum);
-
-                    leaderboard[0].loadColumn(info.locSettings.mode); // update leaderboard
                 }
 
                 goals[0]++;
