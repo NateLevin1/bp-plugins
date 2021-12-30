@@ -99,7 +99,7 @@ public class Leaderboard {
             columnType = clickableColumnTypes[selectedClickable];
 
             player.playSound(player.getLocation(), Sound.CLICK, 1, 1);
-            player.sendMessage("§aShowing §b§l" + clickableText[selectedClickable] + "§a.");
+            Utils.sendMessageSync(player, "§aShowing §b§l" + clickableText[selectedClickable] + "§a.");
             connection.sendPacket(new PacketPlayOutEntityDestroy(playerStand.getId()));
             for(EntityArmorStand armorStand : topPlayers) {
                 connection.sendPacket(new PacketPlayOutEntityDestroy(armorStand.getId()));
@@ -110,7 +110,7 @@ public class Leaderboard {
             connection.sendPacket(new PacketPlayOutSpawnEntityLiving(clickStand));
             loadColumn(clickableColumns[selectedClickable]);
         } else {
-            player.sendMessage("§cYou must wait §e3s§c between switches");
+            Utils.sendMessageSync(player, "§cYou must wait §e3s§c between switches");
         }
     }
     public String getClickableText() {
