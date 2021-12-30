@@ -785,7 +785,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         Utils.sendTablist(player, "§e§lbridgepractice.net", "\n§aJoin the Discord!\n§b§nbridgepractice.net/discord");
 
         // send welcome message
-        player.sendMessage("\n§3§m----------------------------------§6" +
+        player.sendMessage("§3§m----------------------------------§6" +
                         "\n  Welcome to §eBridge Practice§6!" +
                         "\n  §3§lDISCORD: §bbridgepractice.net/discord" +
                         "\n  §c§lNEW! §a§lSTORE: §bstore.bridgepractice.net" +
