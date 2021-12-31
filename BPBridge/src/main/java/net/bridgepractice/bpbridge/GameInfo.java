@@ -926,7 +926,8 @@ public class GameInfo {
             }
         }
 
-        for(Player p : allPlayers) {
+        // we get all players in the world rather than all players so that spectators can see chat messages too
+        for(Player p : player.getWorld().getPlayers()) {
             p.sendMessage((redTeamPlayers.contains(player) ? "§c[RED] " : "§9[BLUE] ")+Utils.getRankedName(player) + "§f: §f" + message);
         }
     }
