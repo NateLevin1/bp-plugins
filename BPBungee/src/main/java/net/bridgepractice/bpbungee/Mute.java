@@ -70,7 +70,7 @@ public class Mute extends Command {
                     BPBungee.instance.mutedPlayers.put(onlinePlayer.getUniqueId(), days);
                 }
 
-                Utils.sendPunishmentWebhook("muted", null, days, sender.getName(), sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
+                Utils.sendPunishmentWebhook(false, "muted", null, days, sender.getName(), sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
             }, 0, TimeUnit.MILLISECONDS);
         } else {
             sender.sendMessage(new ComponentBuilder("You do not have permission to use this command.").color(ChatColor.RED).create());

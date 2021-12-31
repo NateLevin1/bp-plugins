@@ -253,7 +253,7 @@ public class BPBungee extends Plugin implements Listener {
                 // INSTANTLY BAN IF SEND AN IP ADDRESS
                 BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
                     Ban.applyBan(player.getName(), 30, "Doxxing/Attempt to dox", player.getUniqueId().toString(), null);
-                    Utils.sendPunishmentWebhook("automatically banned", "Doxxing/Attempt to dox\n> " + event.getMessage() + "", 30, "Server", "SERVER", player.getName(), null);
+                    Utils.sendPunishmentWebhook(true, "automatically banned", "Doxxing/Attempt to dox\n> " + event.getMessage() + "", 30, "Server", "SERVER", player.getName(), null);
                 }, 0, TimeUnit.MILLISECONDS);
                 event.setCancelled(true);
                 return;
@@ -261,7 +261,7 @@ public class BPBungee extends Plugin implements Listener {
                 // liquidbounce always follows this format
                 BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
                     Ban.applyBan(player.getName(), 7, "Chat Abuse/Scam", player.getUniqueId().toString(), null);
-                    Utils.sendPunishmentWebhook("automatically banned", "Chat Abuse/Scam\n> " + event.getMessage() + "", 7, "Server", "SERVER", player.getName(), null);
+                    Utils.sendPunishmentWebhook(true, "automatically banned", "Chat Abuse/Scam\n> " + event.getMessage() + "", 7, "Server", "SERVER", player.getName(), null);
                 }, 0, TimeUnit.MILLISECONDS);
                 event.setCancelled(true);
                 return;
@@ -482,7 +482,7 @@ public class BPBungee extends Plugin implements Listener {
                 // res is between 0 and 1
                 if(res == 1) {
                     Ban.applyBan(playerName, 30, "Blacklisted IP", playerUuid, null);
-                    Utils.sendPunishmentWebhook("automatically banned", "Blacklisted IP", 30, "Server", "SERVER", playerName, null);
+                    Utils.sendPunishmentWebhook(true, "automatically banned", "Blacklisted IP", 8, "Server", "SERVER", playerName, null);
                     connection.disconnect(new ComponentBuilder("Your IP is BLACKLISTED from this server.").color(ChatColor.RED).bold(true).create());
                 } else if(res >= 0.995) {
                     connection.disconnect(new ComponentBuilder("Your IP ").color(ChatColor.RED)
