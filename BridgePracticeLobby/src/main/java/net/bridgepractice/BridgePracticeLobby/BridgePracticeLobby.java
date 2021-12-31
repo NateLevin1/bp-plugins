@@ -978,8 +978,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
         if(item.getType() == Material.COOKIE) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 5*20, 2, false, false));
-            player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 5*20, 1, false, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 10*20, 4, false, false), true);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 10*20, 1, false, false), true);
             (new BukkitRunnable() {
                 @Override
                 public void run() {
