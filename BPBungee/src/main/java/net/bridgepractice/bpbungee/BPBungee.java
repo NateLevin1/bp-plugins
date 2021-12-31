@@ -10,6 +10,7 @@ import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -72,6 +73,7 @@ public class BPBungee extends Plugin implements Listener {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Emotes());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new EditBan());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Immuted());
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Whitelist());
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("bp:messages");
 
@@ -193,8 +195,21 @@ public class BPBungee extends Plugin implements Listener {
         }
     }
     @EventHandler
+    public void onPing(ProxyPingEvent event) {
+        if(Whitelist.enabled) {
+            ServerPing ping = event.getResponse();
+            ping.setVersion(new ServerPing.Protocol("Maintenance", 0));
+            ping.setDescription("§a              §c✕§a  bridge§bpractice§a.net  §c✕\n§c       Under maintenance, back check later!");
+            event.setResponse(ping);
+        }
+    }
+    @EventHandler
     public void onPlayerJoin(PostLoginEvent event) {
         ProxiedPlayer player = event.getPlayer();
+        if(Whitelist.enabled && !player.hasPermission("group.mod")) {
+            player.disconnect(new ComponentBuilder("BridgePractice is currently under maintenance!\nPlease come back in a bit!").color(ChatColor.RED).create());
+            return;
+        }
         User luckPermsUser = luckPerms.getPlayerAdapter(ProxiedPlayer.class).getUser(player);
         String prefix = luckPermsUser.getCachedData().getMetaData().getPrefix();
         if(prefix == null) return;
