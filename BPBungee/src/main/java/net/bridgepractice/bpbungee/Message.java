@@ -15,7 +15,7 @@ public class Message extends Command {
     @Override
     public void execute(CommandSender sender, String[] args) {
         if(args.length <= 1) {
-            sender.sendMessage(new ComponentBuilder("You need to provide more arguments for this command!").color(ChatColor.RED).create());
+            sender.sendMessage(new ComponentBuilder("Usage: /msg <player> <message here>").color(ChatColor.RED).create());
             return;
         }
         String senderName;
@@ -33,8 +33,8 @@ public class Message extends Command {
         String text = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
         ProxiedPlayer player = BPBungee.instance.getProxy().getPlayer(playerName);
         if(player != null) {
-            sender.sendMessage(new ComponentBuilder("").appendLegacy("§dTo "+player.getDisplayName()+"§7: "+text).create());
-            player.sendMessage(new ComponentBuilder("").appendLegacy("§dFrom "+senderName+"§7: "+text).create());
+            sender.sendMessage(new ComponentBuilder("§dTo "+player.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
+            player.sendMessage(new ComponentBuilder("§dFrom "+senderName).append(": "+text).color(ChatColor.GRAY).create());
             BPBungee.instance.playerReplyTo.put(player.getUniqueId(), new BPBungee.NamedPlayer(sender.getName(), senderName));
         } else {
             sender.sendMessage(new ComponentBuilder("Unknown player \""+playerName+"\"").color(ChatColor.RED).create());

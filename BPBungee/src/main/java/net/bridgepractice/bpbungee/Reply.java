@@ -18,7 +18,7 @@ public class Reply extends Command {
         }
         ProxiedPlayer senderPlayer = ((ProxiedPlayer) sender);
         if(args.length == 0) {
-            sender.sendMessage(new ComponentBuilder("You need to provide more arguments for this command!").color(ChatColor.RED).create());
+            sender.sendMessage(new ComponentBuilder("Usage: /r <message here>").color(ChatColor.RED).create());
             return;
         }
         BPBungee.NamedPlayer playerName = BPBungee.instance.playerReplyTo.get(senderPlayer.getUniqueId());
@@ -29,8 +29,8 @@ public class Reply extends Command {
         String text = String.join(" ", args);
         ProxiedPlayer player = BPBungee.instance.getProxy().getPlayer(playerName.name);
         if(player != null) {
-            sender.sendMessage(new ComponentBuilder().appendLegacy("§dTo "+playerName.rankedName+"§7: "+text).create());
-            player.sendMessage(new ComponentBuilder().appendLegacy("§dFrom "+senderPlayer.getDisplayName()+"§7: "+text).create());
+            sender.sendMessage(new ComponentBuilder("§dTo "+playerName.rankedName).append(": "+text).color(ChatColor.GRAY).create());
+            player.sendMessage(new ComponentBuilder("§dFrom "+senderPlayer.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
             BPBungee.instance.playerReplyTo.put(player.getUniqueId(), new BPBungee.NamedPlayer(senderPlayer.getName(), senderPlayer.getDisplayName()));
         } else {
             sender.sendMessage(new ComponentBuilder("That player is not online!").color(ChatColor.RED).create());
