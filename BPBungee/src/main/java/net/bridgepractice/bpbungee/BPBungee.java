@@ -70,6 +70,7 @@ public class BPBungee extends Plugin implements Listener {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new ChangeTag());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Store());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Emotes());
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new EditBan());
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("bp:messages");
 
