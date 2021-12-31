@@ -514,7 +514,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             event.setCancelled(true);
         }
     }
-    @EventHandler(priority = EventPriority.LOW)
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         GameInfo gameInfo = gameOfPlayer(player);
