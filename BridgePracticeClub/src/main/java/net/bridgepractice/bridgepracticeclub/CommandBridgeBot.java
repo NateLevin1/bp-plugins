@@ -1,5 +1,7 @@
 package net.bridgepractice.bridgepracticeclub;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.bukkit.*;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
@@ -12,10 +14,19 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.Vector;
 
+import javax.net.ssl.HttpsURLConnection;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class CommandBridgeBot implements CommandExecutor {
@@ -168,6 +179,9 @@ public class CommandBridgeBot implements CommandExecutor {
                 try(PreparedStatement winstreakUpdate = Bridge.connection.prepareStatement(sqlToRun)) {
                     winstreakUpdate.setString(1, player.getUniqueId().toString()); // uuid, set to player uuid
                     winstreakUpdate.executeUpdate();
+
+                    // send log
+                    sendWinLossWebhook(botWon, player, startTime, winstreak[0]);
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                     player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your information to our database. Please open a ticket on the discord and screenshot your time!");
@@ -333,6 +347,83 @@ public class CommandBridgeBot implements CommandExecutor {
             sender.sendMessage("You must be a player!");
         }
         return false;
+    }
+    private void sendWinLossWebhook(boolean botWon, Player player, long startTime, int playerWs) {
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                // send a winstreak log message in the discord - this is so winstreak audits are possible
+                JsonObject webhook = new JsonObject();
+                JsonArray embeds = new JsonArray();
+                JsonObject embed = new JsonObject();
+                JsonObject author = new JsonObject();
+
+                webhook.add("embeds", embeds);
+                embeds.add(embed);
+
+                embed.addProperty("color", 0x39c2ff);
+
+                embed.add("author", author);
+                author.addProperty("name", "Winstreak Change (Mode: Bot 1v1)");
+
+                int winningPlayerWs = botWon ? -1 : playerWs;
+                int losingPlayerWs = botWon ? playerWs : -1;
+
+                long time = System.currentTimeMillis() - startTime;
+                long minutes = time / (60 * 1000);
+                long seconds = (time / 1000) % 60;
+                String formattedTime = String.format("%d:%02d", minutes, seconds);
+
+                String winningPlayer = botWon ? "Bot" : player.getName();
+                String losingPlayer = botWon ? player.getName() : "Bot";
+
+                embed.addProperty("title", winningPlayer + ": " + (winningPlayerWs) + " ⇢ " + (winningPlayerWs + 1) +
+                        " | " + losingPlayer + ": " + losingPlayerWs + " ⇢ 0");
+
+                embed.addProperty("description", winningPlayer + " beat " + losingPlayer + "           |           on Bot Map\n"
+                        + "```pascal\n"
+                        + " Unknown Score (Bot) {" + formattedTime + "} \n"
+                        + "```");
+
+                JsonObject thumbnail = new JsonObject();
+                thumbnail.addProperty("url", (botWon ? "https://cdn.discordapp.com/attachments/869332740489764864/926512822387605604/64.png" : "https://minotar.net/armor/bust/" + winningPlayer + "/64"));
+                embed.add("thumbnail", thumbnail);
+
+                JsonObject footer = new JsonObject();
+                footer.addProperty("text", losingPlayer + " lost their ws to " + winningPlayer + " [" + losingPlayerWs + "]");
+                embed.add("footer", footer);
+
+                embed.addProperty("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
+
+                sendWebhookSync(webhook);
+            }
+        }).runTaskAsynchronously(Bridge.instance);
+    }
+    String discordWebhook = "https://discord.com/api/webhooks/879108049489514506/tpuJCqR_TbUn1tzUyFGTU7OBdUFl4oYqyQ4AYcL__X7MsMhke5dr0xwCPOF1nNxx-Z5u";
+    private void sendWebhookSync(JsonObject object) {
+        // https://stackoverflow.com/a/35013372/13608595
+        try {
+            URL url = new URL(discordWebhook);
+            URLConnection con = url.openConnection();
+            HttpsURLConnection req = (HttpsURLConnection) con;
+            req.setRequestMethod("POST");
+            req.setDoOutput(true);
+            byte[] out = object.toString().getBytes(StandardCharsets.UTF_8);
+            req.setFixedLengthStreamingMode(out.length);
+            req.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+            req.addRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15");
+            req.connect();
+            OutputStream os = req.getOutputStream();
+            os.write(out);
+            os.flush();
+            int responseCode = req.getResponseCode();
+            if(responseCode < 200 || responseCode >= 300) {
+                Bridge.instance.getLogger().severe(responseCode + " " + req.getResponseMessage());
+            }
+            req.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
     interface DidBotWinHandler {
         void call(boolean botWon);
