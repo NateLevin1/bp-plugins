@@ -8,7 +8,7 @@ commands:
   rainbow:
     description: Makes your text rainbow! Only available to certain ranked players
     permission: bridgepractice.command.rainbow
-    permission-message: §cYou must have a rank to use this command!
+    permission-message: §cYou must have a godlike rank or higher to use this command!
   fw:
     description: Launch a firework!
     permission: bridgepractice.command.fw
@@ -25,4 +25,4 @@ commands:
   telestick:
     description: Get a stick that makes you teleport!
     permission: bridgepractice.command.telestick
-    permission-message: §cYou must have a rank to use this command!
+    permission-message: §cYou must have a godlike rank or higher to use this command!
