@@ -199,7 +199,7 @@ public class BPBungee extends Plugin implements Listener {
         if(Whitelist.enabled) {
             ServerPing ping = event.getResponse();
             ping.setVersion(new ServerPing.Protocol("Maintenance", 0));
-            ping.setDescription("§a              §c✕§a  bridge§bpractice§a.net  §c✕\n§c       Under maintenance, back check later!");
+            ping.setDescription("§a              §c✕§a  bridge§bpractice§a.net  §c✕\n§c       Under maintenance, check back later!");
             event.setResponse(ping);
         }
     }
