@@ -106,6 +106,9 @@ commands:
   unmutechat:
     description: Staff only command
     usage: /unmutechat
+  socialspy:
+    description: Staff only command
+    usage: /socialspy
 
   rainbow:
     description: Makes your text rainbow! Only available to certain ranked players
