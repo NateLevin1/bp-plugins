@@ -127,6 +127,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         void run(World world);
     }
     public void loadWorld(String worldName, WorldCallback callback) {
+
         (new BukkitRunnable() {
             @Override
             public void run() {
@@ -513,7 +514,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             event.setCancelled(true);
         }
     }
-    @EventHandler(priority = EventPriority.LOW)
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         GameInfo gameInfo = gameOfPlayer(player);
@@ -704,13 +705,16 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                 }
                 case "StartPrivateGame": {
                     String gameType = in.readUTF();
+                    String serverMap = in.readUTF();
                     int players = in.readInt();
                     String[] playerNames = new String[players];
                     for(int i = 0; i < playerNames.length; i++) {
                         playerNames[i] = in.readUTF();
                     }
                     String map;
-                    if(gameType.equals("unranked")) {
+                    if(serverMap.length() > 0) {
+                        map = serverMap;
+                    } else if(gameType.equals("unranked")) {
                         map = getRandomUnrankedMap();
                     } else if(gameType.equals("pvp")) {
                         map = getRandomPvpMap();

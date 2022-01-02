@@ -1,7 +1,6 @@
 package net.bridgepractice.bpbungee;
 
 import net.luckperms.api.node.Node;
-import net.luckperms.api.node.types.PermissionNode;
 import net.luckperms.api.node.types.PrefixNode;
 
 import java.sql.PreparedStatement;
@@ -15,7 +14,7 @@ public class CommandQueueChecker {
         BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, CommandQueueChecker::checkQueue, 5, 5, TimeUnit.SECONDS);
     }
     private static void checkQueue() {
-        try(PreparedStatement statement = BPBungee.connection.prepareStatement("SELECT * FROM commandQueue;")) {
+        try(PreparedStatement statement = BPBungee.connection.prepareStatement("SELECT * FROM commandQueue WHERE target='proxy';")) {
             ResultSet res = statement.executeQuery();
             while(res.next()) { // loop while results are available
                 String type = res.getString("type");
@@ -58,7 +57,7 @@ public class CommandQueueChecker {
                 }
             }
             // remove all of it
-            try(PreparedStatement deleteStatement = BPBungee.connection.prepareStatement("DELETE FROM commandQueue;")) {
+            try(PreparedStatement deleteStatement = BPBungee.connection.prepareStatement("DELETE FROM commandQueue WHERE target='proxy';")) {
                 deleteStatement.executeUpdate();
             }
         } catch (SQLException exception) {

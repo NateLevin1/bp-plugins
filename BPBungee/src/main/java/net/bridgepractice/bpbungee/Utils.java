@@ -94,7 +94,7 @@ public class Utils {
             }
         }, 0, TimeUnit.MILLISECONDS);
     }
-    public static void sendPunishmentWebhook(String punishmentVerb, String reason, int length, String bannerName, String bannerUuid, String bannedName, CommandSender playerToSendErrorsTo) {
+    public static void sendPunishmentWebhook(boolean isBan, String punishmentVerb, String reason, int length, String bannerName, String bannerUuid, String bannedName, CommandSender playerToSendErrorsTo) {
         JsonObject webhook = new JsonObject();
         JsonArray embeds = new JsonArray();
         JsonObject embed = new JsonObject();
@@ -109,7 +109,7 @@ public class Utils {
 
         embed.addProperty("title", bannerName+" "+punishmentVerb+" `"+bannedName+"`");
 
-        embed.addProperty("color", 0x39c2ff);
+        embed.addProperty("color", isBan ? 0xff0033 : 0x00c58e); // used to be 39c2ff
 
         embed.add("fields", fields);
 
@@ -149,5 +149,15 @@ public class Utils {
                 .append(new ComponentBuilder("https://bridgepractice.net/discord").color(ChatColor.AQUA).underlined(true).create())
                 .append(new ComponentBuilder("\nThen accept the rules, go to #support, and click the \"Support\" button.").underlined(false).color(ChatColor.GOLD).create())
                 .create();
+    }
+
+    public static void log(BaseComponent[] components, String permission) {
+        broadcastToPermission(permission, new ComponentBuilder("|||").color(ChatColor.DARK_AQUA).obfuscated(true).append(" ").obfuscated(false).appendLegacy("§3[§bB§cP§3] ").append(components).create());
+    }
+    public static void log(String message) {
+        log(new ComponentBuilder().appendLegacy(message).create(), "bridgepractice.moderation.chat");
+    }
+    public static void log(BaseComponent[] components) {
+        log(components, "bridgepractice.moderation.chat");
     }
 }

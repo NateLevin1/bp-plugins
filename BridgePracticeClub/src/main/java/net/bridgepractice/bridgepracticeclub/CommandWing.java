@@ -155,7 +155,7 @@ public class CommandWing implements CommandExecutor {
                                         }
 
                                         shootArrow[0] = new ArrowShoot(time, player);
-                                        shootArrow[0].runTaskTimer(Bridge.instance, 10, 3*20+(ThreadLocalRandom.current().nextInt(5, 26)));
+                                        shootArrow[0].runTaskTimer(Bridge.instance, 10, 20+(ThreadLocalRandom.current().nextInt(0, 40)));
                                     }
                                     info.onDeath.call(info);
                                     break;

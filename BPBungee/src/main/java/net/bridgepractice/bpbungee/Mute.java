@@ -62,7 +62,7 @@ public class Mute extends Command {
                     senderName = sender.getName();
                 }
 
-                BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n §c§l✕ §b" + playerName + "§c §cwas §d§lmuted§c by " + senderName + "§c!\n").create());
+                BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n §c§l✕ §a" + playerName + "§c §cwas §d§lmuted§c by " + senderName + "§c!\n").create());
 
                 // if online, make them muted
                 ProxiedPlayer onlinePlayer = BPBungee.instance.getProxy().getPlayer(playerName);
@@ -70,7 +70,7 @@ public class Mute extends Command {
                     BPBungee.instance.mutedPlayers.put(onlinePlayer.getUniqueId(), days);
                 }
 
-                Utils.sendPunishmentWebhook("muted", null, days, sender.getName(), sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
+                Utils.sendPunishmentWebhook(false, "muted", null, days, sender.getName(), sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
             }, 0, TimeUnit.MILLISECONDS);
         } else {
             sender.sendMessage(new ComponentBuilder("You do not have permission to use this command.").color(ChatColor.RED).create());

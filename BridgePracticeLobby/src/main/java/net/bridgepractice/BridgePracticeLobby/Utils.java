@@ -273,4 +273,13 @@ public class Utils {
         gap.setAmount(8);
         return gap;
     }
+
+    public static void sendMessageSync(Player player, String message) {
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                player.sendMessage(message);
+            }
+        }).runTask(BridgePracticeLobby.instance);
+    }
 }

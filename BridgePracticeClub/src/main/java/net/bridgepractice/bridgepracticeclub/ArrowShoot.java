@@ -22,12 +22,12 @@ public class ArrowShoot extends BukkitRunnable {
             PlayerInfo info = Bridge.instance.getPlayer(player.getUniqueId());
             if(info.locSettings.isBridgingLeft) {
                 spawnLocation = new Location(Bridge.instance.world, info.winBox.relXZ[0]-4, 101, info.winBox.relXZ[1]+25);
-                vec = new Vector(1, spawnLocation.distance(player.getLocation())/5.7, 0);
+                vec = new Vector(1, spawnLocation.distance(player.getLocation())/7, 0);
             } else {
                 spawnLocation = new Location(Bridge.instance.world, info.winBox.relXZ[0]+9, 101, info.winBox.relXZ[1]+25);
-                vec = new Vector(-1, spawnLocation.distance(player.getLocation())/5.7, 0);
+                vec = new Vector(-1, spawnLocation.distance(player.getLocation())/7, 0);
             }
-            Arrow arrow = Bridge.instance.world.spawnArrow(spawnLocation, player.getLocation().toVector().subtract(spawnLocation.toVector()).add(vec), 2, 0);
+            Arrow arrow = Bridge.instance.world.spawnArrow(spawnLocation, player.getLocation().toVector().subtract(spawnLocation.toVector()).add(vec), 3, 0);
             arrow.setMetadata("NO_DAMAGE", new FixedMetadataValue(Bridge.instance, true));
             arrow.setMetadata("INTENDED_FOR", new FixedMetadataValue(Bridge.instance, player.getUniqueId()));
         }

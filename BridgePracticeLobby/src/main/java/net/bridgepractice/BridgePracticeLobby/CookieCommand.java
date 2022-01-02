@@ -16,13 +16,18 @@ public class CookieCommand implements CommandExecutor {
         if(current.fifthSlotItem.getType() == Material.COOKIE) {
             // uncookie
             BridgePracticeLobby.instance.setGadget(player, null);
+            BridgePracticeLobby.instance.giveGadgets(player, player.getInventory());
         } else {
-            ItemStack cookieItem = Utils.makeItem(Material.COOKIE, "§aMagical Cookie §7(Eat me!)", "§7Eat to gain speed and","§7jump boost for §a5s§7.");
-            BridgePracticeLobby.instance.setGadget(player, new BridgePracticeLobby.Gadget(current.fourthSlotItem, cookieItem));
-            player.setFoodLevel(19);
-            player.getInventory().setHeldItemSlot(5);
+            giveGadget(player);
         }
-        BridgePracticeLobby.instance.giveGadgets(player, player.getInventory());
         return true;
+    }
+    public static void giveGadget(Player player) {
+        BridgePracticeLobby.Gadget current = BridgePracticeLobby.instance.getGadget(player);
+        ItemStack cookieItem = Utils.makeItem(Material.COOKIE, "§aMagical Cookie §7(Eat me!)", "§7Eat to gain speed and","§7jump boost for §a5s§7.");
+        BridgePracticeLobby.instance.setGadget(player, new BridgePracticeLobby.Gadget(current.fourthSlotItem, cookieItem));
+        player.setFoodLevel(19);
+        player.getInventory().setHeldItemSlot(5);
+        BridgePracticeLobby.instance.giveGadgets(player, player.getInventory());
     }
 }

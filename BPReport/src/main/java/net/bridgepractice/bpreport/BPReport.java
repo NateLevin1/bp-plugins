@@ -253,6 +253,9 @@ public class BPReport extends JavaPlugin implements Listener, PluginMessageListe
         msg = StringUtils.replace(msg, ":check:", "§a✔§f");
         msg = StringUtils.replace(msg, ":tm:", "§b™§f");
         msg = StringUtils.replace(msg, ":cry:", "§9（>﹏<）§f");
+        msg = msg.replace(":why:", "§6(｢•-•)｢ why?§f");
+        msg = msg.replace(":sunglasses:", "§68§e)§f");
+        msg = msg.replace(":sunglasses2:", "§6B§e)§f");
         return msg;
     }
     public void addMessageToPlayerMessages(Player player, String msg) {
