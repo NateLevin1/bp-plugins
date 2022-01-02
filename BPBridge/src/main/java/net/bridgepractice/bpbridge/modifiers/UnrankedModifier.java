@@ -2,7 +2,7 @@ package net.bridgepractice.bpbridge.modifiers;
 
 import org.bukkit.entity.Player;
 
-public class UnrankedModifier implements GameModifier {
+public class UnrankedModifier implements BridgeModifier {
     @Override
     public String getGameType() {
         return "unranked";

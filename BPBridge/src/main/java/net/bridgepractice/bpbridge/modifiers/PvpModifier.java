@@ -1,19 +1,18 @@
 package net.bridgepractice.bpbridge.modifiers;
 
-import net.bridgepractice.bpbridge.GameInfo;
+import net.bridgepractice.bpbridge.BridgeBase;
 import net.bridgepractice.bpbridge.Utils;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class PvpModifier implements GameModifier {
+public class PvpModifier implements BridgeModifier {
     private int lastRandNum = -1;
     @Override
     public String getGameType() {
@@ -77,14 +76,14 @@ public class PvpModifier implements GameModifier {
         damager.getScoreboard().getTeam("damage").setSuffix("§a"+Math.round(newDamageAmount)+"§c" + Utils.hearts(1));
     }
     @Override
-    public void onBeforeStart(GameInfo gameInfo) {
-        randomizeSpawnLocs(gameInfo);
+    public void onBeforeStart(BridgeBase bridgeBase) {
+        randomizeSpawnLocs(bridgeBase);
     }
     @Override
-    public void onPlayerKilledByPlayer(Player player, Player killer, GameInfo gameInfo) {
-        randomizeSpawnLocs(gameInfo);
-        Location redBlockLoc = gameInfo.getRedSpawnLoc().clone().subtract(0, 1,0);
-        Location blueBlockLoc = gameInfo.getBlueSpawnLoc().clone().subtract(0, 1,0);
+    public void onPlayerKilledByPlayer(Player player, Player killer, BridgeBase bridgeBase) {
+        randomizeSpawnLocs(bridgeBase);
+        Location redBlockLoc = bridgeBase.getRedSpawnLoc().clone().subtract(0, 1,0);
+        Location blueBlockLoc = bridgeBase.getBlueSpawnLoc().clone().subtract(0, 1,0);
         if(redBlockLoc.getBlock().getType() == Material.AIR) {
             redBlockLoc.getBlock().setType(Material.STAINED_CLAY);
             redBlockLoc.getBlock().setData(DyeColor.RED.getWoolData());
@@ -94,26 +93,26 @@ public class PvpModifier implements GameModifier {
             blueBlockLoc.getBlock().setData(DyeColor.BLUE.getWoolData());
         }
         if(killer != null) {
-            gameInfo.onPlayerScore(killer, gameInfo.getTeamOfPlayer(killer));
+            bridgeBase.onPlayerScore(killer, bridgeBase.getTeamOfPlayer(killer));
         } else {
-            String team = gameInfo.getTeamOfPlayer(player).equals("red") ? "blue" : "red";
-            gameInfo.onPlayerScore(gameInfo.getMemberOfTeam(team), team);
+            String team = bridgeBase.getTeamOfPlayer(player).equals("red") ? "blue" : "red";
+            bridgeBase.onPlayerScore(bridgeBase.getMemberOfTeam(team), team);
         }
-        for(Location loc : gameInfo.getBlocksPlaced()) {
+        for(Location loc : bridgeBase.getBlocksPlaced()) {
             loc.getBlock().setType(Material.AIR);
         }
-        gameInfo.clearBlocksPlaced();
+        bridgeBase.clearBlocksPlaced();
     }
 
 
-    private void randomizeSpawnLocs(GameInfo gameInfo) {
+    private void randomizeSpawnLocs(BridgeBase bridgeBase) {
         int randNum = ThreadLocalRandom.current().nextInt(3); // 0, 1, or 2
         while(randNum == lastRandNum) {
             randNum = ThreadLocalRandom.current().nextInt(3); // 0, 1, or 2
         }
-        World world = gameInfo.getWorld();
-        gameInfo.setRedSpawnLoc(getRedSpawnLoc(gameInfo.getMap(), randNum, world));
-        gameInfo.setBlueSpawnLoc(getBlueSpawnLoc(gameInfo.getMap(), randNum, world));
+        World world = bridgeBase.getWorld();
+        bridgeBase.setRedSpawnLoc(getRedSpawnLoc(bridgeBase.getMap(), randNum, world));
+        bridgeBase.setBlueSpawnLoc(getBlueSpawnLoc(bridgeBase.getMap(), randNum, world));
         lastRandNum = randNum;
     }
 

@@ -1,9 +1,9 @@
 package net.bridgepractice.bpbridge.modifiers;
 
-import net.bridgepractice.bpbridge.GameInfo;
+import net.bridgepractice.bpbridge.BridgeBase;
 import org.bukkit.entity.Player;
 
-public interface GameModifier {
+public interface BridgeModifier {
     String getGameType();
     String getPrettyGameType();
     void sendIntroMessage(Player player);
@@ -19,7 +19,7 @@ public interface GameModifier {
     default boolean shouldShowTitleOnScore() { return true; }
     default boolean shouldResetPlayerOnDeath() { return true; }
 
-    default void onBeforeStart(GameInfo gameInfo) {}
-    default void onPlayerKilledByPlayer(Player player, Player killer, GameInfo gameInfo) {}
+    default void onBeforeStart(BridgeBase bridgeBase) {}
+    default void onPlayerKilledByPlayer(Player player, Player killer, BridgeBase bridgeBase) {}
     default void onPlayerHitByPlayer(Player playerHit, Player damager, double damage) {}
 }
