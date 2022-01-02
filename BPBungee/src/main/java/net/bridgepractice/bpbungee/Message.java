@@ -3,6 +3,7 @@ package net.bridgepractice.bpbungee;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
@@ -36,6 +37,11 @@ public class Message extends Command {
             sender.sendMessage(new ComponentBuilder("").appendLegacy("§dTo "+player.getDisplayName()+"§7: "+text).create());
             player.sendMessage(new ComponentBuilder("").appendLegacy("§dFrom "+senderName+"§7: "+text).create());
             BPBungee.instance.playerReplyTo.put(player.getUniqueId(), new BPBungee.NamedPlayer(sender.getName(), senderName));
+            for (ProxiedPlayer proxy : BPBungee.instance.getProxy().getPlayers()) {
+                if (proxy.hasPermission("bridgepractice.moderation.socialspy.show")) {
+                    proxy.sendMessage(new TextComponent("§dFrom "+senderName+" §dTo "+player.getDisplayName()+"§7: "+text));
+                }
+            }
         } else {
             sender.sendMessage(new ComponentBuilder("Unknown player \""+playerName+"\"").color(ChatColor.RED).create());
         }

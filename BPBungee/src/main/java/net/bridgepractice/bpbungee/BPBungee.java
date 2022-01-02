@@ -66,6 +66,7 @@ public class BPBungee extends Plugin implements Listener {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Unban());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Mutechat());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Unmutechat());
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Socialspy());
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("bp:messages");
 
