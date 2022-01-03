@@ -11,6 +11,7 @@ import net.luckperms.api.model.user.User;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -473,12 +474,36 @@ public class BPBungee extends Plugin implements Listener {
         }
     }
 
+    private static int checksInLastMinute = 0;
+    private static long lastResetOfChecks = 0;
+    private static final HashSet<String> badIps = new HashSet<>();
 
     public void checkIpForAbuse(PendingConnection connection) {
         // this method is called on a player's first login
         String ip = connection.getAddress().getAddress().getHostAddress();
         String playerName = connection.getName();
-        String playerUuid = connection.getUniqueId().toString();
+
+        if(badIps.contains(ip)) {
+            disconnectBadIp(connection, ip);
+            return;
+        }
+
+        // respect rate limits
+        if(System.currentTimeMillis() - lastResetOfChecks > 60*1000) {
+            lastResetOfChecks = System.currentTimeMillis();
+            checksInLastMinute = 0;
+        }
+
+        checksInLastMinute++;
+
+        if(checksInLastMinute > 15) {
+            // oh well :(
+            String message = "Unable to check IP of player "+playerName+" because there were too many checks in the last minute: "+checksInLastMinute;
+            getLogger().severe(message);
+            Utils.log(new ComponentBuilder("[IPCheck] ").color(ChatColor.DARK_RED).append(new ComponentBuilder(message).color(ChatColor.RED).create()).create());
+            return;
+        }
+
         // call the https://www.getipintel.net API
         try {
             URL url = new URL("http://check.getipintel.net/check.php?ip=" + ip + "&contact=natelevindev@gmail.com&flags=m");
@@ -499,25 +524,27 @@ public class BPBungee extends Plugin implements Listener {
                 String resString = in.readLine();
                 int res = Integer.parseInt(resString);
                 // res is between 0 and 1
-                if(res == 1) {
-                    Ban.applyBan(playerName, 30, "Blacklisted IP", playerUuid, null);
-                    Utils.sendPunishmentWebhook(true, "automatically banned", "Blacklisted IP", 8, "Server", "SERVER", playerName, null);
-                    connection.disconnect(new ComponentBuilder("Your IP is BLACKLISTED from this server.").color(ChatColor.RED).bold(true).create());
-                } else if(res >= 0.995) {
-                    connection.disconnect(new ComponentBuilder("Your IP ").color(ChatColor.RED)
-                            .append("("+ip+")").bold(true)
-                            .append(" appears to be related to known bad IPs\nso you have been blocked from joining the server.\n\n").bold(false)
-                            .append("If you are using a VPN/proxy, disable it to play.").bold(true).color(ChatColor.WHITE)
-                            .append("\n\nIf you are not using a VPN and are still being blocked,\nplease join the Discord and report it by making a ticket in #support.").bold(false).color(ChatColor.GOLD)
-                            .append("\nTo join the discord, go to ").color(ChatColor.WHITE)
-                            .append("https://bridgepractice.net/discord").color(ChatColor.AQUA).underlined(true)
-                            .create());
+                if(res >= 0.995) {
+                    badIps.add(ip);
+                    disconnectBadIp(connection, ip);
                 } else if(res >= 0.9) {
-                    Utils.log(new ComponentBuilder("[IPCheck]").color(ChatColor.DARK_RED).append(new ComponentBuilder("Player ").color(ChatColor.RED).create()).append(new ComponentBuilder(playerName).color(ChatColor.YELLOW).create()).append(new ComponentBuilder(" has a suspicious IP ("+((res-0.9)*1000)+"%)").color(ChatColor.RED).create()).create());
+                    Utils.log(new ComponentBuilder("[IPCheck]").color(ChatColor.DARK_RED).append(new ComponentBuilder(" Player ").color(ChatColor.RED).create()).append(new ComponentBuilder(playerName).color(ChatColor.YELLOW).create()).append(new ComponentBuilder(" has a suspicious IP ("+((res-0.9)*1000)+"%)").color(ChatColor.RED).create()).create());
                 }
             }
         } catch (IOException e) {
+            getLogger().severe("Error checking IP for abuse: ");
             e.printStackTrace();
+            Utils.log(new ComponentBuilder("[IPCheck]").color(ChatColor.DARK_RED).append(new ComponentBuilder(" Error checking IP for abuse: IOException: "+e.getMessage()).color(ChatColor.RED).create()).create());
         }
+    }
+    private static void disconnectBadIp(PendingConnection connection, String ip) {
+        connection.disconnect(new ComponentBuilder("Your IP ").color(ChatColor.RED)
+                .append("("+ip+")").bold(true)
+                .append(" appears to be related to known bad IPs\nso you have been blocked from joining the server.\n\n").bold(false)
+                .append("If you are using a VPN/proxy, disable it to play.").bold(true).color(ChatColor.WHITE)
+                .append("\n\nIf you are not using a VPN and are still being blocked,\nplease join the Discord and report it by making a ticket in #support.").bold(false).color(ChatColor.GOLD)
+                .append("\nTo join the discord, go to ").color(ChatColor.WHITE)
+                .append("https://bridgepractice.net/discord").color(ChatColor.AQUA).underlined(true)
+                .create());
     }
 }
