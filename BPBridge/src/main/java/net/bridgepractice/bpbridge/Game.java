@@ -11,12 +11,11 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import java.util.ArrayList;
 
 public abstract class Game {
-    protected Game(String gameType, World world, String map, boolean shouldCountAsStats, Player startingPlayer) {
+    protected Game(String gameType, World world, String map, boolean shouldCountAsStats) {
         this.gameType = gameType;
         this.world = world;
         this.map = map;
         this.shouldCountAsStats = shouldCountAsStats;
-        allPlayers.add(startingPlayer);
     }
 
 
@@ -30,17 +29,17 @@ public abstract class Game {
     public String getMap() {
         return map;
     }
-    public boolean hasStarted() {
+    public boolean isPlaying() {
         return state == State.Playing;
     }
-    public boolean hasGameFinished() {
+    public boolean hasFinished() {
         return state == State.Finished;
     }
     public boolean isQueueing() {
         return state == State.Queueing;
     }
     public boolean hasQueued() {
-        return state == State.Playing || state == State.Finished;
+        return state != State.Queueing;
     }
     public boolean canPlaceBlocksAtLoc(Location loc) {
         return true;
@@ -57,6 +56,7 @@ public abstract class Game {
 
 
     // # Events
+    // Any subclass MUST implement the following events, or bad things will happen:
     protected abstract void onPlayerJoinImpl(Player player);
     public final void onPlayerJoin(Player player) { // formerly `addPlayer`
         allPlayers.add(player);
@@ -67,16 +67,25 @@ public abstract class Game {
         allPlayers.remove(player);
         onPlayerLeaveImpl(player);
     }
+    protected abstract void startImpl();
+    public final void start() {
+        state = State.Playing;
+        startImpl();
+    }
+    public abstract void onPlayerDeath(Player player);
+
+    // Any subclass MAY implement the following events (it is not required, though often recommended)
     public void onPlayerBowCharge(PlayerInteractEvent event, Player player) {}
     public void onPlayerChat(Player player, String message) {}
     public void onPlayerBlockPlace(BlockPlaceEvent event, Player player) {}
     public void onPlayerMove(PlayerMoveEvent event, Player player) {}
     public void onPlayerHealthChange(Player player) {}
-    public void onPlayerGlyph(Player player) {}
+    public void onPlayerGlyph(Player player) {} // TODO: implement here
     public void rechargeArrow(Player player) {}
     public void onPlayerHitByPlayer(Player hit, Player hitter, double damage) {}
-    public void onPlayerDeath(Player player) {}
 
+    // TODO: refactor to remove gameFinished etc
+    // TODO: fix the other TODOs
 
     // # Variables
     protected final ArrayList<Player> allPlayers = new ArrayList<>();
@@ -91,4 +100,14 @@ public abstract class Game {
         Finished
     }
     protected State state = State.Queueing;
+
+
+    // # Methods
+    public void endGame() {
+        for(Player player : world.getPlayers()) {
+            BPBridge.connectPlayerToLobby(player);
+        }
+        // unload world
+        BPBridge.instance.unloadWorld(world.getName());
+    }
 }

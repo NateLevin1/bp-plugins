@@ -1,4 +1,4 @@
-package net.bridgepractice.bpbridge.modifiers;
+package net.bridgepractice.bpbridge.bridgemodifiers;
 
 import org.bukkit.entity.Player;
 

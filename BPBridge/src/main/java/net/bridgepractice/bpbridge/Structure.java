@@ -18,7 +18,7 @@ public class Structure {
     public Location previousLocation;
     boolean isFlipped = false;
     boolean hasFlipChanged = false;
-    Structure(BlockState[][][] content) {
+    public Structure(BlockState[][][] content) {
         width  = content[0][0].length;
         length = content[0].length;
         height = content.length;

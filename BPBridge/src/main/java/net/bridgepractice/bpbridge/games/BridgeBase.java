@@ -1,8 +1,9 @@
-package net.bridgepractice.bpbridge;
+package net.bridgepractice.bpbridge.games;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.bridgepractice.bpbridge.modifiers.BridgeModifier;
+import net.bridgepractice.bpbridge.*;
+import net.bridgepractice.bpbridge.bridgemodifiers.BridgeModifier;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -56,14 +57,12 @@ public class BridgeBase extends Game {
     private final Set<Location> blocksPlaced = new HashSet<>();
     int redGoals;
     int blueGoals;
-    boolean gameFinished = false;
     Rectangle redGoal;
     Rectangle blueGoal;
     int desiredPlayersPerTeam = 1;
     String formattedDate;
     Location redSpawnLoc;
     Location blueSpawnLoc;
-    boolean gameStarted = false;
     Structure redCage;
     Structure blueCage;
     long startTime;
@@ -73,7 +72,7 @@ public class BridgeBase extends Game {
     Rectangle blockPlaceableRect;
     BridgeModifier bridgeModifier;
     public BridgeBase(World world, String map, boolean shouldCountAsStats, Player player, BridgeModifier bridgeModifier) {
-        super(bridgeModifier.getGameType(), world, map, shouldCountAsStats, player);
+        super(bridgeModifier.getGameType(), world, map, shouldCountAsStats);
         this.bridgeModifier = bridgeModifier;
         redGoal = Maps.getRedGoal(map);
         blueGoal = Maps.getBlueGoal(map);
@@ -90,7 +89,6 @@ public class BridgeBase extends Game {
     public void onPlayerJoinImpl(Player player) {
         player.teleport(redSpawnLoc);
         player.getInventory().setHeldItemSlot(0);
-        allPlayers.add(player);
         loadPlayerSidebar(player);
         if(redTeamPlayers.size() < desiredPlayersPerTeam) {
             if(redTeamPlayers.size() == 0 && bridgeModifier.shouldUseCages()) {
@@ -195,9 +193,7 @@ public class BridgeBase extends Game {
             }).runTaskTimer(BPBridge.instance, 0, 20);
         }
     }
-    private void start() {
-        gameStarted = true;
-
+    public void startImpl() {
         bridgeModifier.onBeforeStart(this);
 
         Location redPlayerSpawnCageLoc = redSpawnLoc.clone();
@@ -411,7 +407,7 @@ public class BridgeBase extends Game {
 
     public void onPlayerDeath(Player player) {
         player.closeInventory();
-        if(!gameStarted) {
+        if(!isPlaying()) {
             player.teleport(redSpawnLoc);
         } else {
             player.setHealth(20);
@@ -697,8 +693,7 @@ public class BridgeBase extends Game {
         startCountdown(player.getCustomName() + " scored!");
     }
     private void onWin(String team, String teamColor) {
-        gameStarted = false;
-        gameFinished = true;
+        state = State.Finished;
         timeUpdater.cancel();
         long time = System.currentTimeMillis() - startTime;
         long minutes = time / (60 * 1000);
@@ -941,27 +936,11 @@ public class BridgeBase extends Game {
         playerInv.setItem(3, Utils.makeItem(Material.PAPER, "§b§lPlay Again §7(Right Click)", "§7Right-click to play another game!"));
         playerInv.setItem(5, Utils.makeItem(Material.BED, "§c§lReturn to Lobby §7(Right Click)", "§7Right-click to go to the lobby!"));
     }
-    public void endGame() {
-        for(Player player : world.getPlayers()) {
-            if(player.isOnline()) {
-                BPBridge.connectPlayerToLobby(player);
-            }
-        }
-        // unload world
-        (new BukkitRunnable() {
-            @Override
-            public void run() {
-                BPBridge.instance.gamesByWorld.remove(world.getName());
-                BPBridge.instance.unloadWorld(world.getName());
-            }
-        }).runTaskLater(BPBridge.instance, 3 * 20);
-    }
     public void onPlayerLeaveImpl(Player player) {
         boolean wasOnRedTeam = redTeamPlayers.remove(player);
         boolean wasOnBlueTeam = blueTeamPlayers.remove(player);
-        allPlayers.remove(player);
 
-        if(hasStarted()) {
+        if(isPlaying()) {
             // here we tell players someone left and give the appropriate team the win
             String leaveMessage = player.getCustomName() + "§7 left the game.";
             for(Player p : allPlayers) {
@@ -975,7 +954,7 @@ public class BridgeBase extends Game {
                 onWin("red", "c");
             }
         } else {
-            if(!gameFinished) {
+            if(state != State.Finished) {
                 // this is the logic that handles re-queueing and stuff
                 allBluePlayersPossiblyOnline.remove(player);
                 allRedPlayersPossiblyOnline.remove(player);
@@ -999,8 +978,7 @@ public class BridgeBase extends Game {
                     BPBridge.instance.sendCreateQueuePluginMessage(allPlayers.get(0), gameType); // we don't use `.createQueue` because that will change the game info
                 } else if(BPBridge.instance.getServer().getOnlinePlayers().size() > 1) { // we need to ensure that there are players online so we can send a message to bungeecord
                     BPBridge.instance.removeFromQueueable(world.getName(), gameType);
-                    BPBridge.instance.gamesByWorld.remove(world.getName());
-                    BPBridge.instance.unloadWorld(world.getName());
+                    endGame();
                 }
             }
         }
@@ -1017,7 +995,7 @@ public class BridgeBase extends Game {
             onPlayerDeath(player);
             return;
         }
-        if(!hasStarted())
+        if(!isPlaying())
             return;
         if(!bridgeModifier.shouldUseCages() && countdownTimer != null) {
             Location loc = redTeamPlayers.contains(player) ? redSpawnLoc.clone() : blueSpawnLoc.clone();
@@ -1100,12 +1078,6 @@ public class BridgeBase extends Game {
     }
     public World getWorld() {
         return world;
-    }
-    public boolean hasStarted() {
-        return gameStarted;
-    }
-    public boolean hasGameFinished() {
-        return gameFinished;
     }
     public Set<Location> getBlocksPlaced() {
         return blocksPlaced;

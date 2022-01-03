@@ -14,9 +14,10 @@ import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimeProperties;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 import com.lunarclient.bukkitapi.LunarClientAPI;
-import net.bridgepractice.bpbridge.modifiers.BridgeModifier;
-import net.bridgepractice.bpbridge.modifiers.PvpModifier;
-import net.bridgepractice.bpbridge.modifiers.UnrankedModifier;
+import net.bridgepractice.bpbridge.bridgemodifiers.BridgeModifier;
+import net.bridgepractice.bpbridge.bridgemodifiers.PvpModifier;
+import net.bridgepractice.bpbridge.bridgemodifiers.UnrankedModifier;
+import net.bridgepractice.bpbridge.games.BridgeBase;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import org.apache.commons.lang.RandomStringUtils;
@@ -72,7 +73,8 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
     String database = "bridge";
     String username = "mc";
     String password = "mcserver";
-    static Connection connection;
+    // should this be public? need to access it in `.games` and we can't with any other access modifier.
+    public static Connection connection;
     @Override
     public void onEnable() {
         instance = this;
@@ -171,6 +173,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         }
     }
     public void unloadWorld(String worldName) {
+        gamesByWorld.remove(worldName);
         (new BukkitRunnable() {
             @Override
             public void run() {
@@ -179,7 +182,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                     getLogger().severe("Could not unload world '" + worldName + "'");
                 }
             }
-        }).runTaskLater(this, 20);
+        }).runTaskLater(this, 3*20);
     }
 
     private void handlePlayerJoiningGame(Player player, JoiningPlayer joiningPlayer) {
@@ -446,7 +449,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         Player player = (Player) event.getEntity();
         Game game = gameOfPlayer(player);
         if(game == null) return;
-        if(!game.hasStarted()) {
+        if(!game.isPlaying()) {
             event.setCancelled(true);
             return;
         }

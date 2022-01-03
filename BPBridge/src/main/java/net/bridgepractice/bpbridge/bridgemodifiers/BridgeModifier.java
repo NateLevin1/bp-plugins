@@ -1,6 +1,6 @@
-package net.bridgepractice.bpbridge.modifiers;
+package net.bridgepractice.bpbridge.bridgemodifiers;
 
-import net.bridgepractice.bpbridge.BridgeBase;
+import net.bridgepractice.bpbridge.games.BridgeBase;
 import org.bukkit.entity.Player;
 
 public interface BridgeModifier {
