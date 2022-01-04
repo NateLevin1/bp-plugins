@@ -12,6 +12,7 @@ import java.util.UUID;
 public class RainbowCommand implements CommandExecutor {
     HashMap<UUID, Long> startTimes = new HashMap<>();
     String[] colors = {"c", "6", "e", "a", "b", "9", "d"};
+    final int seconds = 30;
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
         if(!(sender instanceof Player)) return true;
@@ -20,7 +21,7 @@ public class RainbowCommand implements CommandExecutor {
             player.sendMessage("§cYou must provide a message for this command!");
             return true;
         }
-        if(System.currentTimeMillis() - startTimes.getOrDefault(player.getUniqueId(), 0L) < 2*60*1000) {
+        if(System.currentTimeMillis() - startTimes.getOrDefault(player.getUniqueId(), 0L) < seconds*1000) {
             player.sendMessage("§cYou must wait 2 minutes between each use!");
             return true;
         }
@@ -30,7 +31,7 @@ public class RainbowCommand implements CommandExecutor {
             public void run() {
                 startTimes.remove(player.getUniqueId());
             }
-        }).runTaskLater(BridgePracticeLobby.instance, 2*60*20);
+        }).runTaskLater(BridgePracticeLobby.instance, seconds*20);
         StringBuilder message = new StringBuilder();
         int i = 0;
         for(String letter : String.join(" ", args).split("")) {

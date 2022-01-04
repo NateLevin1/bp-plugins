@@ -9,7 +9,7 @@ public class Rectangle {
     private final int xWidth;
     private final int yHeight;
     private final int zLength;
-    Rectangle(int x, int yTop, int z, int xWidth, int yHeight, int zLength) {
+    public Rectangle(int x, int yTop, int z, int xWidth, int yHeight, int zLength) {
         this.x = x;
         this.y = yTop;
         this.z = z;

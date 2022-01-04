@@ -14,23 +14,23 @@ import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimeProperties;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 import com.lunarclient.bukkitapi.LunarClientAPI;
-import net.bridgepractice.bpbridge.modifiers.GameModifier;
-import net.bridgepractice.bpbridge.modifiers.PvpModifier;
-import net.bridgepractice.bpbridge.modifiers.UnrankedModifier;
+import net.bridgepractice.bpbridge.bridgemodifiers.BridgeModifier;
+import net.bridgepractice.bpbridge.bridgemodifiers.PvpModifier;
+import net.bridgepractice.bpbridge.bridgemodifiers.UnrankedModifier;
+import net.bridgepractice.bpbridge.games.BridgeBase;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import org.apache.commons.lang.RandomStringUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Arrow;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -61,7 +61,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
     SlimeLoader slimeLoader;
     SlimePropertyMap slimeProperties;
     HashMap<String, JoiningPlayer> joiningPlayers = new HashMap<>();
-    HashMap<String, GameInfo> gameInfos = new HashMap<>();
+    HashMap<String, Game> gamesByWorld = new HashMap<>();
     HashMap<UUID, Long> lastRequests = new HashMap<>();
     public static String discordWebhook = "https://discord.com/api/webhooks/879108049489514506/tpuJCqR_TbUn1tzUyFGTU7OBdUFl4oYqyQ4AYcL__X7MsMhke5dr0xwCPOF1nNxx-Z5u";
     LunarClientAPI lunarClientAPI;
@@ -73,7 +73,8 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
     String database = "bridge";
     String username = "mc";
     String password = "mcserver";
-    static Connection connection;
+    // should this be public? need to access it in `.games` and we can't with any other access modifier.
+    public static Connection connection;
     @Override
     public void onEnable() {
         instance = this;
@@ -172,6 +173,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         }
     }
     public void unloadWorld(String worldName) {
+        gamesByWorld.remove(worldName);
         (new BukkitRunnable() {
             @Override
             public void run() {
@@ -180,8 +182,85 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                     getLogger().severe("Could not unload world '" + worldName + "'");
                 }
             }
-        }).runTaskLater(this, 20);
+        }).runTaskLater(this, 3*20);
     }
+
+    private void handlePlayerJoiningGame(Player player, JoiningPlayer joiningPlayer) {
+        World joiningPlayerWorld = joiningPlayer.getWorld();
+        if(joiningPlayerWorld == null) {
+            // force remove
+            removeFromQueueable(joiningPlayer.getWorldName(), "unranked");
+            removeFromQueueable(joiningPlayer.getWorldName(), "pvp");
+            (new BukkitRunnable() {
+                @Override
+                public void run() {
+                    player.sendMessage("§c§lUh oh! §cSomething went wrong sending you to the server (Attempted to queue nonexistent world). If this continues, please open a ticket on the Discord!");
+                    connectPlayerToLobby(player);
+                }
+            }).runTaskLater(this, 5);
+            return;
+        }
+        Game game = gamesByWorld.get(joiningPlayerWorld.getName());
+        if(game == null) {
+            player.sendMessage("§c§lUh oh! §cSomething went wrong sending you to the server. If this continues, please open a ticket on the Discord!");
+            (new BukkitRunnable() {
+                @Override
+                public void run() {
+                    connectPlayerToLobby(player);
+                }
+            }).runTaskLater(this, 5);
+        } else {
+            game.onPlayerJoin(player);
+        }
+    }
+    private void handlePlayerJoiningPrivateGame(Player player, JoiningPlayer joiningPlayer) {
+        World joiningPlayerWorld = joiningPlayer.getWorld();
+        if(joiningPlayerWorld == null) {
+            (new BukkitRunnable() {
+                @Override
+                public void run() {
+                    player.sendMessage("§c§lUh oh! §cSomething went wrong sending you to the server (Attempted to queue nonexistent world). If this continues, please open a ticket on the Discord!");
+                    connectPlayerToLobby(player);
+                }
+            }).runTaskLater(this, 5);
+            return;
+        }
+        Game game = gamesByWorld.get(joiningPlayerWorld.getName());
+        if(game == null) {
+            // create the game
+            // TODO: We only ever create a BridgeBase but we should probably do more than that
+            gamesByWorld.put(joiningPlayer.getWorldName(), new BridgeBase(getServer().getWorld(joiningPlayer.getWorldName()), joiningPlayer.getMapName(), false, player, getModifier(joiningPlayer.getGameType())));
+        } else {
+            game.onPlayerJoin(player);
+        }
+    }
+
+    public static void connectPlayerToLobby(Player player) {
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+        out.writeUTF("Connect");
+        out.writeUTF("lobby");
+        player.sendPluginMessage(instance, "BungeeCord", out.toByteArray());
+    }
+
+    public Game gameOfPlayer(Player player) {
+        Game game = gamesByWorld.get(player.getWorld().getName());
+        if(game != null && game.isPlayerInGame(player)) {
+            return game;
+        }
+        return null;
+    }
+
+    public static void lagbackIfOnTop(Player player, BlockEvent event) {
+        // -------  ANTI-CHEAT: Lagback if the player attempts to jump on ghost blocks
+        Vector oldVel = player.getVelocity();
+        oldVel.setY(0);
+        if(player.getLocation().getBlock().getLocation().equals(event.getBlock().getLocation().add(0, 1, 0))) {
+            player.teleport(player.getLocation().subtract(0, 0.4, 0));
+            player.setVelocity(oldVel);
+        }
+        // -------
+    }
+
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         event.setJoinMessage("");
@@ -236,69 +315,23 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             }).runTaskLater(this, 3 * 20);
         }
     }
-    private void handlePlayerJoiningGame(Player player, JoiningPlayer joiningPlayer) {
-        World joiningPlayerWorld = joiningPlayer.getWorld();
-        if(joiningPlayerWorld == null) {
-            // force remove
-            removeFromQueueable(joiningPlayer.getWorldName(), "unranked");
-            removeFromQueueable(joiningPlayer.getWorldName(), "pvp");
-            (new BukkitRunnable() {
-                @Override
-                public void run() {
-                    player.sendMessage("§c§lUh oh! §cSomething went wrong sending you to the server (Attempted to queue nonexistent world). If this continues, please open a ticket on the Discord!");
-                    connectPlayerToLobby(player);
-                }
-            }).runTaskLater(this, 5);
-            return;
-        }
-        GameInfo gameInfo = gameInfos.get(joiningPlayerWorld.getName());
-        if(gameInfo == null) {
-            player.sendMessage("§c§lUh oh! §cSomething went wrong sending you to the server. If this continues, please open a ticket on the Discord!");
-            (new BukkitRunnable() {
-                @Override
-                public void run() {
-                    connectPlayerToLobby(player);
-                }
-            }).runTaskLater(this, 5);
-        } else {
-            gameInfo.addPlayer(player);
-        }
-    }
-    private void handlePlayerJoiningPrivateGame(Player player, JoiningPlayer joiningPlayer) {
-        World joiningPlayerWorld = joiningPlayer.getWorld();
-        if(joiningPlayerWorld == null) {
-            (new BukkitRunnable() {
-                @Override
-                public void run() {
-                    player.sendMessage("§c§lUh oh! §cSomething went wrong sending you to the server (Attempted to queue nonexistent world). If this continues, please open a ticket on the Discord!");
-                    connectPlayerToLobby(player);
-                }
-            }).runTaskLater(this, 5);
-            return;
-        }
-        GameInfo gameInfo = gameInfos.get(joiningPlayerWorld.getName());
-        if(gameInfo == null) {
-            // create the game
-            gameInfos.put(joiningPlayer.getWorldName(), new GameInfo(joiningPlayer.getMapName(), getServer().getWorld(joiningPlayer.getWorldName()), player, getModifier(joiningPlayer.getGameType()), false));
-        } else {
-            gameInfo.addPlayer(player);
-        }
-    }
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        GameInfo gameInfo = gameOfPlayer(player);
-        if(gameInfo != null) {
-            gameInfo.onPlayerLeave(player);
+        Game game = gameOfPlayer(player);
+        if(game != null) {
+            game.onPlayerLeave(player);
         }
         event.setQuitMessage("");
     }
 
-    public static void connectPlayerToLobby(Player player) {
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF("Connect");
-        out.writeUTF("lobby");
-        player.sendPluginMessage(instance, "BungeeCord", out.toByteArray());
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        Game game = gameOfPlayer(player);
+        if(game != null) {
+            game.onPlayerMove(event, player);
+        }
     }
 
     @EventHandler
@@ -317,23 +350,6 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                     gameOfPlayer(player).onPlayerHealthChange(player);
                 }
             }).runTask(this);
-        }
-    }
-
-    public GameInfo gameOfPlayer(Player player) {
-        GameInfo gameInfo = gameInfos.get(player.getWorld().getName());
-        if(gameInfo != null && gameInfo.allPlayers.contains(player)) {
-            return gameInfo;
-        }
-        return null;
-    }
-
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-        GameInfo info = gameOfPlayer(player);
-        if(info != null) {
-            info.onMove(player);
         }
     }
 
@@ -372,9 +388,9 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         if(event.getMaterial() == Material.DIAMOND) {
-            GameInfo info = gameOfPlayer(player);
-            assert info != null;
-            info.onGlyph(player);
+            Game game = gameOfPlayer(player);
+            assert game != null;
+            game.onPlayerGlyph(player);
         } else if(event.getMaterial() == Material.BED) {
             if(System.currentTimeMillis() - lastRequests.getOrDefault(player.getUniqueId(), 0L) > 500) {
                 lastRequests.put(player.getUniqueId(), System.currentTimeMillis());
@@ -386,12 +402,12 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                 lastRequests.put(player.getUniqueId(), System.currentTimeMillis());
                 ByteArrayDataOutput out = ByteStreams.newDataOutput();
                 out.writeUTF("RequestGame");
-                GameInfo gameInfo = gameOfPlayer(player);
-                if(gameInfo == null) {
+                Game game = gameOfPlayer(player);
+                if(game == null) {
                     player.sendMessage("§cSomething went wrong queueing another game!");
                     return;
                 }
-                out.writeUTF(gameInfo.gameType);
+                out.writeUTF(game.getGameType());
                 player.sendPluginMessage(instance, "BungeeCord", out.toByteArray());
             }
         } else if(event.getMaterial() == Material.STAINED_CLAY && event.getAction() == Action.RIGHT_CLICK_BLOCK && player.getGameMode() == GameMode.ADVENTURE) {
@@ -399,12 +415,8 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             player.sendMessage("§cYou can't place blocks there!");
             player.playSound(event.getClickedBlock().getLocation(), Sound.DIG_STONE, 1, 0.8f);
         } else if(event.getMaterial() == Material.BOW && (event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_AIR)) {
-            GameInfo gameInfo = gameOfPlayer(player);
-            if(gameInfo.shouldBlockBowCharge()) {
-                player.setItemInHand(event.getItem());
-                event.setCancelled(true);
-                player.sendMessage("§cYou can't shoot your bow right now!");
-            }
+            Game game = gameOfPlayer(player);
+            game.onPlayerBowCharge(event, player);
         }
     }
     @EventHandler
@@ -421,11 +433,11 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             return;
         }
         Player player = (Player) event.getEntity();
-        GameInfo info = gameOfPlayer(player);
-        if(info == null) {
+        Game game = gameOfPlayer(player);
+        if(game == null) {
             return;
         }
-        info.rechargeArrow(player);
+        game.rechargeArrow(player);
     }
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
@@ -435,13 +447,13 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         Player player = (Player) event.getEntity();
-        GameInfo info = gameOfPlayer(player);
-        if(info == null) return;
-        if(!info.hasStarted()) {
+        Game game = gameOfPlayer(player);
+        if(game == null) return;
+        if(!game.isPlaying()) {
             event.setCancelled(true);
             return;
         }
-        if(info.isPlayerProtected(player)) {
+        if(game.canPlayerTakeDamage(player)) {
             event.setCancelled(true);
             return;
         }
@@ -458,21 +470,16 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             return;
         }
 
-        // if the player that hit someone has spawn prot, remove it - like in bedwars
-        if(info.isPlayerProtected(damager)) {
-            info.setPlayerUnprotected(damager);
-        }
-
         if(event.getDamager() instanceof Projectile) {
             // play successful hit sfx
             damager.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 1f, 0.5f);
         }
 
-        info.onPlayerHitByPlayer(player, damager, event.getFinalDamage());
+        game.onPlayerHitByPlayer(player, damager, event.getFinalDamage());
         if(player.getHealth() - event.getFinalDamage() < 0) {
             event.setCancelled(true);
             player.setVelocity(new Vector());
-            info.onDeath(player);
+            game.onPlayerDeath(player);
             Utils.sendActionBar(damager, player.getCustomName() + " §0" + Utils.hearts(10), 1);
         } else {
             int damageDealt = (int) Math.round(event.getFinalDamage()) / 2;
@@ -486,7 +493,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         (new BukkitRunnable() {
             @Override
             public void run() {
-                info.onPlayerHealthChange(player);
+                game.onPlayerHealthChange(player);
             }
         }).runTask(this);
     }
@@ -517,59 +524,36 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
     @EventHandler(ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        GameInfo gameInfo = gameOfPlayer(player);
-        if(gameInfo == null) return;
+        Game game = gameOfPlayer(player);
+        if(game == null) return;
         event.setCancelled(true);
-        if(!gameInfo.hasStarted() && !gameInfo.hasGameFinished()) {
+        if(game.isQueueing()) {
             player.sendMessage("§cYou cannot chat before the game has started!");
             return;
         }
 
-        gameInfo.sendChatMessage(player, event.getMessage());
-    }
-    private boolean cannotPlaceBlocks(Location loc, Player player) {
-        if(loc.getY() > 99) {
-            return true;
-        }
-        GameInfo gameInfo = gameOfPlayer(player);
-        assert gameInfo != null;
-        if(gameInfo.map.equals("flora")) {
-            // flora is the only map that has a box around its goal. why!?!?
-            if(new Rectangle(27, 92, -3, 6, 6, 6).isInBounds(loc) ||
-                    new Rectangle(-33, 92, -3, 6, 6, 6).isInBounds(loc) ||
-                    new Rectangle(-33, 99, -4, 6, 3, 8).isInBounds(loc) ||
-                    new Rectangle(27, 99, -4, 6, 3, 8).isInBounds(loc)) {
-                return true;
-            }
-        }
-        return !gameInfo.blockPlaceableRect.isInBounds(loc);
+        game.onPlayerChat(player, event.getMessage());
     }
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
         Player player = event.getPlayer();
-        if(cannotPlaceBlocks(event.getBlockPlaced().getLocation(), player)) {
-            player.sendMessage("§cYou can't place blocks there!");
-            // -------  ANTI-CHEAT: Lagback if the player attempts to jump on ghost blocks
-            Vector oldVel = player.getVelocity();
-            oldVel.setY(0);
-            if(player.getLocation().getBlock().getLocation().equals(event.getBlock().getLocation().add(0, 1, 0))) {
-                player.teleport(player.getLocation().subtract(0, 0.4, 0));
-                player.setVelocity(oldVel);
+        Game game = gameOfPlayer(player);
+        if(game != null) {
+            if(game.cannotPlaceBlocks(event.getBlockPlaced().getLocation(), player)) {
+                player.sendMessage("§cYou can't place blocks there!");
+                lagbackIfOnTop(player, event);
+                event.setCancelled(true);
+                return;
             }
-            // -------
-            event.setCancelled(true);
-        } else {
-            GameInfo info = gameOfPlayer(player);
-            if(info != null) {
-                info.onBlockPlace(event);
-            }
+            game.onPlayerBlockPlace(event, player);
         }
+
     }
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
-        GameInfo gameInfo = gameOfPlayer(player);
-        if(gameInfo == null) {
+        Game game = gameOfPlayer(player);
+        if(game == null) {
             event.setCancelled(true);
             return;
         }
@@ -577,11 +561,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         Block block = event.getBlock();
         Location loc = block.getLocation();
 
-        if(!(block.getType() == Material.STAINED_CLAY &&
-                (block.getData() == DyeColor.RED.getData() || block.getData() == DyeColor.BLUE.getData() || block.getData() == DyeColor.WHITE.getData()) &&
-                !cannotPlaceBlocks(loc, player) &&
-                ((loc.getX() >= -20 && loc.getX() <= 20) || gameInfo.hasBlockBeenPlaced(loc))
-        )) {
+        if(game.cannotBreakBlock(block, loc, player)) {
             player.sendMessage("§cYou can't break that block!");
             event.setCancelled(true);
         }
@@ -602,12 +582,13 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             public void run() {
                 World world = player.getWorld();
                 sendCreateQueuePluginMessage(player, gameType);
-                gameInfos.put(world.getName(), new GameInfo(map, world, player, getModifier(gameType), true));
+                // TODO: We only ever create a BridgeBase but we should be creating other Game types
+                gamesByWorld.put(world.getName(), new BridgeBase(world, map, true, player, getModifier(gameType)));
             }
         }).runTaskLater(this, 3); // we need to delay since the player has just joined
     }
-    private GameModifier getModifier(String gameType) {
-        GameModifier modifier = null;
+    private BridgeModifier getModifier(String gameType) {
+        BridgeModifier modifier = null;
         if(gameType.equals("unranked")) {
             modifier = new UnrankedModifier();
         } else if(gameType.equals("pvp")) {
@@ -657,9 +638,9 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                             // check if they are currently in a game - if so, make them leave (since the leaving is
                             // usually only called when the player actually leaves the server and they dont if queueing
                             // a new game while playing)
-                            GameInfo gameInfo = gameOfPlayer(onlinePlayer);
-                            if(gameInfo != null) {
-                                gameInfo.onPlayerLeave(onlinePlayer);
+                            Game game = gameOfPlayer(onlinePlayer);
+                            if(game != null) {
+                                game.onPlayerLeave(onlinePlayer);
                             }
                             onlinePlayer.teleport(loc);
                             createQueue(onlinePlayer, map, gameType);
@@ -692,9 +673,9 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                         // check if they are currently in a game - if so, make them leave (since the leaving is
                         // usually only called when the player actually leaves the server and they dont if queueing
                         // a new game while playing)
-                        GameInfo gameInfo = gameOfPlayer(onlinePlayer);
-                        if(gameInfo != null) {
-                            gameInfo.onPlayerLeave(onlinePlayer);
+                        Game game = gameOfPlayer(onlinePlayer);
+                        if(game != null) {
+                            game.onPlayerLeave(onlinePlayer);
                         }
 
                         handlePlayerJoiningGame(onlinePlayer, new JoiningPlayer(worldName));
@@ -730,16 +711,17 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                                 // check if they are currently in a game - if so, make them leave (since the leaving is
                                 // usually only called when the player actually leaves the server and they dont if queueing
                                 // a new game while playing)
-                                GameInfo gameInfo = gameOfPlayer(onlinePlayer);
-                                if(gameInfo != null) {
-                                    gameInfo.onPlayerLeave(onlinePlayer);
+                                Game game = gameOfPlayer(onlinePlayer);
+                                if(game != null) {
+                                    game.onPlayerLeave(onlinePlayer);
                                 }
                                 onlinePlayer.teleport(loc);
                                 if(!hasCreatedGame) {
                                     hasCreatedGame = true;
-                                    gameInfos.put(world.getName(), new GameInfo(map, world, onlinePlayer, getModifier(gameType), false));
+                                    // TODO: we are creating a BridgeBase but we really should be making other Games too
+                                    gamesByWorld.put(world.getName(), new BridgeBase(world, map, false, onlinePlayer, getModifier(gameType)));
                                 } else {
-                                    gameInfos.get(world.getName()).addPlayer(onlinePlayer);
+                                    gamesByWorld.get(world.getName()).onPlayerJoin(onlinePlayer);
                                 }
                             } else {
                                 // this is the case where there are players online so we can warp them in after the game

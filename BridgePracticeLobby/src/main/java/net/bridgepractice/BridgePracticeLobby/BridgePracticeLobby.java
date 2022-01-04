@@ -204,10 +204,10 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         ItemStack unranked = Utils.makeItem(Material.IRON_SWORD, "§aBridge Duel", "§8Multiplayer", "", "§7Defeat your opponent in a", "§7classic game of The Bridge.", "", "§eClick to Play!");
         ItemStack pvp = Utils.makeItem(Material.IRON_BOOTS, "§aBridge PvP 1v1", "§8Multiplayer", "", "§7Kill your opponent 5 times", "§7on a developed bridge", "", "§eClick to Play!");
 
-        gameMenu = new Menu("Game Menu", 5, false,
+       gameMenu = new Menu("Game Menu", 5, false,
                 new MenuItem(1, 1, Utils.makeItem(Material.BOOKSHELF, "§aMain Lobby", "§7Return to the Main Lobby.", "", "§eClick to Go"), (p, m) -> sendPlayerToServer(p, "lobby")),
-                new MenuItem(2, 1, Utils.makeCustomPlayerHead("http://textures.minecraft.net/texture/e25a2f9cb91863bedcfcc40ec31992368fb4ea8f34c532bc3a58c0ac63977be5", "§aMy Stats", "§7View your statistics", "§7across gamemodes.", "", "§eClick to View"), (p, m) -> StatsCommand.showStats(p, p)),
-                new MenuItem(3, 1, Utils.makeItem(Material.EMERALD, "§aBridgePractice Store", "§cComing soon!", "", "§7Purchase a rank to help", "§7support the server!", "", "§eClick to Visit"), (p, m) -> {
+                new MenuItem(2, 1, Utils.makeCustomPlayerHead("http://textures.minecraft.net/texture/e25a2f9cb91863bedcfcc40ec31992368fb4ea8f34c532bc3a58c0ac63977be5", "§aMy Stats", "§7View your statistics", "§7across gamemodes.", "", "§eClick to View"), (p, m) -> StatsCommand.showStats(p,p),
+                new MenuItem(3, 1, Utils.makeItem(Material.EMERALD, "§aBridgePractice Store", "§7Purchase a rank to help", "§7support the server!", "", "§eClick to Visit"), (p, m) -> {
                     m.allowForGarbageCollection();
                     p.closeInventory();
                     sendToStore(p);
@@ -227,6 +227,11 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 new MenuItem(3, 6, multiplayer, (p, m) -> showMultiplayerGames(p)),
                 new MenuItem(3, 7, multiplayer, (p, m) -> showMultiplayerGames(p))
         );
+
+        multiplayerGamesMenu = new Menu("Multiplayer Games", 3, false,
+                new MenuItem(1, 3, unranked, (p, m) -> requestGame(p, "unranked")),
+                new MenuItem(1, 5, pvp, (p, m) -> requestGame(p, "pvp"))
+
 
         multiplayerGamesMenu = new Menu("Multiplayer Games", 3, false,
                 new MenuItem(1, 3, unranked, (p, m) -> requestGame(p, "unranked")),
@@ -447,9 +452,9 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         return String.format("%.3f", time);
     }
     private void sendToStore(Player player) {
-        player.sendMessage("\n§cThe store hasn't opened yet! However, you can join the Discord to be notified when it does!");
-        player.spigot().sendMessage(new ComponentBuilder("Click to join: §nhttp://bridgepractice.net/discord").color(ChatColor.AQUA).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "http://bridgepractice.net/discord")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{new TextComponent("§bClick to get the invite to the discord!")})).create());
-        player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1, 1);
+        player.sendMessage("\n§a§lClick below to visit the store!!");
+        player.spigot().sendMessage(new ComponentBuilder("https://store.bridgepractice.net/").color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://store.bridgepractice.net/")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{new TextComponent("§bClick to visit the store!")})).create());
+        player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 1, 1);
     }
     public void showPlayerNPCs(Player player) {
         // see https://www.spigotmc.org/threads/how-to-create-and-modify-npcs.400753/
@@ -943,7 +948,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                             Menu shop = new Menu("BridgePractice Shop", 4, true,
                                     MenuItem.close(3, 4),
 
-                                    new MenuItem(1, 3, Utils.makeItem(Material.EMERALD, "§aStore", "§cComing soon!", "", "§7Purchase a rank to help", "§7support the server!", "", "§eRight click to Visit"), (p, m) -> {
+                                    new MenuItem(1, 3, Utils.makeItem(Material.EMERALD, "§aStore", "§7Purchase a rank to help", "§7support the server!", "", "§eClick to Visit"), (p, m) -> {
                                         m.allowForGarbageCollection();
                                         p.closeInventory();
                                         sendToStore(p);

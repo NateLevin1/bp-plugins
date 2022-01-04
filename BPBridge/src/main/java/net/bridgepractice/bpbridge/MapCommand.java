@@ -14,12 +14,12 @@ public class MapCommand implements CommandExecutor {
         }
 
         Player player = ((Player) sender);
-        GameInfo gameInfo = BPBridge.instance.gameOfPlayer(player);
+        Game game = BPBridge.instance.gameOfPlayer(player);
 
-        if(gameInfo == null) {
+        if(game == null) {
             player.sendMessage("§cYou aren't in a game right now!");
         } else {
-            player.sendMessage("§aYou are currently playing on "+Maps.humanReadableMapName(gameInfo.map)+"!");
+            player.sendMessage("§aYou are currently playing on "+Maps.humanReadableMapName(game.getMap())+"!");
         }
 
         return true;

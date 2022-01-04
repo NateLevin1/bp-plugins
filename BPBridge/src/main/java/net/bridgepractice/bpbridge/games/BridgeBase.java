@@ -1,19 +1,19 @@
-package net.bridgepractice.bpbridge;
+package net.bridgepractice.bpbridge.games;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.bridgepractice.bpbridge.modifiers.GameModifier;
-import net.minecraft.server.v1_8_R3.PacketPlayOutPlayerInfo;
-import net.minecraft.server.v1_8_R3.PacketPlayOutSpawnEntityLiving;
+import net.bridgepractice.bpbridge.*;
+import net.bridgepractice.bpbridge.bridgemodifiers.BridgeModifier;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -37,16 +37,11 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
-public class GameInfo {
+public class BridgeBase extends Game {
     ArrayList<Player> redTeamPlayers = new ArrayList<>();
     ArrayList<Player> blueTeamPlayers = new ArrayList<>();
     ArrayList<OfflinePlayer> allRedPlayersPossiblyOnline = new ArrayList<>();
     ArrayList<OfflinePlayer> allBluePlayersPossiblyOnline = new ArrayList<>();
-    ArrayList<Player> allPlayers = new ArrayList<>();
-    HashMap<UUID, Inventory> inventories = new HashMap<>();
-    HashMap<UUID, Long> glyphTimes = new HashMap<>();
-    HashMap<UUID, BukkitTask> arrowRecharges = new HashMap<>();
-    HashMap<UUID, Integer> arrowLocations = new HashMap<>();
     HashMap<UUID, Integer> playerKills = new HashMap<>();
     HashMap<UUID, BukkitTask> protectedPlayers = new HashMap<>();
     HashMap<UUID, Integer> playerGoals = new HashMap<>();
@@ -56,51 +51,43 @@ public class GameInfo {
     private final Set<Location> blocksPlaced = new HashSet<>();
     int redGoals;
     int blueGoals;
-    boolean gameFinished = false;
     Rectangle redGoal;
     Rectangle blueGoal;
     int desiredPlayersPerTeam = 1;
-    String map;
-    World world;
     String formattedDate;
     Location redSpawnLoc;
     Location blueSpawnLoc;
-    boolean gameStarted = false;
     Structure redCage;
     Structure blueCage;
     long startTime;
     BukkitTask timeUpdater;
     BukkitTask startTimer = null;
     BukkitTask countdownTimer = null;
-    String gameType;
     Rectangle blockPlaceableRect;
-    GameModifier gameModifier;
-    boolean shouldCountAsStats;
-    public GameInfo(String map, World world, Player player, GameModifier modifier, boolean shouldCountAsStats) {
-        this.map = map;
-        this.world = world;
-        this.shouldCountAsStats = shouldCountAsStats;
+    BridgeModifier bridgeModifier;
+    public BridgeBase(World world, String map, boolean shouldCountAsStats, Player player, BridgeModifier bridgeModifier) {
+        super(bridgeModifier.getGameType(), world, map, shouldCountAsStats);
+        this.bridgeModifier = bridgeModifier;
         redGoal = Maps.getRedGoal(map);
         blueGoal = Maps.getBlueGoal(map);
         blockPlaceableRect = Maps.getBlocksPlaceableRect(map);
         formattedDate = new SimpleDateFormat("MM/dd/yy").format(new Date(System.currentTimeMillis()));
         redSpawnLoc = Maps.getRedSpawnLoc(map, world);
         blueSpawnLoc = Maps.getBlueSpawnLoc(map, world);
-        gameType = modifier.getGameType();
-        gameModifier = modifier;
         world.setGameRuleValue("doDaylightCycle", "false");
         world.setTime(Maps.getTimeOfMap(map));
         world.setGameRuleValue("randomTickSpeed", "0");
-        addPlayer(player);
+        setAmountOfBlocks(bridgeModifier.getAmountOfBlocks());
+        setAmountOfGaps(bridgeModifier.getAmountOfGaps());
+        onPlayerJoin(player);
     }
 
-    public void addPlayer(Player player) {
+    public void onPlayerJoinImpl(Player player) {
         player.teleport(redSpawnLoc);
         player.getInventory().setHeldItemSlot(0);
-        allPlayers.add(player);
         loadPlayerSidebar(player);
         if(redTeamPlayers.size() < desiredPlayersPerTeam) {
-            if(redTeamPlayers.size() == 0 && gameModifier.shouldUseCages()) {
+            if(redTeamPlayers.size() == 0 && bridgeModifier.shouldUseCages()) {
                 (new BukkitRunnable() {
                     @Override
                     public void run() {
@@ -112,7 +99,7 @@ public class GameInfo {
             redTeamPlayers.add(player);
             allRedPlayersPossiblyOnline.add(player);
         } else if(blueTeamPlayers.size() < desiredPlayersPerTeam) {
-            if(blueTeamPlayers.size() == 0 && gameModifier.shouldUseCages()) {
+            if(blueTeamPlayers.size() == 0 && bridgeModifier.shouldUseCages()) {
                 (new BukkitRunnable() {
                     @Override
                     public void run() {
@@ -142,7 +129,7 @@ public class GameInfo {
             player.removePotionEffect(effect.getType());
         }
         player.getInventory().setItem(8, Utils.makeItem(Material.BED, "§c§lReturn to Lobby §7(Right Click)", "§7Right-click to leave to the lobby!"));
-        loadPlayerHotbar(player);
+        loadPlayerHotbar(player, redTeamPlayers.contains(player));
         Scoreboard board = Utils.createScoreboard("§b§lBridge §c§lPractice", new String[]{
                 "%top%§7" + formattedDate + "% §8" + world.getName().substring(world.getName().indexOf("-") + 1).substring(0, 5),
                 "",
@@ -202,15 +189,13 @@ public class GameInfo {
             }).runTaskTimer(BPBridge.instance, 0, 20);
         }
     }
-    private void start() {
-        gameStarted = true;
-
-        gameModifier.onBeforeStart(this);
+    public void startImpl() {
+        bridgeModifier.onBeforeStart(this);
 
         Location redPlayerSpawnCageLoc = redSpawnLoc.clone();
         Location bluePlayerSpawnCageLoc = blueSpawnLoc.clone();
 
-        if(gameModifier.shouldUseCages()) {
+        if(bridgeModifier.shouldUseCages()) {
             placeCages();
             redPlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 6.1);
             bluePlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 6.1);
@@ -222,25 +207,24 @@ public class GameInfo {
         for(Player player : redTeamPlayers) {
             player.teleport(redPlayerSpawnCageLoc);
             player.setCustomName("§c" + player.getName());
-            player.sendMessage("§a§l" + StringUtils.repeat("-", 64));
-            gameModifier.sendIntroMessage(player);
+            player.sendMessage("§a§l" + dashes);
+            bridgeModifier.sendIntroMessage(player);
             player.sendMessage("\n§f§l          Opponent: " + blueTeamFormatted);
-            player.sendMessage("\n§a§l" + StringUtils.repeat("-", 64));
+            player.sendMessage("\n§a§l" + dashes);
         }
 
 
         for(Player player : blueTeamPlayers) {
             player.teleport(bluePlayerSpawnCageLoc);
             player.setCustomName("§9" + player.getName());
-            player.sendMessage("§a§l" + StringUtils.repeat("-", 64));
-            gameModifier.sendIntroMessage(player);
+            player.sendMessage("§a§l" + dashes);
+            bridgeModifier.sendIntroMessage(player);
             player.sendMessage("\n§f§l          Opponent: " + redTeamFormatted);
-            player.sendMessage("\n§a§l" + StringUtils.repeat("-", 64));
+            player.sendMessage("\n§a§l" + dashes);
         }
 
         for(Player player : allPlayers) {
             PlayerInventory currentPlayerInv = player.getInventory();
-            currentPlayerInv.setContents(inventories.get(player.getUniqueId()).getContents());
             boolean isOnRed = redTeamPlayers.contains(player);
             currentPlayerInv.setBoots(Utils.getBoots(isOnRed));
             currentPlayerInv.setLeggings(Utils.getLeggings(isOnRed));
@@ -249,15 +233,15 @@ public class GameInfo {
             Scoreboard board = Utils.createScoreboard("§b§lBridge §c§lPractice", new String[]{
                     "%top%§7" + formattedDate + "% §8" + world.getName().substring(world.getName().indexOf("-") + 1).substring(0, 8),
                     "",
-                    "%time%§fTime Left: %§a" + gameModifier.getGameLengthMinutes() + ":00",
+                    "%time%§fTime Left: %§a" + bridgeModifier.getGameLengthMinutes() + ":00",
                     "",
                     "%red%§c[R] %§7⬤⬤⬤⬤⬤",
                     "%blue%§9[B] %§7⬤⬤⬤⬤⬤",
                     "",
                     "%kills%§fKills: %§a0",
-                    gameModifier.getCustomStatistic(),
+                    bridgeModifier.getCustomStatistic(),
                     "",
-                    "§fMode: §a" + gameModifier.getPrettyGameType(),
+                    "§fMode: §a" + bridgeModifier.getPrettyGameType(),
                     "%cws%§fWinstreak: %§a" + currentWinstreaks.getOrDefault(player.getUniqueId(), 0),
                     "%bws%§fBest Winstreak%§f: §a" + allTimeWinstreaks.getOrDefault(player.getUniqueId(), 0),
                     "",
@@ -293,7 +277,7 @@ public class GameInfo {
         timeUpdater = (new BukkitRunnable() {
             @Override
             public void run() {
-                long time = ((long) gameModifier.getGameLengthMinutes() * 60 * 1000) - (System.currentTimeMillis() - startTime);
+                long time = ((long) bridgeModifier.getGameLengthMinutes() * 60 * 1000) - (System.currentTimeMillis() - startTime);
                 long minutes = time / (60 * 1000);
                 long seconds = (time / 1000) % 60;
                 String formatted = String.format("%d:%02d", minutes, seconds);
@@ -317,49 +301,13 @@ public class GameInfo {
         startCountdown("");
     }
 
-    private void loadPlayerHotbar(Player player) {
-        boolean isOnRed = redTeamPlayers.contains(player);
-        (new BukkitRunnable() {
-            @Override
-            public void run() {
-                try(PreparedStatement statement = BPBridge.connection.prepareStatement("SELECT hotbarSword, hotbarBow, hotbarPickaxe, hotbarBlocksOne, hotbarBlocksTwo, hotbarGoldenApple, hotbarArrow, hotbarGlyph FROM players WHERE uuid=?;")) {
-                    Inventory inv = BPBridge.instance.getServer().createInventory(null, InventoryType.PLAYER);
-                    statement.setString(1, player.getUniqueId().toString()); // uuid
-                    ResultSet res = statement.executeQuery();
-                    if(!res.next()) {
-                        throw new SQLException("Did not get a row from the database. Player name: " + player.getName() + " Player UUID: " + player.getUniqueId());
-                    }
-                    inv.setItem(res.getInt("hotbarSword"), Utils.getSword());
-                    inv.setItem(res.getInt("hotbarBow"), Utils.getBow());
-                    inv.setItem(res.getInt("hotbarPickaxe"), Utils.getPickaxe());
-                    inv.setItem(res.getInt("hotbarBlocksOne"), Utils.getBlocks(isOnRed, gameModifier.getAmountOfBlocks()));
-                    inv.setItem(res.getInt("hotbarBlocksTwo"), Utils.getBlocks(isOnRed, gameModifier.getAmountOfBlocks()));
-                    inv.setItem(res.getInt("hotbarGoldenApple"), Utils.getGapple(gameModifier.getAmountOfGaps()));
-                    int arrow = res.getInt("hotbarArrow");
-                    inv.setItem(arrow, Utils.getArrow());
-                    arrowLocations.put(player.getUniqueId(), arrow);
-                    inv.setItem(res.getInt("hotbarGlyph"), Utils.getGlyph());
-                    inventories.put(player.getUniqueId(), inv);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    BukkitRunnable run = new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            player.kickPlayer("§c§lUh oh!§r§c There was an error getting your bridge hotbar!\nPlease check the Discord, and open a ticket if the issue persists.");
-                        }
-                    };
-                    run.runTaskLater(BPBridge.instance, 0);
-                }
-            }
-        }).runTaskAsynchronously(BPBridge.instance);
-    }
     private void startCountdown(String titleText) {
-        boolean useCages = gameModifier.shouldUseCages();
+        boolean useCages = bridgeModifier.shouldUseCages();
         countdownTimer = (new BukkitRunnable() {
             private int times = 0;
             @Override
             public void run() {
-                if(times >= gameModifier.getCountdownTime()) {
+                if(times >= bridgeModifier.getCountdownTime()) {
                     countdownTimer = null;
                     if(useCages) {
                         redCage.remove();
@@ -374,7 +322,7 @@ public class GameInfo {
                     return;
                 }
 
-                int secsLeft = gameModifier.getCountdownTime() - times;
+                int secsLeft = bridgeModifier.getCountdownTime() - times;
 
                 for(Player p : allPlayers) {
                     p.playSound(p.getLocation(), Sound.NOTE_STICKS, 1f, 1);
@@ -416,9 +364,9 @@ public class GameInfo {
         }).runTaskAsynchronously(BPBridge.instance);
     }
 
-    public void onDeath(Player player) {
+    public void onPlayerDeath(Player player) {
         player.closeInventory();
-        if(!gameStarted) {
+        if(!isPlaying()) {
             player.teleport(redSpawnLoc);
         } else {
             player.setHealth(20);
@@ -455,91 +403,13 @@ public class GameInfo {
 
             player.playSound(player.getLocation(), Sound.HURT_FLESH, 1, 1);
 
-            if(gameModifier.shouldResetPlayerOnDeath()) {
+            if(bridgeModifier.shouldResetPlayerOnDeath()) {
                 resetPlayer(player);
             }
             onPlayerHealthChange(player);
 
-            gameModifier.onPlayerKilledByPlayer(player, killer, this);
+            bridgeModifier.onPlayerKilledByPlayer(player, killer, this);
         }
-    }
-    public boolean shouldBlockBowCharge() {
-        return !gameModifier.shouldUseCages() && countdownTimer != null;
-    }
-    private void resetPlayer(Player player) {
-        PlayerInventory currentPlayerInv = player.getInventory();
-        Inventory inv = inventories.get(player.getUniqueId());
-        currentPlayerInv.setContents(inv.getContents());
-        (new BukkitRunnable() {
-            @Override
-            public void run() {
-                // reset the arrow every time since it disappears often
-                for(int i = 0; i < inv.getSize(); i++) {
-                    if(inv.getItem(i) != null && inv.getItem(i).getType() == Material.ARROW) {
-                        currentPlayerInv.setItem(i, Utils.getArrow());
-                    }
-                }
-            }
-        }).runTaskLater(BPBridge.instance, 4);
-
-
-        // reset these items so players can continue to hold right click after being reset
-        if(currentPlayerInv.getItem(currentPlayerInv.getHeldItemSlot()).getType() == Material.GOLDEN_APPLE) {
-            currentPlayerInv.setItem(currentPlayerInv.getHeldItemSlot(), Utils.getGapple(gameModifier.getAmountOfGaps()));
-        } else if(currentPlayerInv.getItem(currentPlayerInv.getHeldItemSlot()).getType() == Material.BOW) {
-            currentPlayerInv.setItem(currentPlayerInv.getHeldItemSlot(), Utils.getBow());
-        }
-
-        BukkitTask arrowTask = arrowRecharges.get(player.getUniqueId());
-        if(arrowTask != null) {
-            arrowTask.cancel();
-            arrowRecharges.remove(player.getUniqueId());
-            player.setExp(0);
-            player.setLevel(0);
-        }
-        // clear potion effects
-        for(PotionEffect effect : player.getActivePotionEffects()) {
-            player.removePotionEffect(effect.getType());
-        }
-    }
-    public void onGlyph(Player player) {
-        long lastGlyph = glyphTimes.getOrDefault(player.getUniqueId(), 0L);
-        if(System.currentTimeMillis() - lastGlyph > 10 * 1000) {
-            glyphTimes.put(player.getUniqueId(), System.currentTimeMillis());
-            player.sendMessage("§eYou displayed your §bSkill Glyph§e!");
-            for(Player p : allPlayers) {
-                p.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
-            }
-        } else {
-            player.sendMessage("§cYou must wait §e10s§c between glyph usages!");
-            player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f, 1f);
-        }
-    }
-    public void rechargeArrow(Player player) {
-        arrowRecharges.put(player.getUniqueId(), (new BukkitRunnable() {
-            long startTime = -1;
-            final float regenTime = 3.5f;
-            @Override
-            public void run() {
-                if(!player.isOnline()) {
-                    this.cancel();
-                    return;
-                }
-                if(startTime == -1) {
-                    startTime = System.currentTimeMillis();
-                }
-                float timeSince = (System.currentTimeMillis() - startTime) / 1000f;
-                if(timeSince > regenTime) {
-                    player.getInventory().setItem(arrowLocations.get(player.getUniqueId()), Utils.getArrow());
-                    this.cancel();
-                    arrowRecharges.remove(player.getUniqueId());
-                    player.setExp(0);
-                    return;
-                }
-                player.setExp(1 - (timeSince / regenTime));
-                player.setLevel((int) (regenTime - timeSince));
-            }
-        }).runTaskTimer(BPBridge.instance, 0, 2));
     }
     public int getKills(Player player) {
         return playerKills.getOrDefault(player.getUniqueId(), 0);
@@ -576,8 +446,12 @@ public class GameInfo {
     }
     public void onPlayerHitByPlayer(Player hit, Player hitter, double damage) {
         if(allPlayers.contains(hitter)) {
+            // if the player that hit someone has spawn prot, remove it - like in bedwars
+            if(canPlayerTakeDamage(hitter)) {
+                setPlayerUnprotected(hitter);
+            }
             lastHits.put(hit.getUniqueId(), hitter);
-            gameModifier.onPlayerHitByPlayer(hit, hitter, damage);
+            bridgeModifier.onPlayerHitByPlayer(hit, hitter, damage);
         }
     }
     private void showFireworks(String team) {
@@ -585,7 +459,7 @@ public class GameInfo {
             int times = 0;
             @Override
             public void run() {
-                if(times == gameModifier.getCountdownTime()) {
+                if(times == bridgeModifier.getCountdownTime()) {
                     this.cancel();
                     return;
                 }
@@ -609,8 +483,25 @@ public class GameInfo {
     }
     private long lastGoal = System.currentTimeMillis();
     public void onPlayerScore(Player player, String team) {
-        if(System.currentTimeMillis() - lastGoal < gameModifier.getCountdownTime()) {
-            onDeath(player);
+        Location redPlayerSpawnCageLoc = redSpawnLoc.clone();
+        Location bluePlayerSpawnCageLoc = blueSpawnLoc.clone();
+        if(bridgeModifier.shouldUseCages()) {
+            redPlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 6.1);
+            bluePlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 6.1);
+        }
+
+        // For some _ungodly reason_, spigot decides to just *not* teleport the player sometimes.
+        // The solution to this is to detect when this happens by checking `lastGoal` and teleporting
+        // the player back if it did happen
+        // This was put into place to solve the "double-scoring" problem
+        // An alternative solution seems to be to run the teleports one tick after they happen, but that solution
+        // seems worse since it will run regardless of whether the teleports happen
+        if(System.currentTimeMillis() - lastGoal < bridgeModifier.getCountdownTime() * 1000L) {
+            if(team.equals("red")) {
+                player.teleport(redPlayerSpawnCageLoc);
+            } else {
+                player.teleport(bluePlayerSpawnCageLoc);
+            }
             return;
         }
         lastGoal = System.currentTimeMillis();
@@ -629,11 +520,11 @@ public class GameInfo {
         int teamGoals = (team.equals("blue") ? blueGoals : redGoals);
         String teamColor = team.equals("blue") ? "9" : "c";
         String suffix = "§" + teamColor + StringUtils.repeat("⬤", teamGoals);
-        String content = "\n                " + "§" + teamColor + "§l" + player.getName() + " §7(§a" + String.format("%.1f", player.getHealth() + ((CraftPlayer) player).getHandle().getAbsorptionHearts()).replace(".0", "") + "§c" + Utils.hearts(1) + "§7) §escored! §7(§6" + (Utils.ordinal(playerGoals.get(player.getUniqueId()))) + " " + gameModifier.getNameForScore() + "§7)" +
+        String content = "\n                " + "§" + teamColor + "§l" + player.getName() + " §7(§a" + String.format("%.1f", player.getHealth() + ((CraftPlayer) player).getHandle().getAbsorptionHearts()).replace(".0", "") + "§c" + Utils.hearts(1) + "§7) §escored! §7(§6" + (Utils.ordinal(playerGoals.get(player.getUniqueId()))) + " " + bridgeModifier.getNameForScore() + "§7)" +
                 "\n                                " + (team.equals("blue") ? "§9§l" + blueGoals : "§c§l" + redGoals) + " §7§l- " + (team.equals("blue") ? "§c§l" + redGoals : "§9§l" + blueGoals);
 
-        String start = "§6" + StringUtils.repeat("-", 64);
-        String end = "\n§6" + StringUtils.repeat("-", 64);
+        String start = "§6" + dashes;
+        String end = "\n§6" + dashes;
 
         if(5 - teamGoals > 0) {
             suffix += "§7" + StringUtils.repeat("⬤", 5 - teamGoals);
@@ -672,14 +563,7 @@ public class GameInfo {
             lastHits.remove(player.getUniqueId());
         }
 
-        Location redPlayerSpawnCageLoc = redSpawnLoc.clone();
-        Location bluePlayerSpawnCageLoc = blueSpawnLoc.clone();
-        if(gameModifier.shouldUseCages()) {
-            redPlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 6.1);
-            bluePlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 6.1);
-        }
-
-        if(gameModifier.shouldUseCages()) {
+        if(bridgeModifier.shouldUseCages()) {
             // teleport into cages
             for(Player p : redTeamPlayers) {
                 p.teleport(redPlayerSpawnCageLoc.clone().add(0, 2, 0));
@@ -703,8 +587,7 @@ public class GameInfo {
         startCountdown(player.getCustomName() + " scored!");
     }
     private void onWin(String team, String teamColor) {
-        gameStarted = false;
-        gameFinished = true;
+        state = State.Finished;
         timeUpdater.cancel();
         long time = System.currentTimeMillis() - startTime;
         long minutes = time / (60 * 1000);
@@ -750,9 +633,9 @@ public class GameInfo {
         for(Player p : allPlayers) {
             Utils.sendTitle(p, team.equals("draw") ? "§fIt's a Draw!" : ("§" + (team.equals("blue") ? "9BLUE" : "cRED") + " WINS!"), score, 0, 10, 5 * 20);
 
-            p.sendMessage("§a§l" + StringUtils.repeat("-", 64));
+            p.sendMessage("§a§l" + dashes);
             p.sendMessage(winMessage);
-            p.sendMessage("§a§l" + StringUtils.repeat("-", 64));
+            p.sendMessage("§a§l" + dashes);
 
             if(!shouldCountAsStats) {
                 p.sendMessage("§cYour stats didn't change because you /duel'ed your opponent!");
@@ -761,20 +644,14 @@ public class GameInfo {
             p.setHealth(20);
 
             // remove arrow recharges
-            BukkitTask arrowTask = arrowRecharges.get(p.getUniqueId());
-            if(arrowTask != null) {
-                arrowTask.cancel();
-                arrowRecharges.remove(p.getUniqueId());
-            }
-            p.setLevel(0);
-            p.setExp(0);
+            resetArrowRecharge(p);
         }
 
         showFireworks(team);
 
         if(countdownTimer != null) {
             countdownTimer.cancel();
-            if(gameModifier.shouldUseCages()) {
+            if(bridgeModifier.shouldUseCages()) {
                 redCage.remove();
                 blueCage.remove();
             }
@@ -889,7 +766,7 @@ public class GameInfo {
                 embed.addProperty("color", 0x39c2ff);
 
                 embed.add("author", author);
-                author.addProperty("name", "Winstreak Change (Mode: " + gameModifier.getPrettyGameType() + ")");
+                author.addProperty("name", "Winstreak Change (Mode: " + bridgeModifier.getPrettyGameType() + ")");
 
                 int winningPlayerWs = currentWinstreaks.get(winningPlayer.getUniqueId());
                 int losingPlayerWs = (currentWinstreaks.get(losingPlayer.getUniqueId()));
@@ -919,7 +796,7 @@ public class GameInfo {
             }
         }).runTaskAsynchronously(BPBridge.instance);
     }
-    public void sendChatMessage(Player player, String message) {
+    public void onPlayerChat(Player player, String message) {
         if(player.hasPermission("bridgepractice.goldengg")) {
             if(message.equals("gg")) {
                 message = "§6"+(player.hasPermission("bridgepractice.boldgg") ? "§l" : "")+"gg";
@@ -947,27 +824,11 @@ public class GameInfo {
         playerInv.setItem(3, Utils.makeItem(Material.PAPER, "§b§lPlay Again §7(Right Click)", "§7Right-click to play another game!"));
         playerInv.setItem(5, Utils.makeItem(Material.BED, "§c§lReturn to Lobby §7(Right Click)", "§7Right-click to go to the lobby!"));
     }
-    public void endGame() {
-        for(Player player : world.getPlayers()) {
-            if(player.isOnline()) {
-                BPBridge.connectPlayerToLobby(player);
-            }
-        }
-        // unload world
-        (new BukkitRunnable() {
-            @Override
-            public void run() {
-                BPBridge.instance.gameInfos.remove(world.getName());
-                BPBridge.instance.unloadWorld(world.getName());
-            }
-        }).runTaskLater(BPBridge.instance, 3 * 20);
-    }
-    public void onPlayerLeave(Player player) {
+    public void onPlayerLeaveImpl(Player player) {
         boolean wasOnRedTeam = redTeamPlayers.remove(player);
         boolean wasOnBlueTeam = blueTeamPlayers.remove(player);
-        allPlayers.remove(player);
 
-        if(hasStarted()) {
+        if(isPlaying()) {
             // here we tell players someone left and give the appropriate team the win
             String leaveMessage = player.getCustomName() + "§7 left the game.";
             for(Player p : allPlayers) {
@@ -981,7 +842,7 @@ public class GameInfo {
                 onWin("red", "c");
             }
         } else {
-            if(!gameFinished) {
+            if(state != State.Finished) {
                 // this is the logic that handles re-queueing and stuff
                 allBluePlayersPossiblyOnline.remove(player);
                 allRedPlayersPossiblyOnline.remove(player);
@@ -1005,20 +866,26 @@ public class GameInfo {
                     BPBridge.instance.sendCreateQueuePluginMessage(allPlayers.get(0), gameType); // we don't use `.createQueue` because that will change the game info
                 } else if(BPBridge.instance.getServer().getOnlinePlayers().size() > 1) { // we need to ensure that there are players online so we can send a message to bungeecord
                     BPBridge.instance.removeFromQueueable(world.getName(), gameType);
-                    BPBridge.instance.gameInfos.remove(world.getName());
-                    BPBridge.instance.unloadWorld(world.getName());
+                    endGame();
                 }
             }
         }
     }
-    public void onMove(Player player) {
+    public void onPlayerBowCharge(PlayerInteractEvent event, Player player) {
+        if(!bridgeModifier.shouldUseCages() && countdownTimer != null) {
+            player.setItemInHand(event.getItem());
+            event.setCancelled(true);
+            player.sendMessage("§cYou can't shoot your bow right now!");
+        }
+    }
+    public void onPlayerMove(PlayerMoveEvent event, Player player) {
         if(player.getLocation().getY() < 80) {
-            onDeath(player);
+            onPlayerDeath(player);
             return;
         }
-        if(!hasStarted())
+        if(!isPlaying())
             return;
-        if(!gameModifier.shouldUseCages() && countdownTimer != null) {
+        if(!bridgeModifier.shouldUseCages() && countdownTimer != null) {
             Location loc = redTeamPlayers.contains(player) ? redSpawnLoc.clone() : blueSpawnLoc.clone();
             if(player.getLocation().getX() != loc.getX() || player.getLocation().getZ() != loc.getZ()) {
                 loc.setYaw(player.getLocation().getYaw());
@@ -1046,13 +913,39 @@ public class GameInfo {
     public String getTeamOfPlayer(Player player) {
         return blueTeamPlayers.contains(player) ? "blue" : "red";
     }
-    public void onBlockPlace(BlockPlaceEvent event) {
+    public void onPlayerBlockPlace(BlockPlaceEvent event, Player player) {
         blocksPlaced.add(event.getBlock().getLocation());
+    }
+    public boolean cannotPlaceBlocks(Location loc, Player player) {
+        if(loc.getY() > 99) {
+            return true;
+        }
+        if(map.equals("flora")) {
+            // flora is the only map that has a box around its goal. why!?!?
+            if(new Rectangle(27, 92, -3, 6, 6, 6).isInBounds(loc) ||
+                    new Rectangle(-33, 92, -3, 6, 6, 6).isInBounds(loc) ||
+                    new Rectangle(-33, 99, -4, 6, 3, 8).isInBounds(loc) ||
+                    new Rectangle(27, 99, -4, 6, 3, 8).isInBounds(loc)) {
+                return true;
+            }
+        }
+        return !canPlaceBlocksAtLoc(loc);
+    }
+
+    public boolean cannotBreakBlock(Block block, Location loc, Player player) {
+        return !(block.getType() == Material.STAINED_CLAY &&
+                (block.getData() == DyeColor.RED.getData() || block.getData() == DyeColor.BLUE.getData() || block.getData() == DyeColor.WHITE.getData()) &&
+                !cannotPlaceBlocks(loc, player) &&
+                ((loc.getX() >= -20 && loc.getX() <= 20) || hasBlockBeenPlaced(loc))
+        );
+    }
+    public boolean canPlaceBlocksAtLoc(Location loc) {
+        return blockPlaceableRect.isInBounds(loc);
     }
     public boolean hasBlockBeenPlaced(Location loc) {
         return blocksPlaced.contains(loc);
     }
-    public boolean isPlayerProtected(Player player) {
+    public boolean canPlayerTakeDamage(Player player) {
         return protectedPlayers.get(player.getUniqueId()) != null;
     }
     public void setPlayerUnprotected(Player player) {
@@ -1073,12 +966,6 @@ public class GameInfo {
     }
     public World getWorld() {
         return world;
-    }
-    public boolean hasStarted() {
-        return gameStarted;
-    }
-    public boolean hasGameFinished() {
-        return gameFinished;
     }
     public Set<Location> getBlocksPlaced() {
         return blocksPlaced;
