@@ -12,10 +12,8 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -44,10 +42,6 @@ public class BridgeBase extends Game {
     ArrayList<Player> blueTeamPlayers = new ArrayList<>();
     ArrayList<OfflinePlayer> allRedPlayersPossiblyOnline = new ArrayList<>();
     ArrayList<OfflinePlayer> allBluePlayersPossiblyOnline = new ArrayList<>();
-    HashMap<UUID, Inventory> inventories = new HashMap<>();
-    HashMap<UUID, Long> glyphTimes = new HashMap<>();
-    HashMap<UUID, BukkitTask> arrowRecharges = new HashMap<>();
-    HashMap<UUID, Integer> arrowLocations = new HashMap<>();
     HashMap<UUID, Integer> playerKills = new HashMap<>();
     HashMap<UUID, BukkitTask> protectedPlayers = new HashMap<>();
     HashMap<UUID, Integer> playerGoals = new HashMap<>();
@@ -83,6 +77,8 @@ public class BridgeBase extends Game {
         world.setGameRuleValue("doDaylightCycle", "false");
         world.setTime(Maps.getTimeOfMap(map));
         world.setGameRuleValue("randomTickSpeed", "0");
+        setAmountOfBlocks(bridgeModifier.getAmountOfBlocks());
+        setAmountOfGaps(bridgeModifier.getAmountOfGaps());
         onPlayerJoin(player);
     }
 
@@ -133,7 +129,7 @@ public class BridgeBase extends Game {
             player.removePotionEffect(effect.getType());
         }
         player.getInventory().setItem(8, Utils.makeItem(Material.BED, "§c§lReturn to Lobby §7(Right Click)", "§7Right-click to leave to the lobby!"));
-        loadPlayerHotbar(player);
+        loadPlayerHotbar(player, redTeamPlayers.contains(player));
         Scoreboard board = Utils.createScoreboard("§b§lBridge §c§lPractice", new String[]{
                 "%top%§7" + formattedDate + "% §8" + world.getName().substring(world.getName().indexOf("-") + 1).substring(0, 5),
                 "",
@@ -211,25 +207,24 @@ public class BridgeBase extends Game {
         for(Player player : redTeamPlayers) {
             player.teleport(redPlayerSpawnCageLoc);
             player.setCustomName("§c" + player.getName());
-            player.sendMessage("§a§l" + StringUtils.repeat("-", 64));
+            player.sendMessage("§a§l" + dashes);
             bridgeModifier.sendIntroMessage(player);
             player.sendMessage("\n§f§l          Opponent: " + blueTeamFormatted);
-            player.sendMessage("\n§a§l" + StringUtils.repeat("-", 64));
+            player.sendMessage("\n§a§l" + dashes);
         }
 
 
         for(Player player : blueTeamPlayers) {
             player.teleport(bluePlayerSpawnCageLoc);
             player.setCustomName("§9" + player.getName());
-            player.sendMessage("§a§l" + StringUtils.repeat("-", 64));
+            player.sendMessage("§a§l" + dashes);
             bridgeModifier.sendIntroMessage(player);
             player.sendMessage("\n§f§l          Opponent: " + redTeamFormatted);
-            player.sendMessage("\n§a§l" + StringUtils.repeat("-", 64));
+            player.sendMessage("\n§a§l" + dashes);
         }
 
         for(Player player : allPlayers) {
             PlayerInventory currentPlayerInv = player.getInventory();
-            currentPlayerInv.setContents(inventories.get(player.getUniqueId()).getContents());
             boolean isOnRed = redTeamPlayers.contains(player);
             currentPlayerInv.setBoots(Utils.getBoots(isOnRed));
             currentPlayerInv.setLeggings(Utils.getLeggings(isOnRed));
@@ -306,42 +301,6 @@ public class BridgeBase extends Game {
         startCountdown("");
     }
 
-    private void loadPlayerHotbar(Player player) {
-        boolean isOnRed = redTeamPlayers.contains(player);
-        (new BukkitRunnable() {
-            @Override
-            public void run() {
-                try(PreparedStatement statement = BPBridge.connection.prepareStatement("SELECT hotbarSword, hotbarBow, hotbarPickaxe, hotbarBlocksOne, hotbarBlocksTwo, hotbarGoldenApple, hotbarArrow, hotbarGlyph FROM players WHERE uuid=?;")) {
-                    Inventory inv = BPBridge.instance.getServer().createInventory(null, InventoryType.PLAYER);
-                    statement.setString(1, player.getUniqueId().toString()); // uuid
-                    ResultSet res = statement.executeQuery();
-                    if(!res.next()) {
-                        throw new SQLException("Did not get a row from the database. Player name: " + player.getName() + " Player UUID: " + player.getUniqueId());
-                    }
-                    inv.setItem(res.getInt("hotbarSword"), Utils.getSword());
-                    inv.setItem(res.getInt("hotbarBow"), Utils.getBow());
-                    inv.setItem(res.getInt("hotbarPickaxe"), Utils.getPickaxe());
-                    inv.setItem(res.getInt("hotbarBlocksOne"), Utils.getBlocks(isOnRed, bridgeModifier.getAmountOfBlocks()));
-                    inv.setItem(res.getInt("hotbarBlocksTwo"), Utils.getBlocks(isOnRed, bridgeModifier.getAmountOfBlocks()));
-                    inv.setItem(res.getInt("hotbarGoldenApple"), Utils.getGapple(bridgeModifier.getAmountOfGaps()));
-                    int arrow = res.getInt("hotbarArrow");
-                    inv.setItem(arrow, Utils.getArrow());
-                    arrowLocations.put(player.getUniqueId(), arrow);
-                    inv.setItem(res.getInt("hotbarGlyph"), Utils.getGlyph());
-                    inventories.put(player.getUniqueId(), inv);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    BukkitRunnable run = new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            player.kickPlayer("§c§lUh oh!§r§c There was an error getting your bridge hotbar!\nPlease check the Discord, and open a ticket if the issue persists.");
-                        }
-                    };
-                    run.runTaskLater(BPBridge.instance, 0);
-                }
-            }
-        }).runTaskAsynchronously(BPBridge.instance);
-    }
     private void startCountdown(String titleText) {
         boolean useCages = bridgeModifier.shouldUseCages();
         countdownTimer = (new BukkitRunnable() {
@@ -452,81 +411,6 @@ public class BridgeBase extends Game {
             bridgeModifier.onPlayerKilledByPlayer(player, killer, this);
         }
     }
-    private void resetPlayer(Player player) {
-        PlayerInventory currentPlayerInv = player.getInventory();
-        Inventory inv = inventories.get(player.getUniqueId());
-        currentPlayerInv.setContents(inv.getContents());
-        (new BukkitRunnable() {
-            @Override
-            public void run() {
-                // reset the arrow every time since it disappears often
-                for(int i = 0; i < inv.getSize(); i++) {
-                    if(inv.getItem(i) != null && inv.getItem(i).getType() == Material.ARROW) {
-                        currentPlayerInv.setItem(i, Utils.getArrow());
-                    }
-                }
-            }
-        }).runTaskLater(BPBridge.instance, 4);
-
-
-        // reset these items so players can continue to hold right click after being reset
-        if(currentPlayerInv.getItem(currentPlayerInv.getHeldItemSlot()).getType() == Material.GOLDEN_APPLE) {
-            currentPlayerInv.setItem(currentPlayerInv.getHeldItemSlot(), Utils.getGapple(bridgeModifier.getAmountOfGaps()));
-        } else if(currentPlayerInv.getItem(currentPlayerInv.getHeldItemSlot()).getType() == Material.BOW) {
-            currentPlayerInv.setItem(currentPlayerInv.getHeldItemSlot(), Utils.getBow());
-        }
-
-        BukkitTask arrowTask = arrowRecharges.get(player.getUniqueId());
-        if(arrowTask != null) {
-            arrowTask.cancel();
-            arrowRecharges.remove(player.getUniqueId());
-            player.setExp(0);
-            player.setLevel(0);
-        }
-        // clear potion effects
-        for(PotionEffect effect : player.getActivePotionEffects()) {
-            player.removePotionEffect(effect.getType());
-        }
-    }
-    public void onPlayerGlyph(Player player) {
-        long lastGlyph = glyphTimes.getOrDefault(player.getUniqueId(), 0L);
-        if(System.currentTimeMillis() - lastGlyph > 10 * 1000) {
-            glyphTimes.put(player.getUniqueId(), System.currentTimeMillis());
-            player.sendMessage("§eYou displayed your §bSkill Glyph§e!");
-            for(Player p : allPlayers) {
-                p.playSound(player.getLocation(), Sound.ORB_PICKUP, 1f, 1f);
-            }
-        } else {
-            player.sendMessage("§cYou must wait §e10s§c between glyph usages!");
-            player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1f, 1f);
-        }
-    }
-    public void rechargeArrow(Player player) {
-        arrowRecharges.put(player.getUniqueId(), (new BukkitRunnable() {
-            long startTime = -1;
-            final float regenTime = 3.5f;
-            @Override
-            public void run() {
-                if(!player.isOnline()) {
-                    this.cancel();
-                    return;
-                }
-                if(startTime == -1) {
-                    startTime = System.currentTimeMillis();
-                }
-                float timeSince = (System.currentTimeMillis() - startTime) / 1000f;
-                if(timeSince > regenTime) {
-                    player.getInventory().setItem(arrowLocations.get(player.getUniqueId()), Utils.getArrow());
-                    this.cancel();
-                    arrowRecharges.remove(player.getUniqueId());
-                    player.setExp(0);
-                    return;
-                }
-                player.setExp(1 - (timeSince / regenTime));
-                player.setLevel((int) (regenTime - timeSince));
-            }
-        }).runTaskTimer(BPBridge.instance, 0, 2));
-    }
     public int getKills(Player player) {
         return playerKills.getOrDefault(player.getUniqueId(), 0);
     }
@@ -599,8 +483,25 @@ public class BridgeBase extends Game {
     }
     private long lastGoal = System.currentTimeMillis();
     public void onPlayerScore(Player player, String team) {
-        if(System.currentTimeMillis() - lastGoal < bridgeModifier.getCountdownTime()) {
-            onPlayerDeath(player);
+        Location redPlayerSpawnCageLoc = redSpawnLoc.clone();
+        Location bluePlayerSpawnCageLoc = blueSpawnLoc.clone();
+        if(bridgeModifier.shouldUseCages()) {
+            redPlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 6.1);
+            bluePlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 6.1);
+        }
+
+        // For some _ungodly reason_, spigot decides to just *not* teleport the player sometimes.
+        // The solution to this is to detect when this happens by checking `lastGoal` and teleporting
+        // the player back if it did happen
+        // This was put into place to solve the "double-scoring" problem
+        // An alternative solution seems to be to run the teleports one tick after they happen, but that solution
+        // seems worse since it will run regardless of whether the teleports happen
+        if(System.currentTimeMillis() - lastGoal < bridgeModifier.getCountdownTime() * 1000L) {
+            if(team.equals("red")) {
+                player.teleport(redPlayerSpawnCageLoc);
+            } else {
+                player.teleport(bluePlayerSpawnCageLoc);
+            }
             return;
         }
         lastGoal = System.currentTimeMillis();
@@ -622,8 +523,8 @@ public class BridgeBase extends Game {
         String content = "\n                " + "§" + teamColor + "§l" + player.getName() + " §7(§a" + String.format("%.1f", player.getHealth() + ((CraftPlayer) player).getHandle().getAbsorptionHearts()).replace(".0", "") + "§c" + Utils.hearts(1) + "§7) §escored! §7(§6" + (Utils.ordinal(playerGoals.get(player.getUniqueId()))) + " " + bridgeModifier.getNameForScore() + "§7)" +
                 "\n                                " + (team.equals("blue") ? "§9§l" + blueGoals : "§c§l" + redGoals) + " §7§l- " + (team.equals("blue") ? "§c§l" + redGoals : "§9§l" + blueGoals);
 
-        String start = "§6" + StringUtils.repeat("-", 64);
-        String end = "\n§6" + StringUtils.repeat("-", 64);
+        String start = "§6" + dashes;
+        String end = "\n§6" + dashes;
 
         if(5 - teamGoals > 0) {
             suffix += "§7" + StringUtils.repeat("⬤", 5 - teamGoals);
@@ -660,13 +561,6 @@ public class BridgeBase extends Game {
 
             p.setHealth(20);
             lastHits.remove(player.getUniqueId());
-        }
-
-        Location redPlayerSpawnCageLoc = redSpawnLoc.clone();
-        Location bluePlayerSpawnCageLoc = blueSpawnLoc.clone();
-        if(bridgeModifier.shouldUseCages()) {
-            redPlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 6.1);
-            bluePlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 6.1);
         }
 
         if(bridgeModifier.shouldUseCages()) {
@@ -739,9 +633,9 @@ public class BridgeBase extends Game {
         for(Player p : allPlayers) {
             Utils.sendTitle(p, team.equals("draw") ? "§fIt's a Draw!" : ("§" + (team.equals("blue") ? "9BLUE" : "cRED") + " WINS!"), score, 0, 10, 5 * 20);
 
-            p.sendMessage("§a§l" + StringUtils.repeat("-", 64));
+            p.sendMessage("§a§l" + dashes);
             p.sendMessage(winMessage);
-            p.sendMessage("§a§l" + StringUtils.repeat("-", 64));
+            p.sendMessage("§a§l" + dashes);
 
             if(!shouldCountAsStats) {
                 p.sendMessage("§cYour stats didn't change because you /duel'ed your opponent!");
@@ -750,13 +644,7 @@ public class BridgeBase extends Game {
             p.setHealth(20);
 
             // remove arrow recharges
-            BukkitTask arrowTask = arrowRecharges.get(p.getUniqueId());
-            if(arrowTask != null) {
-                arrowTask.cancel();
-                arrowRecharges.remove(p.getUniqueId());
-            }
-            p.setLevel(0);
-            p.setExp(0);
+            resetArrowRecharge(p);
         }
 
         showFireworks(team);
