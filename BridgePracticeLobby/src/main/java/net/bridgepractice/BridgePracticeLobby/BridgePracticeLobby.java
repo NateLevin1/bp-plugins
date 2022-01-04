@@ -204,9 +204,9 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         ItemStack unranked = Utils.makeItem(Material.IRON_SWORD, "§aBridge Duel", "§8Multiplayer", "", "§7Defeat your opponent in a", "§7classic game of The Bridge.", "", "§eClick to Play!");
         ItemStack pvp = Utils.makeItem(Material.IRON_BOOTS, "§aBridge PvP 1v1", "§8Multiplayer", "", "§7Kill your opponent 5 times", "§7on a developed bridge", "", "§eClick to Play!");
 
-        gameMenu = new Menu("Game Menu", 5, false,
+       gameMenu = new Menu("Game Menu", 5, false,
                 new MenuItem(1, 1, Utils.makeItem(Material.BOOKSHELF, "§aMain Lobby", "§7Return to the Main Lobby.", "", "§eClick to Go"), (p, m) -> sendPlayerToServer(p, "lobby")),
-                new MenuItem(2, 1, Utils.makeCustomPlayerHead("http://textures.minecraft.net/texture/e25a2f9cb91863bedcfcc40ec31992368fb4ea8f34c532bc3a58c0ac63977be5", "§aMy Stats", "§7View your statistics", "§7across gamemodes.", "", "§eClick to View"), (p, m) -> showStats(p)),
+                new MenuItem(2, 1, Utils.makeCustomPlayerHead("http://textures.minecraft.net/texture/e25a2f9cb91863bedcfcc40ec31992368fb4ea8f34c532bc3a58c0ac63977be5", "§aMy Stats", "§7View your statistics", "§7across gamemodes.", "", "§eClick to View"), (p, m) -> StatsCommand.showStats(p,p),
                 new MenuItem(3, 1, Utils.makeItem(Material.EMERALD, "§aBridgePractice Store", "§7Purchase a rank to help", "§7support the server!", "", "§eClick to Visit"), (p, m) -> {
                     m.allowForGarbageCollection();
                     p.closeInventory();
@@ -231,6 +231,11 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         multiplayerGamesMenu = new Menu("Multiplayer Games", 3, false,
                 new MenuItem(1, 3, unranked, (p, m) -> requestGame(p, "unranked")),
                 new MenuItem(1, 5, pvp, (p, m) -> requestGame(p, "pvp"))
+
+
+        multiplayerGamesMenu = new Menu("Multiplayer Games", 3, false,
+                new MenuItem(1, 3, unranked, (p, m) -> requestGame(p, "unranked")),
+                new MenuItem(1, 5, pvp, (p, m) -> requestGame(p, "pvp"))
         );
 
         World world = getServer().getWorld("world");
@@ -251,6 +256,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         getCommand("cookie").setExecutor(new CookieCommand());
 
         getCommand("joinannounce").setExecutor(new JoinAnnounceCommand());
+        getCommand("stats").setExecutor(new StatsCommand());
       
         getCommand("telestick").setExecutor(new TelestickCommand());
     }
@@ -441,102 +447,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         items[6] = new HotbarItem(Utils.getArrow(), 8);
         return items;
     }
-    private void showStats(Player player) {
-        MenuItem wing = new MenuItem(2, 1, Utils.makeItem(Material.CLAY_BRICK, "§eWing Practice", "§8Singleplayer", ""), null);
-        MenuItem bypass = new MenuItem(2, 2, Utils.makeItem(Material.SUGAR, "§eBypass Practice", "§8Singleplayer", ""), null);
-        MenuItem prebow = new MenuItem(3, 1, Utils.makeItem(Material.ARROW, "§ePrebow Practice", "§8Singleplayer", ""), null);
-        MenuItem bot = new MenuItem(3, 2, Utils.makeItem(Material.STONE_SWORD, "§eBot 1v1", "§8Singleplayer", ""), null);
-        MenuItem unranked = new MenuItem(2, 6, Utils.makeItem(Material.IRON_SWORD, "§eBridge Duel", "§8Multiplayer", ""), null);
-        MenuItem pvp = new MenuItem(2, 7, Utils.makeItem(Material.IRON_BOOTS, "§eBridge PvP 1v1", "§8Multiplayer", ""), null);
 
-        MenuItem star = new MenuItem(3, 4, Utils.makeItem(Material.NETHER_STAR, "§eOther Stats", ""), null);
-
-        Menu stats = new Menu("Your Stats", 5, true,
-                new MenuItem(1, 4, Utils.makeItem(Material.BEACON, "§5Your Statistics", "§7View your statistics", "§7across the network"), null),
-
-                wing,
-                bypass,
-                prebow,
-                bot,
-
-                unranked,
-                pvp,
-
-                star
-        );
-        player.openInventory(stats.getInventory());
-
-        (new BukkitRunnable() {
-            @Override
-            public void run() {
-                try(PreparedStatement statement = connection.prepareStatement("SELECT * FROM players WHERE uuid=?;")) {
-                    statement.setString(1, player.getUniqueId().toString()); // uuid
-                    ResultSet res = statement.executeQuery();
-                    if(!res.next()) {
-                        throw new SQLException("Did not get a row from the database. Player name: " + player.getName() + " Player UUID: " + player.getUniqueId());
-                    }
-                    Inventory inv = stats.getInventory();
-
-                    DecimalFormat decimalFormatter = new DecimalFormat("#.###");
-                    decimalFormatter.setRoundingMode(RoundingMode.CEILING);
-
-                    double wingPB = res.getFloat("wingPB") * 0.001;
-                    inv.setItem(wing.index, Utils.addLore(wing.item, "§7 - §fPersonal Best: " + (res.wasNull() ? "§cN/A" : "§a" + prettifyTime(wingPB)), ""));
-
-                    double startGame = res.getFloat("bypassStartPB") * 0.001;
-                    Utils.addLore(bypass.item, "§7 - §fStart Game: " + (res.wasNull() ? "§cN/A" : "§a" + prettifyTime(startGame)));
-                    double earlyGame = res.getFloat("bypassEarlyPB") * 0.001;
-                    Utils.addLore(bypass.item, "§7 - §fEarly Game: " + (res.wasNull() ? "§cN/A" : "§a" + prettifyTime(earlyGame)));
-                    double middleGame = res.getFloat("bypassMiddlePB") * 0.001;
-                    Utils.addLore(bypass.item, "§7 - §fMiddle Game: " + (res.wasNull() ? "§cN/A" : "§a" + prettifyTime(middleGame)));
-                    double lateGame = res.getFloat("bypassLatePB") * 0.001;
-                    inv.setItem(bypass.index, Utils.addLore(bypass.item, "§7 - §fLate Game: " + (res.wasNull() ? "§cN/A" : "§a" + prettifyTime(lateGame)), ""));
-
-                    int prebowHits = res.getInt("prebowHits");
-                    inv.setItem(prebow.index, Utils.addLore(prebow.item, "§7 - §fAll Time Hits: §a" + prebowHits, ""));
-
-                    int botWinStreak = res.getInt("botWinStreak");
-                    Utils.addLore(bot.item, "§7 - §fWin Streak: §a" + botWinStreak);
-                    int botWins = res.getInt("botWins");
-                    inv.setItem(bot.index, Utils.addLore(bot.item, "§7 - §fTotal Wins: §a" + botWins));
-
-                    int xp = res.getInt("xp");
-                    Utils.addLore(star.item, "§7 - §fXP: §a" + xp);
-                    Date firstLogin = res.getDate("firstLogin");
-                    SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
-                    inv.setItem(star.index, Utils.addLore(star.item, "§7 - §fFirst Login: §a" + formatter.format(firstLogin), ""));
-
-                    {
-                        int curWs = res.getInt("unrankedCurrentWinStreak");
-                        int allTimeWs = res.getInt("unrankedAllTimeWinStreak");
-                        int wins = res.getInt("unrankedWins");
-                        int losses = res.getInt("unrankedLosses");
-                        inv.setItem(unranked.index, Utils.addLore(unranked.item, "§7 - §fCurrent Winstreak: §a" + curWs,
-                                "§7 - §fBest Winstreak: §a" + allTimeWs,
-                                "§7 - §fTotal Wins: §a" + wins,
-                                "§7 - §fTotal Losses: §a" + losses,
-                                "§7 - §fWin/Loss Ratio: §a" + (losses != 0 ? decimalFormatter.format(wins / ((double) losses)) : (wins == 0 ? "§cN/A" : "Infinity!"))));
-                    }
-
-                    {
-                        int curWs = res.getInt("pvpCurrentWinStreak");
-                        int allTimeWs = res.getInt("pvpAllTimeWinStreak");
-                        int wins = res.getInt("pvpWins");
-                        int losses = res.getInt("pvpLosses");
-                        inv.setItem(pvp.index, Utils.addLore(pvp.item, "§7 - §fCurrent Winstreak: §a" + curWs,
-                                "§7 - §fBest Winstreak: §a" + allTimeWs,
-                                "§7 - §fTotal Wins: §a" + wins,
-                                "§7 - §fTotal Losses: §a" + losses,
-                                "§7 - §fWin/Loss Ratio: §a" + (losses != 0 ? decimalFormatter.format(wins / ((double) losses)) : (wins == 0 ? "§cN/A" : "Infinity!")),
-                                ""));
-                    }
-                } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                    player.sendMessage("§c§lUh oh!§r§c Something went wrong fetching your information from our database. Please open a ticket on the discord!");
-                }
-            }
-        }).runTaskAsynchronously(this);
-    }
     public static String prettifyTime(double time) {
         return String.format("%.3f", time);
     }
