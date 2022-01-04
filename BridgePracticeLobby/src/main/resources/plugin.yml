@@ -22,6 +22,9 @@ commands:
     permission: bridgepractice.lobby.announce
     permission-message: §cYou must have a rank to use this command!
     usage: /<command> [on|off]
+  stats:
+    description: Get yours and other people's stats!
+    usage: /<command> [player]
   telestick:
     description: Get a stick that makes you teleport!
     permission: bridgepractice.command.telestick

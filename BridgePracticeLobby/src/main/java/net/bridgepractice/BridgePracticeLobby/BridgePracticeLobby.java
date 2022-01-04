@@ -251,6 +251,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         getCommand("cookie").setExecutor(new CookieCommand());
 
         getCommand("joinannounce").setExecutor(new JoinAnnounceCommand());
+        getCommand("stats").setExecutor(new StatsCommand());
       
         getCommand("telestick").setExecutor(new TelestickCommand());
     }
