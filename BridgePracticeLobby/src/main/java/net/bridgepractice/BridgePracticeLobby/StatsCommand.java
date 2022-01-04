@@ -40,7 +40,7 @@ public class StatsCommand implements CommandExecutor {
         return true;
     }
 
-    private void showStats(Player sender, Player player) {
+    public static void showStats(Player sender, Player player) {
         MenuItem wing = new MenuItem(2, 1, Utils.makeItem(Material.CLAY_BRICK, "§eWing Practice", "§8Singleplayer", ""), null);
         MenuItem bypass = new MenuItem(2, 2, Utils.makeItem(Material.SUGAR, "§eBypass Practice", "§8Singleplayer", ""), null);
         MenuItem prebow = new MenuItem(3, 1, Utils.makeItem(Material.ARROW, "§ePrebow Practice", "§8Singleplayer", ""), null);
