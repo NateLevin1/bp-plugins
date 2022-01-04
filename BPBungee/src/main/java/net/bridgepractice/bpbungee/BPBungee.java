@@ -248,6 +248,7 @@ public class BPBungee extends Plugin implements Listener {
     }
     List<String> blockedCommandsIfMuted = Arrays.asList("msg", "r", "w", "message", "reply", "rainbow");
     List<String> blockedCommands = Arrays.asList("/worldedit:/calc", "/worldedit:/calculate", "/worldedit:/eval", "/worldedit:/evaluate", "/worldedit:/solve");
+    private final String[] blockedWords = {"nigga", "nigger", "anigger", "anigga", "aniga", "aniger", "niger", "niga", "fag", "faggot", "retard", "n1ger", "sex", "esex", "cum"};
     @EventHandler
     public void onPlayerChat(ChatEvent event) {
         if(event.isCommand()) {
@@ -285,7 +286,7 @@ public class BPBungee extends Plugin implements Listener {
                 }, 0, TimeUnit.MILLISECONDS);
                 event.setCancelled(true);
                 return;
-            } else if(event.getMessage().replaceAll("(https?://)?bridgepractice\\.net", "").matches(".*(http|[\\w(\\[{#^'\".,|]+[.,][a-zA-Z]+(\\W|$)|gg/.+).*")) {
+            } else if(event.getMessage().replaceAll("(https?://)?bridgepractice\\.net", "").replace("exe", "").matches(".*(http|[\\w(\\[{#^'\".,|]+\\s*[.,][a-zA-Z]+(\\W|$)|gg/.+).*")) {
                 player.sendMessage(new ComponentBuilder()
                         .append(new ComponentBuilder("---------------------------------------").color(ChatColor.GOLD).strikethrough(true).create())
                         .append(new ComponentBuilder("\nAdvertising is against the rules. You will be\npermanently banned from the server if you\nattempt to advertise.\n").color(ChatColor.RED).strikethrough(false).create())
@@ -294,6 +295,19 @@ public class BPBungee extends Plugin implements Listener {
                 event.setCancelled(true);
                 Utils.log("§e"+player.getName()+" §3attempted to §aadvertise§3: §f"+event.getMessage());
                 return;
+            }
+            String filteredMessage = event.getMessage().toLowerCase().replaceAll("[\"'.:;,|`~!@#$%^&*()_\\-+={}\\[\\]/\\\\?<>]", "");
+            for(String word : blockedWords) {
+                if(filteredMessage.startsWith(word) || filteredMessage.contains(" " + word)) {
+                    event.setCancelled(true);
+                    player.sendMessage(new ComponentBuilder()
+                            .append(new ComponentBuilder("---------------------------------------").color(ChatColor.DARK_RED).strikethrough(true).create())
+                            .append(new ComponentBuilder("\nBlocked message containing disallowed word.\nYou will be muted if you continue using blocked words or attempt to bypass this filter.").color(ChatColor.RED).strikethrough(false).create())
+                            .append(new ComponentBuilder("---------------------------------------").color(ChatColor.DARK_RED).strikethrough(true).create())
+                            .create());
+                    Utils.log("§e"+player.getName()+" §3attempted to say §c§lblocked words§3: §f"+event.getMessage());
+                    return;
+                }
             }
         }
 

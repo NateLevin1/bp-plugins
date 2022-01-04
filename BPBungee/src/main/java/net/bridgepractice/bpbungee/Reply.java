@@ -32,6 +32,7 @@ public class Reply extends Command {
             sender.sendMessage(new ComponentBuilder("§dTo "+playerName.rankedName).append(": "+text).color(ChatColor.GRAY).create());
             player.sendMessage(new ComponentBuilder("§dFrom "+senderPlayer.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
             BPBungee.instance.playerReplyTo.put(player.getUniqueId(), new BPBungee.NamedPlayer(senderPlayer.getName(), senderPlayer.getDisplayName()));
+            Utils.log(new ComponentBuilder("SocialSpy: ").color(ChatColor.AQUA).append("From "+senderPlayer.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(" To "+player.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(": "+text).color(ChatColor.GRAY).create(), "bridgepractice.moderation.socialspy");
         } else {
             sender.sendMessage(new ComponentBuilder("That player is not online!").color(ChatColor.RED).create());
         }
