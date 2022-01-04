@@ -475,7 +475,9 @@ public class BPBungee extends Plugin implements Listener {
     }
 
     private static int checksInLastMinute = 0;
-    private static long lastResetOfChecks = 0;
+    private static long lastResetOfChecksMinute = 0;
+    private static int checksInLastDay = 0;
+    private static long lastResetOfChecksDay = 0;
     private static final HashSet<String> badIps = new HashSet<>();
 
     public void checkIpForAbuse(PendingConnection connection) {
@@ -489,16 +491,23 @@ public class BPBungee extends Plugin implements Listener {
         }
 
         // respect rate limits
-        if(System.currentTimeMillis() - lastResetOfChecks > 60*1000) {
-            lastResetOfChecks = System.currentTimeMillis();
+        if(System.currentTimeMillis() - lastResetOfChecksMinute > 60*1000) {
+            lastResetOfChecksMinute = System.currentTimeMillis();
             checksInLastMinute = 0;
         }
 
-        checksInLastMinute++;
+        if(System.currentTimeMillis() - lastResetOfChecksDay > 24*60*60*1000) {
+            lastResetOfChecksDay = System.currentTimeMillis();
+            checksInLastDay = 0;
+            badIps.clear();
+        }
 
-        if(checksInLastMinute > 15) {
+        checksInLastMinute++;
+        checksInLastDay++;
+
+        if(checksInLastMinute > 15 || checksInLastDay > 500) {
             // oh well :(
-            String message = "Unable to check IP of player "+playerName+" because there were too many checks in the last minute: "+checksInLastMinute;
+            String message = "Unable to check IP of player "+playerName+" because there were too many checks in the last minute: "+checksInLastMinute+" or too many checks in the last day: "+checksInLastDay;
             getLogger().severe(message);
             Utils.log(new ComponentBuilder("[IPCheck] ").color(ChatColor.DARK_RED).append(new ComponentBuilder(message).color(ChatColor.RED).create()).create());
             return;
