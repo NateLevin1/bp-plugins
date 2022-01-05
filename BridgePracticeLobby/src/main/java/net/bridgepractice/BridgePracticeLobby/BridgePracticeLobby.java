@@ -81,6 +81,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     private final ItemStack duelPlayerItemIron = Utils.getUnbreakable(Utils.makeItem(Material.IRON_SWORD, "§aDuel Player §7(Hit Players to Duel)", "§7Left click on players", "§7to duel them"));
     private final ItemStack duelPlayerItemGold = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SWORD, "§aDuel Player §7(Hit Players to Duel)", "§7Left click on players", "§7to duel them"));
     private final ItemStack duelPlayerItemDiamond = Utils.getUnbreakable(Utils.makeItem(Material.DIAMOND_SWORD, "§aDuel Player §7(Hit Players to Duel)", "§7Left click on players", "§7to duel them"));
+    private final ItemStack leaderboardsSpade = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Teleport to Leaderboards §7(Right Click)", "§7View the leaderboards"));
+    private final ItemStack spawnSpade = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Teleport to Spawn §7(Right Click)", "§7Go back to spawn"));
     private final HashMap<UUID, Long> playerNpcTimes = new HashMap<>();
     public final ArrayList<EntityPlayer> npcs = new ArrayList<>();
     Menu gameMenu;
@@ -862,9 +864,6 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         }
 
         //SWITCH SPADE NAME ON EXIT
-        ItemStack leaderboardsSpade = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Teleport to Leaderboards §7(Right Click)", "§7View the leaderboards"));
-        ItemStack spawnSpade = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Teleport to Spawn §7(Right Click)", "§7Go back to spawn"));
-
         if(isPlayerInLeaderboards(player)) {
             if (!inv.getItem(8).equals(spawnSpade)) {
                 inv.setItem(8, spawnSpade);
@@ -1016,10 +1015,10 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                     Inventory inven = player.getInventory();
                     if (isPlayerInLeaderboards(player)) {
                         player.teleport(new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0));
-                        inven.setItem(8, Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Leaderboards §7(Right Click)", "§7View the leaderboards")));
+                        inven.setItem(8, leaderboardsSpade);
                     } else {
                         player.teleport(new Location(player.getWorld(), 50.5, 103, 0.5, -90, 0));
-                        inven.setItem(8, Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Spawn §7(Right Click)", "§7Go back to spawn")));
+                        inven.setItem(8, spawnSpade);
                     }
                 } else if(timeSinceSpade > 10){
                     player.sendMessage("§cYou must wait §e0.5s§c between uses!");
