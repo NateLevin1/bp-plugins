@@ -186,6 +186,13 @@ public class Utils {
             return requestedName;
         }
     }
+    public static String getUuidFromNameSync(String name) throws IOException {
+        Player possiblyOnlinePlayer = BridgePracticeLobby.instance.getServer().getPlayer(name);
+        if(possiblyOnlinePlayer != null) {
+            return possiblyOnlinePlayer.getUniqueId().toString();
+        }
+        return getJSON("https://api.mojang.com/users/profiles/minecraft/" + name).get("id").getAsString().replaceAll("(.{8})(.{4})(.{4})(.{4})(.+)", "$1-$2-$3-$4-$5");
+    }
     public static org.bukkit.scoreboard.Scoreboard createScoreboard(String displayName, String[] scores) {
         Scoreboard board = BridgePracticeLobby.instance.getServer().getScoreboardManager().getNewScoreboard();
         Objective objective = board.registerNewObjective("scoreboard", "dummy");

@@ -1,6 +1,5 @@
 package net.bridgepractice.BridgePracticeLobby;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -10,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.io.IOException;
 import java.math.RoundingMode;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -23,24 +23,22 @@ import static net.bridgepractice.BridgePracticeLobby.BridgePracticeLobby.connect
 public class StatsCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        Player player;
+        Player player = ((Player) sender);
         if (args.length == 0 || args[0] == null) {
-            player = (Player) sender;
-            showStats((Player) sender, player);
-        } else if (sender.hasPermission("bridgepractice.stats")) {
-            player = Bukkit.getPlayer(args[0]);
-            if (player == null) {
-                sender.sendMessage(ChatColor.RED + "Unknown player '" + args[0] + "'");
-            } else {
-                showStats((Player) sender, player);
-            }
+            showStats(player, player);
+        } else if (player.hasPermission("bridgepractice.stats")) {
+            showStats(player, args[0], null);
         } else {
-            sender.sendMessage(ChatColor.RED + "Getting stats of other players is only available to " + ChatColor.DARK_PURPLE + "[" + ChatColor.LIGHT_PURPLE + "GODLIKE" + ChatColor.DARK_PURPLE + "]" + ChatColor.RED + " and above!");
+            player.sendMessage(ChatColor.RED + "Getting stats of other players is only available to " + ChatColor.DARK_PURPLE + "[" + ChatColor.LIGHT_PURPLE + "GODLIKE" + ChatColor.DARK_PURPLE + "]" + ChatColor.RED + " and above!");
         }
         return true;
     }
 
     public static void showStats(Player sender, Player player) {
+        showStats(sender, player.getName(), player.getUniqueId().toString());
+    }
+
+    public static void showStats(Player sender, String playerName, String playerUuid) {
         MenuItem wing = new MenuItem(2, 1, Utils.makeItem(Material.CLAY_BRICK, "§eWing Practice", "§8Singleplayer", ""), null);
         MenuItem bypass = new MenuItem(2, 2, Utils.makeItem(Material.SUGAR, "§eBypass Practice", "§8Singleplayer", ""), null);
         MenuItem prebow = new MenuItem(3, 1, Utils.makeItem(Material.ARROW, "§ePrebow Practice", "§8Singleplayer", ""), null);
@@ -50,8 +48,8 @@ public class StatsCommand implements CommandExecutor {
 
         MenuItem star = new MenuItem(3, 4, Utils.makeItem(Material.NETHER_STAR, "§eOther Stats", ""), null);
 
-        Menu stats = new Menu(player.getName() + "'s Stats", 5, true,
-                new MenuItem(1, 4, Utils.makeItem(Material.BEACON, "§5"+player.getName()+"'s Statistics", "§7View "+player.getName()+"'s statistics", "§7across the network"), null),
+        Menu stats = new Menu(playerName + "'s Stats", 5, true,
+                new MenuItem(1, 4, Utils.makeItem(Material.BEACON, "§5"+playerName+"'s Statistics", "§7View "+playerName+"'s statistics", "§7across the network"), null),
 
                 wing,
                 bypass,
@@ -68,11 +66,27 @@ public class StatsCommand implements CommandExecutor {
         (new BukkitRunnable() {
             @Override
             public void run() {
+                String realUuid = null;
+                if(playerUuid == null) {
+                    try {
+                        realUuid = Utils.getUuidFromNameSync(playerName);
+                    } catch (IOException e) {
+                        (new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                sender.closeInventory();
+                                sender.sendMessage("§cUnknown player '"+playerName+"'");
+                            }
+                        }).runTask(BridgePracticeLobby.instance);
+                    }
+                } else {
+                    realUuid = playerUuid;
+                }
                 try(PreparedStatement statement = connection.prepareStatement("SELECT * FROM players WHERE uuid=?;")) {
-                    statement.setString(1, player.getUniqueId().toString()); // uuid
+                    statement.setString(1, realUuid); // uuid
                     ResultSet res = statement.executeQuery();
                     if(!res.next()) {
-                        throw new SQLException("Did not get a row from the database. Player name: " + player.getName() + " Player UUID: " + player.getUniqueId());
+                        throw new SQLException("Did not get a row from the database. Player name: " + playerName + " Player UUID: " + realUuid);
                     }
                     Inventory inv = stats.getInventory();
 
@@ -130,8 +144,13 @@ public class StatsCommand implements CommandExecutor {
                                 ""));
                     }
                 } catch (SQLException throwables) {
-                    throwables.printStackTrace();
-                    sender.sendMessage("§c§lUh oh!§r§c Something went wrong fetching information from our database. Please open a ticket on the discord!");
+                    (new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            sender.closeInventory();
+                            sender.sendMessage("§cThe player '"+playerName+"' has never logged on!");
+                        }
+                    }).runTask(BridgePracticeLobby.instance);
                 }
             }
         }).runTaskAsynchronously(BridgePracticeLobby.instance);

@@ -206,7 +206,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
 
        gameMenu = new Menu("Game Menu", 5, false,
                 new MenuItem(1, 1, Utils.makeItem(Material.BOOKSHELF, "§aMain Lobby", "§7Return to the Main Lobby.", "", "§eClick to Go"), (p, m) -> sendPlayerToServer(p, "lobby")),
-                new MenuItem(2, 1, Utils.makeCustomPlayerHead("http://textures.minecraft.net/texture/e25a2f9cb91863bedcfcc40ec31992368fb4ea8f34c532bc3a58c0ac63977be5", "§aMy Stats", "§7View your statistics", "§7across gamemodes.", "", "§eClick to View"), (p, m) -> StatsCommand.showStats(p,p),
+                new MenuItem(2, 1, Utils.makeCustomPlayerHead("http://textures.minecraft.net/texture/e25a2f9cb91863bedcfcc40ec31992368fb4ea8f34c532bc3a58c0ac63977be5", "§aMy Stats", "§7View your statistics", "§7across gamemodes.", "", "§eClick to View"), (p, m) -> StatsCommand.showStats(p,p)),
                 new MenuItem(3, 1, Utils.makeItem(Material.EMERALD, "§aBridgePractice Store", "§7Purchase a rank to help", "§7support the server!", "", "§eClick to Visit"), (p, m) -> {
                     m.allowForGarbageCollection();
                     p.closeInventory();
@@ -227,11 +227,6 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 new MenuItem(3, 6, multiplayer, (p, m) -> showMultiplayerGames(p)),
                 new MenuItem(3, 7, multiplayer, (p, m) -> showMultiplayerGames(p))
         );
-
-        multiplayerGamesMenu = new Menu("Multiplayer Games", 3, false,
-                new MenuItem(1, 3, unranked, (p, m) -> requestGame(p, "unranked")),
-                new MenuItem(1, 5, pvp, (p, m) -> requestGame(p, "pvp"))
-
 
         multiplayerGamesMenu = new Menu("Multiplayer Games", 3, false,
                 new MenuItem(1, 3, unranked, (p, m) -> requestGame(p, "unranked")),
@@ -924,7 +919,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 player.openInventory(gameMenu.getInventory());
                 break;
             case SKULL_ITEM:
-                showStats(player);
+                StatsCommand.showStats(player, player);
                 break;
             case EMERALD:
                 if(System.currentTimeMillis() - lastShop.getOrDefault(player.getUniqueId(), 0L) > 1000) {
