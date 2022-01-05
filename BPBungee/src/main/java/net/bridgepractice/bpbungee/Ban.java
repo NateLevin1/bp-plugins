@@ -76,12 +76,6 @@ public class Ban extends Command {
 
     public static boolean applyBan(String playerName, int days, String finalReason, String playerUuid, CommandSender errorTo) {
         String playerIp = null;
-        // if online, kick them
-        ProxiedPlayer onlinePlayer = BPBungee.instance.getProxy().getPlayer(playerName);
-        if(onlinePlayer != null) {
-            playerIp = onlinePlayer.getAddress().getAddress().getHostAddress();
-            onlinePlayer.disconnect(Utils.getBanMessage(days, finalReason, false));
-        }
 
         try(PreparedStatement statement = BPBungee.connection.prepareStatement("SELECT * FROM players WHERE uuid = ?;")) {
             statement.setString(1, playerUuid); // uuid, set to player uuid
@@ -151,6 +145,14 @@ public class Ban extends Command {
                 errorTo.sendMessage(new ComponentBuilder("SQL error thrown: " + throwables.getMessage()).color(ChatColor.RED).create());
             }
             return true;
+        }
+
+        // if online, kick them
+        ProxiedPlayer onlinePlayer = BPBungee.instance.getProxy().getPlayer(playerName);
+        if(onlinePlayer != null) {
+            playerIp = onlinePlayer.getAddress().getAddress().getHostAddress();
+            BPBungee.instance.playerSessionLogOnTime.remove(onlinePlayer.getUniqueId());
+            onlinePlayer.disconnect(Utils.getBanMessage(days, finalReason, false));
         }
 
         if(playerIp != null) {
