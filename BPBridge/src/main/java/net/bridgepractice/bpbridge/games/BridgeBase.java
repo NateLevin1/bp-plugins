@@ -711,7 +711,7 @@ public class BridgeBase extends Game {
             public void run() {
                 endGame();
             }
-        }).runTaskLater(BPBridge.instance, 13 * 20);
+        }).runTaskLater(BPBridge.instance, 10 * 20);
     }
     private void givePlayerWin(OfflinePlayer player) {
         if(!shouldCountAsStats) return;
@@ -864,9 +864,15 @@ public class BridgeBase extends Game {
                         pScoreboard.getTeam("players").setSuffix("§a" + allPlayers.size() + "/" + (desiredPlayersPerTeam * 2));
                     }
                     BPBridge.instance.sendCreateQueuePluginMessage(allPlayers.get(0), gameType); // we don't use `.createQueue` because that will change the game info
-                } else if(BPBridge.instance.getServer().getOnlinePlayers().size() > 1) { // we need to ensure that there are players online so we can send a message to bungeecord
-                    BPBridge.instance.removeFromQueueable(world.getName(), gameType);
-                    endGame();
+                } else {
+                    if(!shouldCountAsStats) {
+                        endGame();
+                        return;
+                    }
+                    if(BPBridge.instance.getServer().getOnlinePlayers().size() > 1) { // we need to ensure that there are players online so we can send a message to bungeecord
+                        BPBridge.instance.removeFromQueueable(world.getName(), gameType);
+                        endGame();
+                    }
                 }
             }
         }

@@ -129,11 +129,16 @@ public abstract class Game {
 
     // # Methods
     public final void endGame() {
-        for(Player player : world.getPlayers()) {
-            BPBridge.connectPlayerToLobby(player);
-        }
-        // unload world
-        BPBridge.instance.unloadWorld(world.getName());
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                for(Player player : world.getPlayers()) {
+                    BPBridge.connectPlayerToLobby(player);
+                }
+                // unload world
+                BPBridge.instance.unloadWorld(world.getName());
+            }
+        }).runTaskLater(BPBridge.instance, 3*20);
     }
     private final HashMap<UUID, Long> glyphTimes = new HashMap<>();
     public final void onPlayerGlyph(Player player) {
