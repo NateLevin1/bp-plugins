@@ -37,6 +37,7 @@ public class BPBungee extends Plugin implements Listener {
     public static BPBungee instance;
     public static LuckPerms luckPerms;
     public static HashMap<MultiplayerMode, ArrayList<String>> queueingGames = new HashMap<>();
+    public static HashMap<UUID, String> playerChatChannels = new HashMap<>();
     public static boolean multiplayerEnabled = true;
     public static boolean chatEnabled = true;
     public static String punishmentWebhook = "https://discord.com/api/webhooks/888106865697894410/bPuDlfi_RXBdY7ulqS_U9JT62rWbsSF_C45SQVM24rb2p4db3mhRWCIwj7peG6a-9zEs";
@@ -76,6 +77,7 @@ public class BPBungee extends Plugin implements Listener {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Immuted());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Whitelist());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Socialspy());
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new ChatCommand());
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("bp:messages");
 
@@ -309,6 +311,12 @@ public class BPBungee extends Plugin implements Listener {
                     return;
                 }
             }
+        }
+
+        if (playerChatChannels.get(player.getUniqueId()) == "staff") {
+            event.setCancelled(true);
+            String text = event.getMessage();
+            Utils.broadcastToPermission("group.helper", new ComponentBuilder("Staff").color(ChatColor.RED).append(new ComponentBuilder(" > ").color(ChatColor.DARK_GRAY).create()).append(player.getName()).append(new ComponentBuilder(": "+text).color(ChatColor.WHITE).create()).create());
         }
 
         // if player is muted
