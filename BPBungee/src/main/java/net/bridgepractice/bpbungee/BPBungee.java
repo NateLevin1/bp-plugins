@@ -255,6 +255,7 @@ public class BPBungee extends Plugin implements Listener {
             if(blockedCommands.contains(event.getMessage().split(" ")[0])) {
                 event.setCancelled(true);
             }
+            return;
         }
         net.md_5.bungee.api.connection.Connection sender = event.getSender();
         if(!(sender instanceof ProxiedPlayer)) {
@@ -312,7 +313,7 @@ public class BPBungee extends Plugin implements Listener {
         }
 
 
-        if (playerChatChannels.get(player.getUniqueId()) == "staff" && !event.isCommand()) {
+        if (playerChatChannels.get(player.getUniqueId()) == "staff") {
             event.setCancelled(true);
             String text = event.getMessage();
             StaffChat.sendToStaffChat(player.getDisplayName(), text);
