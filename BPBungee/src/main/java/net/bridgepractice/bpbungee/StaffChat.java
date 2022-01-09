@@ -24,6 +24,10 @@ public class StaffChat extends Command {
             senderName = sender.getName();
         }
         String text = String.join(" ", args);
+        sendToStaffChat(senderName, text);
+    }
+
+    public static void sendToStaffChat(String senderName, String text) {
         Utils.broadcastToPermission("group.helper", new ComponentBuilder("Staff").color(ChatColor.RED).append(new ComponentBuilder(" > ").color(ChatColor.DARK_GRAY).create()).append(senderName).append(new ComponentBuilder(": "+text).color(ChatColor.WHITE).create()).create());
     }
 }
