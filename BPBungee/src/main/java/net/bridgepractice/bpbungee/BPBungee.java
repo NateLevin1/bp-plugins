@@ -2,16 +2,12 @@ package net.bridgepractice.bpbungee;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
-import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -78,7 +74,7 @@ public class BPBungee extends Plugin implements Listener {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Immuted());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Whitelist());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Socialspy());
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new ChatCommand());
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new SetChat());
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("bp:messages");
 
@@ -255,6 +251,11 @@ public class BPBungee extends Plugin implements Listener {
     private final String[] blockedWords = {"nigga", "nigger", "anigger", "anigga", "aniga", "aniger", "niger", "niga", "fag", "faggot", "retard", "n1ger", "sex", "esex", "cum"};
     @EventHandler
     public void onPlayerChat(ChatEvent event) {
+        if(event.isCommand()) {
+            if(blockedCommands.contains(event.getMessage().split(" ")[0])) {
+                event.setCancelled(true);
+            }
+        }
         net.md_5.bungee.api.connection.Connection sender = event.getSender();
         if(!(sender instanceof ProxiedPlayer)) {
             return;
@@ -311,14 +312,10 @@ public class BPBungee extends Plugin implements Listener {
         }
 
 
-        if(event.isCommand()) {
-            if(blockedCommands.contains(event.getMessage().split(" ")[0])) {
-                event.setCancelled(true);
-            }
-        } else if (playerChatChannels.get(player.getUniqueId()) == "staff") {
+        if (playerChatChannels.get(player.getUniqueId()) == "staff" && !event.isCommand()) {
             event.setCancelled(true);
             String text = event.getMessage();
-            Utils.broadcastToPermission("group.helper", new ComponentBuilder("Staff").color(ChatColor.RED).append(new ComponentBuilder(" > ").color(ChatColor.DARK_GRAY).create()).append(player.getDisplayName()).append(new ComponentBuilder(": "+text).color(ChatColor.WHITE).create()).create());
+            StaffChat.sendToStaffChat(player.getDisplayName(), text);
         }
 
         // if player is muted
