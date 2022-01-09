@@ -21,9 +21,13 @@ public class AllChat extends Command {
             return;
         }
         String text = String.join(" ", args);
-        String channel = BPBungee.playerChatChannels.get(player.getUniqueId());
-        BPBungee.playerChatChannels.remove(player.getUniqueId());
-        player.chat(text);
-        BPBungee.playerChatChannels.put(player.getUniqueId(), channel);
+        if (BPBungee.playerChatChannels.containsKey(player.getUniqueId())) {
+            String channel = BPBungee.playerChatChannels.get(player.getUniqueId());
+            BPBungee.playerChatChannels.remove(player.getUniqueId());
+            player.chat(text);
+            BPBungee.playerChatChannels.put(player.getUniqueId(), channel);
+        } else {
+            player.chat(text);
+        }
     }
 }
