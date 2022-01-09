@@ -64,6 +64,7 @@ public class BPBungee extends Plugin implements Listener {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Play());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Duel());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new StaffChat());
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new AllChat());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Ping());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Ban());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Unban());
@@ -253,11 +254,6 @@ public class BPBungee extends Plugin implements Listener {
     private final String[] blockedWords = {"nigga", "nigger", "anigger", "anigga", "aniga", "aniger", "niger", "niga", "fag", "faggot", "retard", "n1ger", "sex", "esex", "cum"};
     @EventHandler
     public void onPlayerChat(ChatEvent event) {
-        if(event.isCommand()) {
-            if(blockedCommands.contains(event.getMessage().split(" ")[0])) {
-                event.setCancelled(true);
-            }
-        }
         net.md_5.bungee.api.connection.Connection sender = event.getSender();
         if(!(sender instanceof ProxiedPlayer)) {
             return;
@@ -313,10 +309,15 @@ public class BPBungee extends Plugin implements Listener {
             }
         }
 
-        if (playerChatChannels.get(player.getUniqueId()) == "staff") {
+
+        if(event.isCommand()) {
+            if(blockedCommands.contains(event.getMessage().split(" ")[0])) {
+                event.setCancelled(true);
+            }
+        } else if (playerChatChannels.get(player.getUniqueId()) == "staff") {
             event.setCancelled(true);
             String text = event.getMessage();
-            Utils.broadcastToPermission("group.helper", new ComponentBuilder("Staff").color(ChatColor.RED).append(new ComponentBuilder(" > ").color(ChatColor.DARK_GRAY).create()).append(player.getName()).append(new ComponentBuilder(": "+text).color(ChatColor.WHITE).create()).create());
+            Utils.broadcastToPermission("group.helper", new ComponentBuilder("Staff").color(ChatColor.RED).append(new ComponentBuilder(" > ").color(ChatColor.DARK_GRAY).create()).append(player.getDisplayName()).append(new ComponentBuilder(": "+text).color(ChatColor.WHITE).create()).create());
         }
 
         // if player is muted
