@@ -42,17 +42,12 @@ public class SetChat extends Command {
             case "s":
             case "staff":
                 if (sender.hasPermission("group.helper")) {
-                    if (BPBungee.playerChatChannels.containsKey(player.getUniqueId())) {
                         if (BPBungee.playerChatChannels.get(player.getUniqueId()) == "staff") {
                             player.sendMessage(new ComponentBuilder("You are already in that channel!").color(ChatColor.RED).create());
                         } else {
                             BPBungee.playerChatChannels.put(player.getUniqueId(), "staff");
                             player.sendMessage(new ComponentBuilder("Switched to ").color(ChatColor.GREEN).append("STAFF").color(ChatColor.GOLD).append(" chat!").color(ChatColor.GREEN).create());
                         }
-                    } else {
-                        BPBungee.playerChatChannels.put(player.getUniqueId(), "staff");
-                        player.sendMessage(new ComponentBuilder("Switched to ").color(ChatColor.GREEN).append("STAFF").color(ChatColor.GOLD).append(" chat!").color(ChatColor.GREEN).create());
-                    }
                 } else {
                     player.sendMessage(new ComponentBuilder("You don't have access to this channel!").color(ChatColor.RED).create());
                 }
