@@ -236,6 +236,7 @@ public class BPBungee extends Plugin implements Listener {
         mutedPlayers.remove(uuid);
         playerReplyTo.remove(uuid);
         gameRequests.remove(uuid);
+        playerChatChannels.remove(uuid);
         Long logOnTime = playerSessionLogOnTime.get(uuid);
         if(logOnTime != null) {
             int playingTimeMinutes = Math.round((int) (((System.currentTimeMillis() - logOnTime) / 1000) / 60));
