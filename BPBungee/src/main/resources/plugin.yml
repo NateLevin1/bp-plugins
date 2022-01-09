@@ -90,6 +90,24 @@ commands:
   schat:
     description: Staff only command
     usage: /schat <message>
+  chat:
+    description: Change chat channel!
+    usage: /chat <a>
+  c:
+    description: Change chat channel!
+    usage: /c <a>
+  allchat:
+    description: Talk in all chat!
+    usage: /allchat <message>
+  ac:
+    description: Talk in all chat!
+    usage: /ac <message>
+  allc:
+    description: Talk in all chat!
+    usage: /allc <message>
+  achat:
+    description: Talk in all chat!
+    usage: /achat <message>
 
   ban:
     description: Staff only command

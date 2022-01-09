@@ -28,7 +28,7 @@ public class ChatCommand extends Command {
             return;
         }
         ProxiedPlayer player = ((ProxiedPlayer) sender);
-        if (args[0] == "a" || args[0] == "all") {
+        if (args[0].equals("a") || args[0].equals("all")) {
             if (BPBungee.playerChatChannels.containsKey(player.getUniqueId())) {
                 BPBungee.playerChatChannels.remove(player.getUniqueId());
                 player.sendMessage(new ComponentBuilder("Switched to ").color(ChatColor.GREEN).append("ALL").color(ChatColor.GOLD).append(" chat!").color(ChatColor.GREEN).create());
@@ -36,7 +36,7 @@ public class ChatCommand extends Command {
                 player.sendMessage(new ComponentBuilder("You are already in that channel!").color(ChatColor.RED).create());
                 return;
             }
-        } else if (args[0] == "s" || args[0] == "staff") {
+        } else if (args[0].equals("s") || args[0].equals("staff")) {
             if (BPBungee.playerChatChannels.containsKey(player.getUniqueId())) {
                 if (BPBungee.playerChatChannels.get(player.getUniqueId()) == "staff") {
                     player.sendMessage(new ComponentBuilder("You are already in that channel!").color(ChatColor.RED).create());
@@ -48,6 +48,9 @@ public class ChatCommand extends Command {
                 BPBungee.playerChatChannels.put(player.getUniqueId(), "staff");
                 player.sendMessage(new ComponentBuilder("Switched to ").color(ChatColor.GREEN).append("STAFF").color(ChatColor.GOLD).append(" chat!").color(ChatColor.GREEN).create());
             }
+        } else {
+            player.sendMessage(new ComponentBuilder("Not a valid channel! ("+args[0]+")").color(ChatColor.RED).create());
+            return;
         }
     }
 }
