@@ -1,5 +1,7 @@
 package net.bridgepractice.bpbungee;
 
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -35,6 +37,17 @@ public class Play extends Command {
             case "pvp_duel":
             case "pvp": {
                 BPBungee.instance.requestGame("pvp", player);
+                break;
+            }
+            case "ifavailable": {
+                if(args.length < 3) return;
+                String worldName = args[1];
+                MultiplayerMode multiplayerMode = MultiplayerMode.valueOf(args[2]);
+                if(BPBungee.instance.isWorldQueueing(worldName, multiplayerMode)) {
+                    BPBungee.instance.sendIntentToJoinGame(worldName, multiplayerMode, player);
+                } else {
+                    player.sendMessage(new ComponentBuilder("That game is unavailable!").color(ChatColor.RED).create());
+                }
                 break;
             }
             default:
