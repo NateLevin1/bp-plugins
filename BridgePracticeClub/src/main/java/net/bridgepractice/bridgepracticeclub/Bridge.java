@@ -72,7 +72,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
     public static WorldServer nmsWorld;
     public static HashMap<String, Boolean> disabledGames = new HashMap<>();
 
-    public static final boolean debug = false;
+    public static final boolean debug = true;
 
     // db related things
     String host = "localhost";
@@ -281,8 +281,22 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         createNPCForAll(new Location(this.world, 13.5, 100, 0.5, 90, 0), "Bot Practice", "parihs", "/bot");
 
         // load content arrays
-        CommandWing.spawnContent = getBlocks(new Location(Bridge.instance.world, 1000, 97, -5), 4, 3, 4);
-        CommandWing.landingContent = getBlocks(new Location(Bridge.instance.world, 989, 94, -11), 7, 6, 10);
+        CommandWing.islandContentDefault = getBlocks(new Location(Bridge.instance.world, 1000, 97, -5), 4, 3, 4);
+        CommandWing.islandContentMagma = getBlocks(new Location(Bridge.instance.world, 1000, 107, -5), 4, 3, 4);
+        CommandWing.islandContentPalace = getBlocks(new Location(Bridge.instance.world, 1000, 117, -5), 4, 3, 4);
+        CommandWing.islandContentModern = getBlocks(new Location(Bridge.instance.world, 1000, 127, -5), 4, 3, 4);
+        CommandWing.islandContentAquatic = getBlocks(new Location(Bridge.instance.world, 1000, 137, -5), 4, 3, 4);
+        CommandWing.islandContentNightLight = getBlocks(new Location(Bridge.instance.world, 1000, 147, -5), 4, 3, 4);
+        CommandWing.islandContentSeptic = getBlocks(new Location(Bridge.instance.world, 1000, 157, -5), 4, 3, 4);
+
+        CommandWing.landingContentDefault = getBlocks(new Location(Bridge.instance.world, 989, 94, -11), 7, 6, 10);
+        CommandWing.landingContentMagma = getBlocks(new Location(Bridge.instance.world, 989, 104, -11), 7, 6, 10);
+        CommandWing.landingContentPalace = getBlocks(new Location(Bridge.instance.world, 989, 114, -11), 7, 6, 10);
+        CommandWing.landingContentAquatic = getBlocks(new Location(Bridge.instance.world, 989, 124, -11), 7, 6, 10);
+        CommandWing.landingContentModern = getBlocks(new Location(Bridge.instance.world, 989, 134, -11), 7, 6, 10);
+        CommandWing.landingContentNightLight = getBlocks(new Location(Bridge.instance.world, 989, 144, -11), 7, 6, 10);
+        CommandWing.landingContentSeptic = getBlocks(new Location(Bridge.instance.world, 989, 154, -11), 7, 6, 10);
+
         CommandPrebow.targetContent = getBlocks(new Location(Bridge.instance.world, 1012, 93, -4), 9, 6, 7);
         CommandPrebow.mushroomContent = getBlocks(new Location(Bridge.instance.world, 1012, 93, -24), 9, 6, 7);
         CommandPrebow.flowerContent = getBlocks(new Location(Bridge.instance.world, 1036, 91, -24), 9, 8, 7);
