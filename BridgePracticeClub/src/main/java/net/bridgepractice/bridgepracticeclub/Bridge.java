@@ -72,7 +72,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
     public static WorldServer nmsWorld;
     public static HashMap<String, Boolean> disabledGames = new HashMap<>();
 
-    public static final boolean debug = true;
+    public static final boolean debug = false;
 
     // db related things
     String host = "localhost";
