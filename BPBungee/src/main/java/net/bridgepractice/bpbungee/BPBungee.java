@@ -272,7 +272,7 @@ public class BPBungee extends Plugin implements Listener {
         boolean isMessageToOthers = !event.isCommand() || blockedCommandsIfMuted.contains(event.getMessage().split(" ")[0].substring(1));
 
         if(isMessageToOthers) {
-            if(event.getMessage().replaceAll(/* remove jokes */"(?:1\\.){3}1|(?:(?:69|420)\\.){3}(?:69|420)|1[.,|!\\s]\\s*2[.,|!\\s]\\s*3[.,|!\\s]\\s*4", "").matches(".*(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\s*[.,|!]\\s*|$)){4}).*")) {
+            if(event.getMessage().replaceAll(/* remove jokes */"(?:1\\.){3}1|(?:(?:69|420)\\.){3}(?:69|420)|1[.,|!\\s]\\s*2[.,|!\\s]\\s*3[.,|!\\s]\\s*4|(?:1[.,|!\\s]\\s*){4}", "").matches(".*(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9])(\\s*[.,|]\\s*|$)){4}).*")) {
                 // INSTANTLY BAN IF SEND AN IP ADDRESS
                 BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
                     Ban.applyBan(player.getName(), 30, "Doxxing/Attempt to dox", player.getUniqueId().toString(), null);
