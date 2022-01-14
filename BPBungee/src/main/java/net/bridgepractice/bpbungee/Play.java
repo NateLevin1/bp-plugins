@@ -46,7 +46,7 @@ public class Play extends Command {
                 if(BPBungee.instance.isWorldQueueing(worldName, multiplayerMode)) {
                     BPBungee.instance.sendIntentToJoinGame(worldName, multiplayerMode, player);
                 } else {
-                    player.sendMessage(new ComponentBuilder("That game is unavailable!").color(ChatColor.RED).create());
+                    player.sendMessage(new ComponentBuilder("That game has already started!").color(ChatColor.RED).create());
                 }
                 break;
             }
