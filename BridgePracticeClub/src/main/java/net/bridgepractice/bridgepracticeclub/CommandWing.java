@@ -17,16 +17,28 @@ import org.bukkit.scoreboard.Team;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-
 
 public class CommandWing implements CommandExecutor {
     HashMap<UUID, Team> leaderTeams = new HashMap<>();
     HashMap<String, Float> playerTimes = new HashMap<>();
-    public static BlockState[][][] spawnContent;
-    public static BlockState[][][] landingContent;
+    public static BlockState[][][] islandContentDefault;
+    public static BlockState[][][] islandContentMagma;
+    public static BlockState[][][] islandContentModern;
+    public static BlockState[][][] islandContentAquatic;
+    public static BlockState[][][] islandContentNightLight;
+    public static BlockState[][][] islandContentPalace;
+    public static BlockState[][][] islandContentSeptic;
+
+    public static BlockState[][][] landingContentDefault;
+    public static BlockState[][][] landingContentMagma;
+    public static BlockState[][][] landingContentModern;
+    public static BlockState[][][] landingContentAquatic;
+    public static BlockState[][][] landingContentNightLight;
+    public static BlockState[][][] landingContentPalace;
+    public static BlockState[][][] landingContentSeptic;
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player) {
@@ -72,28 +84,36 @@ public class CommandWing implements CommandExecutor {
             leaderTeams.put(player.getUniqueId(), board.getTeam("leader"));
 
             final boolean[] isHeightValidForScoreToCount = {true};
-            Structure spawn = new Structure(Bridge.deepClone(spawnContent)); // FIXME: we deep clone every time to prevent .flipX changing the content array, but this is not ideal for performance
-            Structure landing = new Structure(Bridge.deepClone(landingContent));
+            Structure spawn = new Structure(Bridge.deepClone(islandContentDefault)); // FIXME: we deep clone every time to prevent .flipX changing the content array, but this is not ideal for performance
+            Structure landing = new Structure(Bridge.deepClone(landingContentDefault));
 
             final ArrowShoot[] shootArrow = {null};
 
+            ArrayList<SettingsMenu.Entry> entries = new ArrayList<>(Arrays.asList(new SettingsMenu.Entry(1, 1, Bridge.makeItem(Material.STAINED_CLAY, 1, "Use Blue Clay",  new String[]{"Sets the color of clay to bridge","with to §9blue§7."}, 11), "block_color", true), // see DyeColor.class
+                    new SettingsMenu.Entry(2, 1, Bridge.makeItem(Material.STAINED_CLAY, 1, "Use White Clay", new String[]{"Sets the color of clay to bridge","with to §fwhite§7."}, 0), "block_color", false),
+                    new SettingsMenu.Entry(3, 1, Bridge.makeItem(Material.STAINED_CLAY, 1, "Use Red Clay",   new String[]{"Sets the color of clay to bridge","with to §cred§7."}, 14),  "block_color", false),
+
+                    new SettingsMenu.Entry(1, 7, Bridge.makeItem(Material.STAINED_GLASS_PANE, 1, "Don't shoot arrows", new String[]{"Will §cnot§7 shoot arrows at you as","you bridge."}, 14),             "shoot_arrows", true),
+                    new SettingsMenu.Entry(2, 7, Bridge.makeItem(Material.ARROW, 1, "Do shoot arrows",    new String[]{"Will shoot arrows at you as","you bridge to practice","under bow pressure."}, -1), "shoot_arrows", false),
+
+                    new SettingsMenu.Entry(1, 3, Bridge.makeItem(Material.GOLD_PLATE, 1, "0",  new String[]{"Start at height limit"}, -1),             "height", true),
+                    new SettingsMenu.Entry(2, 3, Bridge.makeItem(Material.IRON_PLATE, 1, "-1", new String[]{"Start 1 block below height limit","(does §cnot§7 count towards","session leader or PB)"},-1),    "height", false),
+                    new SettingsMenu.Entry(3, 3, Bridge.makeItem(Material.STONE_PLATE, 1, "-5", new String[]{"Start 5 blocks below height limit","(does §cnot§7 count towards","session leader or PB)"}, -1), "height", false),
+
+                    new SettingsMenu.Entry(1, 5, Bridge.makeItem(Material.REDSTONE_COMPARATOR, 1, "Bridge to the left",  new String[]{"Set your bridging direction","to the left."}, -1), "dir", true),
+                    new SettingsMenu.Entry(2, 5, Bridge.makeItem(Material.DIODE, 1, "Bridge to the right", new String[]{"Set your bridging direction","to the right"}, -1), "dir", false)));
+            if (player.hasPermission("group.legend")){
+                entries.add(new SettingsMenu.Entry(5, 1, Bridge.makeItem(Material.IRON_BLOCK, 1, "Default Island",   new String[]{"Select the §edefault§7","wing island."}, -1),  "islands", true));
+                entries.add(new SettingsMenu.Entry(5, 2, Bridge.makeItem(Material.WOOL, 1, "Magma Island",   new String[]{"Select the §cMagma§7","wing island."}, 1),  "islands", false));
+                entries.add(new SettingsMenu.Entry(5, 3, Bridge.makeItem(Material.PRISMARINE, 1, "Aquatic Island",   new String[]{"Select the §9Aquatic§7","wing island."}, -1),  "islands", false));
+                entries.add(new SettingsMenu.Entry(5, 4, Bridge.makeItem(Material.QUARTZ, 1, "Modern Island",   new String[]{"Select the §fModern§7","wing island."}, -1),  "islands", false));
+                entries.add(new SettingsMenu.Entry(5, 5, Bridge.makeItem(Material.REDSTONE_LAMP_OFF, 1, "Night Light Island",   new String[]{"Select the §6Night Light§7","wing island."}, -1),  "islands", false));
+                entries.add(new SettingsMenu.Entry(5, 6, Bridge.makeItem(Material.SLIME_BLOCK, 1, "Septic Island",   new String[]{"Select the §aSeptic§7","wing island."}, -1),  "islands", false));
+                entries.add(new SettingsMenu.Entry(5, 7, Bridge.makeItem(Material.DIAMOND_BLOCK, 1, "Palace Island",   new String[]{"Select the §bPalace§7","wing island."}, -1),  "islands", false));
+            }
             SettingsMenu menu = new SettingsMenu(
-                    new SettingsMenu.Entry[] {
-                            new SettingsMenu.Entry(1, 1, Bridge.makeItem(Material.STAINED_CLAY, 1, "Use Blue Clay",  new String[]{"Sets the color of clay to bridge","with to §9blue§7."}, 11), "block_color", true), // see DyeColor.class
-                            new SettingsMenu.Entry(2, 1, Bridge.makeItem(Material.STAINED_CLAY, 1, "Use White Clay", new String[]{"Sets the color of clay to bridge","with to §fwhite§7."}, 0), "block_color", false),
-                            new SettingsMenu.Entry(3, 1, Bridge.makeItem(Material.STAINED_CLAY, 1, "Use Red Clay",   new String[]{"Sets the color of clay to bridge","with to §cred§7."}, 14),  "block_color", false),
-
-                            new SettingsMenu.Entry(1, 7, Bridge.makeItem(Material.STAINED_GLASS_PANE, 1, "Don't shoot arrows", new String[]{"Will §cnot§7 shoot arrows at you as","you bridge."}, 14),             "shoot_arrows", true),
-                            new SettingsMenu.Entry(2, 7, Bridge.makeItem(Material.ARROW, 1, "Do shoot arrows",    new String[]{"Will shoot arrows at you as","you bridge to practice","under bow pressure."}, -1), "shoot_arrows", false),
-
-                            new SettingsMenu.Entry(1, 3, Bridge.makeItem(Material.GOLD_PLATE, 1, "0",  new String[]{"Start at height limit"}, -1),             "height", true),
-                            new SettingsMenu.Entry(2, 3, Bridge.makeItem(Material.IRON_PLATE, 1, "-1", new String[]{"Start 1 block below height limit","(does §cnot§7 count towards","session leader or PB)"},-1),    "height", false),
-                            new SettingsMenu.Entry(3, 3, Bridge.makeItem(Material.STONE_PLATE, 1, "-5", new String[]{"Start 5 blocks below height limit","(does §cnot§7 count towards","session leader or PB)"}, -1), "height", false),
-
-                            new SettingsMenu.Entry(1, 5, Bridge.makeItem(Material.REDSTONE_COMPARATOR, 1, "Bridge to the left",  new String[]{"Set your bridging direction","to the left."}, -1), "dir", true),
-                            new SettingsMenu.Entry(2, 5, Bridge.makeItem(Material.DIODE, 1, "Bridge to the right", new String[]{"Set your bridging direction","to the right"}, -1), "dir", false),
-                    },
-                    5,
+                    entries.toArray(new SettingsMenu.Entry[0]),
+                    6,
                     "Wing Settings",
                     (itemClicked, groupName)->{
                         PlayerInfo info = Bridge.instance.getPlayer(player.getUniqueId());
@@ -158,6 +178,32 @@ public class CommandWing implements CommandExecutor {
                                         shootArrow[0].runTaskTimer(Bridge.instance, 10, 20+(ThreadLocalRandom.current().nextInt(0, 40)));
                                     }
                                     info.onDeath.call(info);
+                                    break;
+                                case "islands":
+                                    switch (itemClicked.getType()){
+                                        case IRON_BLOCK:
+                                            setWingIsland(islandContentDefault, spawn, landingContentDefault, landing, info);
+                                            break;
+                                        case WOOL:
+                                            setWingIsland(islandContentMagma, spawn, landingContentMagma, landing, info);
+                                            break;
+                                        case PRISMARINE:
+                                            setWingIsland(islandContentAquatic, spawn, landingContentModern, landing, info);
+                                            break;
+                                        case QUARTZ:
+                                            setWingIsland(islandContentModern, spawn, landingContentAquatic, landing, info);
+                                            break;
+                                        case REDSTONE_LAMP_OFF:
+                                            setWingIsland(islandContentNightLight, spawn, landingContentNightLight, landing, info);
+                                            break;
+                                        case SLIME_BLOCK:
+                                            setWingIsland(islandContentSeptic, spawn, landingContentSeptic, landing, info);
+                                            break;
+                                        case DIAMOND_BLOCK:
+                                            setWingIsland(islandContentPalace, spawn, landingContentPalace, landing, info);
+                                            break;
+
+                                    }
                                     break;
                             }
                         }
@@ -266,6 +312,7 @@ public class CommandWing implements CommandExecutor {
                 updateSessionLeader();
                 info.locSettings = new PlayerInfo.LocSettings(); // reset to defaults
                 updateMap(info, spawn, landing);
+                setWingIsland(islandContentDefault, spawn, landingContentDefault, landing, info);
                 if(shootArrow[0] != null) {
                     shootArrow[0].cancel();
                 }
@@ -356,6 +403,7 @@ public class CommandWing implements CommandExecutor {
 
     private void updateMap(PlayerInfo info, Structure spawn, Structure landing) {
         // rel = 97, -2
+
         int[] rel = info.winBox.relXZ;
 
         spawn.remove();
@@ -393,5 +441,30 @@ public class CommandWing implements CommandExecutor {
                 }
             }
         }
+    }
+
+    private void setWingIsland(BlockState[][][] blockStatesIslandUncloned, Structure spawn, BlockState[][][] blockStatesLandingUncloned, Structure landing, PlayerInfo info){
+        BlockState[][][] islandBlocks = Bridge.deepClone(blockStatesIslandUncloned);
+        BlockState[][][] landingBlocks = Bridge.deepClone(blockStatesLandingUncloned);
+        boolean isIslandFlipped = spawn.isFlipped;
+
+        spawn.switchContent(islandBlocks);
+        landing.switchContent(landingBlocks);
+
+        if (isIslandFlipped) {
+            spawn.flipX();
+        }
+
+        int[] rel = info.winBox.relXZ;
+        boolean isL = info.locSettings.isBridgingLeft;
+        if(isL) {
+            spawn.place(new Location(Bridge.instance.world, rel[0]-3, info.locSettings.height-2, rel[1]-3));
+            landing.place(new Location(Bridge.instance.world, rel[0]+4, 87, rel[1]+23));
+        } else {
+            // right
+            spawn.place(new Location(Bridge.instance.world, rel[0]+8, info.locSettings.height-2, rel[1]-3));
+            landing.place(new Location(Bridge.instance.world, rel[0]-2, 87, rel[1]+23));
+        }
+        info.onDeath.call(info);
     }
 }
