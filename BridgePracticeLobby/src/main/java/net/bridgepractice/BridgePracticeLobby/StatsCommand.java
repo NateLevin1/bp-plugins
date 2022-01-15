@@ -26,7 +26,7 @@ public class StatsCommand implements CommandExecutor {
         Player player = ((Player) sender);
         if (args.length == 0 || args[0] == null) {
             showStats(player, player);
-        } else if (player.hasPermission("bridgepractice.stats")) {
+        } else if (player.hasPermission("group.godlike")) {
             showStats(player, args[0], null);
         } else {
             player.sendMessage(ChatColor.RED + "Getting stats of other players is only available to " + ChatColor.DARK_PURPLE + "[" + ChatColor.LIGHT_PURPLE + "GODLIKE" + ChatColor.DARK_PURPLE + "]" + ChatColor.RED + " and above!");
