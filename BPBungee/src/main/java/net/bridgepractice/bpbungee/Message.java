@@ -19,7 +19,7 @@ public class Message extends Command {
             sender.sendMessage(new ComponentBuilder("Usage: /msg <player> <message here>").color(ChatColor.RED).create());
             return;
         }
-        System.out.println("executing message");
+
         String senderName;
         if(sender instanceof ProxiedPlayer) {
             ProxiedPlayer player = ((ProxiedPlayer) sender);

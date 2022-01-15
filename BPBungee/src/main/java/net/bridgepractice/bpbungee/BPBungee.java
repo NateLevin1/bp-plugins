@@ -255,14 +255,20 @@ public class BPBungee extends Plugin implements Listener {
         if(event.isCommand()) {
             if(blockedCommands.contains(event.getMessage().split(" ")[0])) {
                 event.setCancelled(true);
+                return;
             }
-            return;
         }
         net.md_5.bungee.api.connection.Connection sender = event.getSender();
         if(!(sender instanceof ProxiedPlayer)) {
             return;
         }
         ProxiedPlayer player = ((ProxiedPlayer) sender);
+
+        if(!event.isCommand() && !chatEnabled) {
+            event.setCancelled(true);
+            player.sendMessage(new ComponentBuilder("Chat has been temporarily disabled.").color(ChatColor.RED).create());
+            return;
+        }
 
         // add emojis
         if(event.isProxyCommand()) {
@@ -314,10 +320,12 @@ public class BPBungee extends Plugin implements Listener {
         }
 
 
-        if (playerChatChannels.get(player.getUniqueId()) == "staff") {
+        String chatChannel = playerChatChannels.get(player.getUniqueId());
+        if (chatChannel != null && chatChannel.equals("staff")) {
             event.setCancelled(true);
             String text = event.getMessage();
             StaffChat.sendToStaffChat(player.getDisplayName(), text);
+            return;
         }
 
         // if player is muted
@@ -335,11 +343,6 @@ public class BPBungee extends Plugin implements Listener {
                     .append(new ComponentBuilder("\n\nTo appeal your mute, ").color(ChatColor.GRAY).append(new ComponentBuilder("join the Discord (click)").color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "http://bridgepractice.net/discord")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§bClick to go to the Discord invite."))).create()).create())
                     .append(new ComponentBuilder("\n----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).underlined(false).event(((ClickEvent) null)).event(((HoverEvent) null)).create())
                     .create());
-        }
-
-        if(!event.isCommand() && !chatEnabled) {
-            event.setCancelled(true);
-            player.sendMessage(new ComponentBuilder("Chat has been temporarily disabled.").color(ChatColor.RED).create());
         }
     }
     private String addEmojisToMessage(String msg) {
