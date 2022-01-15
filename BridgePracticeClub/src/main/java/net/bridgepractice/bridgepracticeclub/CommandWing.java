@@ -17,10 +17,8 @@ import org.bukkit.scoreboard.Team;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Struct;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-
 
 public class CommandWing implements CommandExecutor {
     HashMap<UUID, Team> leaderTeams = new HashMap<>();
