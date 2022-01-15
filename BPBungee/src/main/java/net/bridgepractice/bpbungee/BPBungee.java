@@ -288,7 +288,7 @@ public class BPBungee extends Plugin implements Listener {
                 }, 0, TimeUnit.MILLISECONDS);
                 event.setCancelled(true);
                 return;
-            } else if(event.getMessage().replaceAll("(https?://)?bridgepractice\\.net", "").replace("exe", "").matches(".*(http|[\\w(\\[{#^'\".,|]+\\s*[.,][a-zA-Z]+(\\W|$)|gg/.+).*")) {
+            } else if(event.getMessage().replaceAll("(https?://)?bridgepractice\\.net", "").replace("exe", "").matches(".*(http|[\\w(\\[{#^'\".,|]+\\s*[.,][a-zA-Z]{2,8}(\\W|$)|gg/.+).*")) {
                 player.sendMessage(new ComponentBuilder()
                         .append(new ComponentBuilder("---------------------------------------").color(ChatColor.GOLD).strikethrough(true).create())
                         .append(new ComponentBuilder("\nAdvertising is against the rules. You will be\npermanently banned from the server if you\nattempt to advertise.\n").color(ChatColor.RED).strikethrough(false).create())
