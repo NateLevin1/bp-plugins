@@ -1,5 +1,7 @@
 package net.bridgepractice.bridgepracticeclub;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.bridgepractice.RavenAntiCheat.RavenAntiCheat;
 import net.minecraft.server.v1_8_R3.PacketPlayOutAnimation;
 import org.bukkit.GameMode;
@@ -20,6 +22,9 @@ import org.bukkit.util.Vector;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
 public class CommandBypass implements CommandExecutor {
@@ -243,6 +248,9 @@ public class CommandBypass implements CommandExecutor {
                         }
                     }).runTaskAsynchronously(Bridge.instance);
 
+                    // display in #multiplayer-logs
+                    sendNewPBWebhook(player, timeTaken);
+
                     // show to player (we don't need to go through the db at this point)
                     board.getTeam("pb").setPrefix("§e " + timeTaken);
                     Bridge.sendTitle(player, "§bNew PB! §e" + timeTaken, "");
@@ -349,5 +357,46 @@ public class CommandBypass implements CommandExecutor {
             sender.sendMessage("You must be a player!");
         }
         return false;
+    }
+
+    private void sendNewPBWebhook(Player player, String time) {
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                JsonObject webhook = new JsonObject();
+                JsonArray embeds = new JsonArray();
+                JsonObject embed = new JsonObject();
+                JsonObject author = new JsonObject();
+
+                webhook.add("embeds", embeds);
+                embeds.add(embed);
+
+                embed.addProperty("color", 0x39c2ff);
+
+                embed.add("author", author);
+                author.addProperty("name", "New PB (Mode: Bypass)");
+
+                String playerName = player.getName();
+
+                embed.addProperty("title", playerName + ": " + (time));
+
+                embed.addProperty("description", playerName + " got new PB            |           on Bypass Map\n"
+                        + "```pascal\n"
+                        + " New Time: " + time + " \n"
+                        + "```");
+
+                JsonObject thumbnail = new JsonObject();
+                thumbnail.addProperty("url", ("https://minotar.net/armor/bust/" + playerName + "/64"));
+                embed.add("thumbnail", thumbnail);
+
+                JsonObject footer = new JsonObject();
+                footer.addProperty("text", playerName + " got a new PB");
+                embed.add("footer", footer);
+
+                embed.addProperty("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
+
+                Utils.sendWebhookSync(webhook);
+            }
+        }).runTaskAsynchronously(Bridge.instance);
     }
 }
