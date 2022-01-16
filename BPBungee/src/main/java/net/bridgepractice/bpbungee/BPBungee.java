@@ -271,7 +271,7 @@ public class BPBungee extends Plugin implements Listener {
         boolean isMessageToOthers = !event.isCommand() || blockedCommandsIfMuted.contains(event.getMessage().split(" ")[0].substring(1));
 
         if(isMessageToOthers) {
-            if(event.getMessage().replaceAll(/* remove jokes */"(?:1\\.){3}1|(?:(?:69|420)\\.){3}(?:69|420)|1[.,|!\\s]\\s*2[.,|!\\s]\\s*3[.,|!\\s]\\s*4", "").matches(".*(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\s*[.,|!]\\s*|$)){4}).*")) {
+            if(event.getMessage().replaceAll(/* remove jokes */"(?:1\\.){3}1|(?:(?:69|420)\\.){3}(?:69|420)|1[.,|!\\s]\\s*2[.,|!\\s]\\s*3[.,|!\\s]\\s*4|(?:1[.,|!\\s]\\s*){4}", "").matches(".*(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9])(\\s*[.,|]\\s*|$)){4}).*")) {
                 // INSTANTLY BAN IF SEND AN IP ADDRESS
                 BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
                     Ban.applyBan(player.getName(), 30, "Doxxing/Attempt to dox", player.getUniqueId().toString(), null);
@@ -287,7 +287,7 @@ public class BPBungee extends Plugin implements Listener {
                 }, 0, TimeUnit.MILLISECONDS);
                 event.setCancelled(true);
                 return;
-            } else if(event.getMessage().replaceAll("(https?://)?bridgepractice\\.net", "").replace("exe", "").matches(".*(http|[\\w(\\[{#^'\".,|]+\\s*[.,][a-zA-Z]+(\\W|$)|gg/.+).*")) {
+            } else if(event.getMessage().replaceAll("(https?://)?bridgepractice\\.net", "").replace("exe", "").matches(".*(http|[\\w(\\[{#^'\".,|]+\\s*[.,][a-zA-Z]{2,8}(\\W|$)|gg/.+).*")) {
                 player.sendMessage(new ComponentBuilder()
                         .append(new ComponentBuilder("---------------------------------------").color(ChatColor.GOLD).strikethrough(true).create())
                         .append(new ComponentBuilder("\nAdvertising is against the rules. You will be\npermanently banned from the server if you\nattempt to advertise.\n").color(ChatColor.RED).strikethrough(false).create())
@@ -418,6 +418,28 @@ public class BPBungee extends Plugin implements Listener {
         }
 
     }
+    public boolean isWorldQueueing(String worldName, MultiplayerMode mode) {
+        ArrayList<String> queueingGamesForMode = queueingGames.get(mode);
+        return queueingGamesForMode.contains(worldName);
+    }
+    public void sendIntentToJoinGame(String worldName, MultiplayerMode mode, ProxiedPlayer player) {
+        BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
+            ServerInfo multiplayerServer = ProxyServer.getInstance().getServerInfo("multiplayer_1");
+            ArrayList<String> queueingGamesForMode = queueingGames.get(mode);
+            int index = queueingGamesForMode.indexOf(worldName);
+            if(index == -1) {
+                return;
+            }
+            ByteArrayDataOutput out = ByteStreams.newDataOutput();
+            player.sendMessage(new ComponentBuilder("Sending you to the server...").color(ChatColor.GREEN).create());
+            out.writeUTF("IntentToJoinGame");
+            out.writeUTF(queueingGamesForMode.remove(index));
+            out.writeUTF(player.getName());
+            multiplayerServer.sendData("bp:messages", out.toByteArray());
+
+            player.connect(multiplayerServer);
+        }, 0, TimeUnit.MILLISECONDS);
+    }
     @EventHandler
     public void onPluginMessage(PluginMessageEvent event) {
         if(!event.getTag().equals("BungeeCord")) return;
@@ -440,7 +462,30 @@ public class BPBungee extends Plugin implements Listener {
                 case "SetGameQueueing": {
                     String gameMode = in.readUTF();
                     String worldName = in.readUTF();
-                    queueingGames.get(MultiplayerMode.valueOf(gameMode)).add(worldName);
+                    MultiplayerMode multiplayerMode = MultiplayerMode.valueOf(gameMode);
+                    ArrayList<String> queuingWorlds = queueingGames.get(multiplayerMode);
+                    queuingWorlds.add(worldName);
+                    getProxy().getScheduler().schedule(this, ()->{
+                        if(queuingWorlds.contains(worldName)) {
+                            BaseComponent[] queuingMessage = new ComponentBuilder("\n").append(Utils.getGameModeName(multiplayerMode))
+                                    .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§aClick to join this "+Utils.getGameModeName(multiplayerMode)+" game!")))
+                                    .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/q ifavailable "+worldName+" "+gameMode))
+                                    .color(ChatColor.LIGHT_PURPLE).bold(true).append(" >> ").bold(false).color(ChatColor.GRAY).append("A player is waiting in queue! ").color(ChatColor.GOLD).append("(Click to Join)").color(ChatColor.GREEN).underlined(true).create();
+                            int numAdvertisedTo = 0;
+                            for(ProxiedPlayer player : getProxy().getPlayers()) {
+                                if(!player.getServer().getInfo().getName().equals("multiplayer_1")) {
+                                    player.sendMessage(queuingMessage);
+                                    player.sendMessage();
+                                    numAdvertisedTo++;
+                                }
+                            }
+                            if(event.getReceiver() instanceof ProxiedPlayer) {
+                                ProxiedPlayer player = ((ProxiedPlayer) event.getReceiver());
+                                player.sendMessage(new ComponentBuilder("\nYour game has been advertised to ").color(ChatColor.GREEN).append(numAdvertisedTo+"").color(ChatColor.AQUA).bold(true).append(" players since it has not queued!").color(ChatColor.GREEN).bold(false).create());
+                                player.sendMessage();
+                            }
+                        }
+                    }, 20, TimeUnit.SECONDS);
                     break;
                 }
                 case "RemoveGameQueueing": {

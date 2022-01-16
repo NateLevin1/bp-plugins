@@ -151,6 +151,17 @@ public class Utils {
                 .create();
     }
 
+    public static String getGameModeName(MultiplayerMode mode) {
+        switch(mode) {
+            case pvp:
+                return "Bridge PvP 1v1";
+            case unranked:
+                return "Bridge Duel";
+            default:
+                return "Unknown";
+        }
+    }
+
     public static void log(BaseComponent[] components, String permission) {
         broadcastToPermission(permission, new ComponentBuilder("|||").color(ChatColor.DARK_AQUA).obfuscated(true).append(" ").obfuscated(false).appendLegacy("§3[§bB§cP§3] ").append(components).create());
     }
