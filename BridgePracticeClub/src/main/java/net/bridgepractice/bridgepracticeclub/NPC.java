@@ -78,6 +78,10 @@ public class NPC {
     ScoreHandler onWin;
     PutInCages putInCages;
 
+    private final double drag = 0.19;
+    private final double gravity = 0.2;
+    private final double terminalVelocity = 0.8;
+
     int playerGoals = 0;
     int npcGoals = 0;
     int npcDeaths = 0;
@@ -96,9 +100,10 @@ public class NPC {
         npc = new EntityPlayer(nmsServer, nmsWorld, gameProfile, new PlayerInteractManager(nmsWorld)); // This will be the EntityPlayer (NPC) we send with the sendNPCPacket method.
         connection = ((CraftPlayer) player).getHandle().playerConnection;
     }
-    void setLocation(Location loc) {
+    NPC setLocation(Location loc) {
         npc.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
         velocity = velocity.zero();
+        return this;
     }
     NPC setLocation(float x, float y, float z) {
         this.setLocation(new Location(Bridge.instance.world, x, y, z));
@@ -114,15 +119,18 @@ public class NPC {
         return this;
     }
     NPC setBridge() {
+        return setBridge(Color.RED);
+    }
+    NPC setBridge(Color botColor) {
         ItemStack boots = new ItemStack(Material.LEATHER_BOOTS);
         ItemStack leggings = new ItemStack(Material.LEATHER_LEGGINGS);
         ItemStack chest = new ItemStack(Material.LEATHER_CHESTPLATE);
         LeatherArmorMeta bootsM = (LeatherArmorMeta) boots.getItemMeta();
         LeatherArmorMeta leggingsM = (LeatherArmorMeta) leggings.getItemMeta();
         LeatherArmorMeta chestM = (LeatherArmorMeta) chest.getItemMeta();
-        bootsM.setColor(Color.RED);
-        leggingsM.setColor(Color.RED);
-        chestM.setColor(Color.RED);
+        bootsM.setColor(botColor);
+        leggingsM.setColor(botColor);
+        chestM.setColor(botColor);
         boots.setItemMeta(bootsM);
         leggings.setItemMeta(leggingsM);
         chest.setItemMeta(chestM);
@@ -152,6 +160,9 @@ public class NPC {
         return this;
     }
     NPC showToPlayer() {
+        return showToPlayer(true);
+    }
+    NPC showToPlayer(boolean runVelo) {
         {
             // show stuff, not velo
             connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, npc));
@@ -199,9 +210,11 @@ public class NPC {
             tabPlayerHealthScore.setScore(20);
         }
 
-        double drag = 0.19;
-        double gravity = 0.2;
-        double terminalVelocity = 0.8;
+        if(!runVelo) {
+            npcLoc = new Location(Bridge.instance.world, npc.locX, npc.locY, npc.locZ, npc.yaw, npc.pitch);
+            return this;
+        }
+
         // start velo stuff
         veloRunnable = new BukkitRunnable() {
             @Override
@@ -469,6 +482,33 @@ public class NPC {
                 }
             }
         };
+        veloRunnable.runTaskTimer(Bridge.instance, 0, 1);
+        return this;
+    }
+    interface VeloRunnable {
+        void run(NPC npc);
+    }
+    public NPC setVeloRunnable(VeloRunnable runnable, boolean lookAtPlayer) {
+        NPC npc = this;
+        this.veloRunnable = (new BukkitRunnable() {
+            @Override
+            public void run() {
+                if(lookAtPlayer) {
+                    direction = player.getLocation().toVector().subtract(npcLoc.toVector());
+                    Location newLoc = npcLoc.setDirection(direction);
+                    rotateInstantly(newLoc.getYaw(), newLoc.getPitch());
+                }
+
+                npc.npc.move(velocity.getX(), velocity.getY(), velocity.getZ());
+                npcLoc = new Location(Bridge.instance.world, npc.npc.locX, npc.npc.locY, npc.npc.locZ, npc.npc.yaw, npc.npc.pitch);
+                Location pLoc = player.getLocation();
+                connection.sendPacket(new PacketPlayOutEntityTeleport(npc.npc));
+                velocity.setY(Math.max(velocity.getY() - gravity, -terminalVelocity));
+                velocity.multiply(1.0 - drag);
+
+                runnable.run(npc);
+            }
+        });
         veloRunnable.runTaskTimer(Bridge.instance, 0, 1);
         return this;
     }

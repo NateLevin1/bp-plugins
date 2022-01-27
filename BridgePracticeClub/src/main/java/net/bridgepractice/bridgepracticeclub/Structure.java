@@ -21,19 +21,22 @@ public class Structure {
 
         this.content = content;
     }
-    public void place(Location loc) {
-        if(previousLocation != loc || hasFlipChanged) {
-            previousLocation = loc;
-            hasFlipChanged = false;
-            for(int y = 0; y < height; y++) {
-                for(int z = 0; z < length; z++) {
-                    for(int x = 0; x < width; x++) {
-                        Block block = loc.clone().add(x, y, z).getBlock();
-                        block.setType(content[y][z][x].getType());
-                        block.setData(content[y][z][x].getRawData());
-                    }
+    private void placeUnchecked(Location loc) {
+        previousLocation = loc;
+        hasFlipChanged = false;
+        for(int y = 0; y < height; y++) {
+            for(int z = 0; z < length; z++) {
+                for(int x = 0; x < width; x++) {
+                    Block block = loc.clone().add(x, y, z).getBlock();
+                    block.setType(content[y][z][x].getType());
+                    block.setData(content[y][z][x].getRawData());
                 }
             }
+        }
+    }
+    public void place(Location loc) {
+        if(previousLocation != loc || hasFlipChanged) {
+            placeUnchecked(loc);
         }
     }
     public void placeIfContentNotAir(Location loc) {
@@ -103,5 +106,8 @@ public class Structure {
     public void removeAndSwitchContentTo(BlockState[][][] content) {
         this.remove();
         this.switchContent(content);
+    }
+    public void placeAtPreviousLocation() {
+        this.placeUnchecked(this.previousLocation);
     }
 }

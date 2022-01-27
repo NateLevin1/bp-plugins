@@ -168,6 +168,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         this.getCommand("bot").setExecutor(new CommandBridgeBot());
         this.getCommand("whereis").setExecutor(new CommandWhereIs());
         this.getCommand("rainbow").setExecutor(new RainbowCommand());
+        this.getCommand("clutch").setExecutor(new CommandClutch());
 
         CommandSpawn spawnCommand = new CommandSpawn();
         this.getCommand("spawn").setExecutor(spawnCommand);
@@ -307,6 +308,10 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         CommandBridgeBot.bridgeContent = getBlocks(new Location(Bridge.instance.world, 1138, 84, -23), 1, 9, 41);
         CommandBridgeBot.cageContent = getBlocks(new Location(Bridge.instance.world, 1012, 93, -24), 9, 6, 7);
         CommandBridgeBot.npcCageContent = getBlocks(new Location(Bridge.instance.world, 1012, 102, -24), 9, 6, 7);
+        CommandClutch.spawnContent = getBlocks(new Location(Bridge.instance.world, 963, 95, -17), 9, 8, 14);
+        CommandClutch.spawnContent2 = getBlocks(new Location(Bridge.instance.world, 963, 105, -17), 9, 8, 14);
+        CommandClutch.bridgeContent = getBlocks(new Location(Bridge.instance.world, 967, 102, 0), 1, 7, 42);
+
         PlayerInfo.queues.put(PlayerLocation.Bypass, new ArrayList<>());
         PlayerInfo.queues.put(PlayerLocation.BridgeBot, new ArrayList<>());
         PlayerInfo.queues.put(PlayerLocation.Prebow, new ArrayList<>());
@@ -806,6 +811,8 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
                 return "bot 1v1 practice";
             case Prebow:
                 return "prebow practice";
+            case Clutch:
+                return "clutch practice";
         }
         return "[[[ If you see this, open a ticket on the Discord! ]]]";
     }
@@ -1093,6 +1100,34 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
             out.writeUTF("Connect");
             out.writeUTF("lobby");
             player.sendPluginMessage(this, "BungeeCord", out.toByteArray());
+        }
+
+        PlayerInfo info = getPlayer(player.getUniqueId());
+        if(info != null) {
+            if(info.location == PlayerLocation.Clutch && stack.getType() == Material.STAINED_CLAY) {
+                switch(displayName) {
+                    case "§r§7Difficulty: §aEasy ♟ §7(Right Click)":
+                        info.locSettings.difficulty = -1;
+                        player.sendMessage("§a✔ §7Selected \"§aEasy§7\" difficulty.");
+                        player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 1);
+                        player.getScoreboard().getTeam("difficulty").setSuffix("§aEasy");
+                        break;
+                    case "§r§7Difficulty: §eNormal ♜ §7(Right Click)":
+                        info.locSettings.difficulty = 0;
+                        player.sendMessage("§a✔ §7Selected \"§eNormal§7\" difficulty.");
+                        player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 1);
+                        player.getScoreboard().getTeam("difficulty").setSuffix("§eNormal");
+                        break;
+                    case "§r§7Difficulty: §c§lHard ♚ §7(Right Click)":
+                        info.locSettings.difficulty = 1;
+                        player.sendMessage("§a✔ §7Selected \"§c§lHard§7\" difficulty.");
+                        player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 1);
+                        player.getScoreboard().getTeam("difficulty").setSuffix("§c§lHard");
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
     }
     @EventHandler

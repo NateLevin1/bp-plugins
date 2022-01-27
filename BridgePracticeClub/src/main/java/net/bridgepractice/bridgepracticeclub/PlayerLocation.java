@@ -5,5 +5,6 @@ public enum PlayerLocation {
     Wing,
     Prebow,
     Bypass,
-    BridgeBot
+    BridgeBot,
+    Clutch
 }

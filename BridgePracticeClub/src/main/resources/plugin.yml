@@ -17,6 +17,9 @@ commands:
   bot:
     description: Enter into a bot 1v1
     usage: /bot
+  clutch:
+    description: Enter clutch practice
+    usage: /clutch
   spawn:
     description: Go back to spawn
     usage: /spawn

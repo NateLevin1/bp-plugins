@@ -37,6 +37,7 @@ public class PlayerInfo {
         public int npcId = 0;
         public PlayerInfoHandler onNpcHit;
         public boolean isSprintingHit = false;
+        public int difficulty = 0;
     }
 
     LocSettings locSettings = new LocSettings();
@@ -94,6 +95,12 @@ public class PlayerInfo {
                 allowedPlacing = new AllowedLocation[]{new AllowedLocation(relXZ, -8, 8, 3, 51)};
                 allowedBreaking = new AllBreak[]{new AllBreak(Material.STAINED_CLAY, 11), new AllBreak(Material.STAINED_CLAY, 14), new AllBreak(Material.STAINED_CLAY, 0)};
                 break;
+            case Clutch:
+                relXZ = new int[]{-100 + ((position % 10) * 60), 120+(100*(position/10))};
+                respawnLocation = new Location(Bridge.instance.world, relXZ[0] + 0.5, 100, relXZ[1] + 0.5);
+                allowedPlacing = new AllowedLocation[]{new AllowedLocation(relXZ, -20, 20, 0, 50)};
+                allowedBreaking = new AllBreak[]{new AllBreak(Material.STAINED_CLAY, 11), new AllBreak(Material.STAINED_CLAY, 14), new AllBreak(Material.STAINED_CLAY, 0)};
+                break;
         }
     }
 
@@ -135,6 +142,8 @@ public class PlayerInfo {
                 if(position > 7) {
                     return addToQueue(player, loc);
                 }
+                break;
+            case Clutch:
                 break;
         }
         return false;
@@ -209,10 +218,9 @@ public class PlayerInfo {
             announceChangeInPlaces(loc);
         }
     }
-}
-
-interface BowShootHandler {
-    void call(PlayerInfo info, Arrow arrow, ItemStack bow);
+    interface BowShootHandler {
+        void call(PlayerInfo info, Arrow arrow, ItemStack bow);
+    }
 }
 
 class AllBreak {
