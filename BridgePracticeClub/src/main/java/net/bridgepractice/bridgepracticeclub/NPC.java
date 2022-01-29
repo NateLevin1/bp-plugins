@@ -19,6 +19,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
@@ -186,15 +187,15 @@ public class NPC {
             ((CraftPlayer) player).getHandle().playerConnection.sendPacket(packet);
 
             // show colored names
-            Team redTeam = board.registerNewTeam("__RED__");
-            Team blueTeam = board.registerNewTeam("__BLUE__");
+            Team redTeam = getOrCreateTeam(board, "__RED__");
+            Team blueTeam = getOrCreateTeam(board, "__BLUE__");
             redTeam.setPrefix("§c");
             blueTeam.setPrefix("§9");
             redTeam.addEntry(npc.getName());
             blueTeam.addEntry(player.getName());
 
             // show health
-            Objective healthObj = board.registerNewObjective("__HEALTH__", "dummy");
+            Objective healthObj = getOrCreateObjective(board, "__HEALTH__", "dummy");
             healthObj.setDisplaySlot(DisplaySlot.BELOW_NAME);
             healthObj.setDisplayName("§c" + Bridge.hearts(1));
             healthScore = healthObj.getScore(npc.getName());
@@ -202,7 +203,7 @@ public class NPC {
             healthScore.setScore(20);
             playerHealthScore.setScore(20);
 
-            Objective tabHealthObj = board.registerNewObjective("__TAB_HEALTH__", "dummy");
+            Objective tabHealthObj = getOrCreateObjective(board, "__TAB_HEALTH__", "dummy");
             tabHealthObj.setDisplaySlot(DisplaySlot.PLAYER_LIST);
             tabHealthScore = tabHealthObj.getScore(npc.getName());
             tabPlayerHealthScore = tabHealthObj.getScore(player.getName());
@@ -913,6 +914,20 @@ public class NPC {
     }
     double randomBetween(double min, double max) {
         return min + Math.random() * (max - min);
+    }
+    private static Team getOrCreateTeam(Scoreboard board, String teamName) {
+        Team res = board.getTeam(teamName);
+        if(res == null) {
+            res = board.registerNewTeam(teamName);
+        }
+        return res;
+    }
+    private static Objective getOrCreateObjective(Scoreboard board, String s, String s1) {
+        Objective res = board.getObjective(s);
+        if(res == null) {
+            res = board.registerNewObjective(s, s1);
+        }
+        return res;
     }
 }
 

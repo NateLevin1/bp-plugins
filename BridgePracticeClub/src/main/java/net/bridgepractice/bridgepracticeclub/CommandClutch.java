@@ -13,6 +13,9 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
+
 public class CommandClutch implements CommandExecutor {
     public static BlockState[][][] spawnContent;
     public static BlockState[][][] spawnContent2;
@@ -62,16 +65,19 @@ public class CommandClutch implements CommandExecutor {
 
         Bridge.instance.setPlayer(player.getUniqueId(), new PlayerInfo(PlayerLocation.Clutch, null, (info)->{
             // on death
-            if(vars.clutchingChecker != null) {
-                vars.clutchingChecker.cancel();
-            }
-            for(Location loc : info.changedBlocks) {
-                loc.getBlock().setType(Material.AIR);
-            }
+            if(vars.state == State.Dying || vars.state == State.Winning) return;
+
             if(vars.state != State.WalkingOnGold) {
+                vars.setState(State.Dying);
                 player.sendMessage("§c✕ Mode failed!");
-                nextGameMode(player, info, vars);
+                Bridge.sendTitle(player, "", "§c✕ Mode failed!", 5, 5, 13);
                 player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1, 1);
+                vars.tasks.add((new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        nextGameMode(player, vars, info);
+                    }
+                }).runTaskLater(Bridge.instance, 13));
             } else {
                 new ResetBridgePlayer(player, info, false, true).run();
             }
@@ -81,20 +87,14 @@ public class CommandClutch implements CommandExecutor {
             board.getTeam("blocks").setSuffix("§fed: §a" + vars.blocksPlaced);
         }, (info)->{
             // on location change
-            Bridge.sendTitle(player, "", "", 0, 0, 0);
-            vars.spawn.remove();
-            vars.bridge.remove();
-            if(vars.npc != null) {
-                vars.npc.remove();
-            }
-            if(vars.clutchingChecker != null) {
-                vars.clutchingChecker.cancel();
-            }
-            for(Location loc : info.changedBlocks) {
-                loc.getBlock().setType(Material.AIR);
-            }
+            reset(player, vars, info);
+            // TODO: give xp from vars.xpGained
         }, null, null, (info) -> {
             // on move
+
+            if(player.getLocation().getY() < 93) {
+                info.onDeath.call(info);
+            }
 
             double relX = player.getLocation().getX() - info.relXZ[0];
             double relZ = player.getLocation().getZ() - info.relXZ[1];
@@ -113,78 +113,7 @@ public class CommandClutch implements CommandExecutor {
                 }
             } else if(vars.state == State.WalkingOnGold) {
                 if(relZ > 10) {
-                    vars.setState(State.BotChase);
-                    Bridge.sendTitle(player, "", "", 0, 0, 0);
-                    vars.spawn.remove();
-                    Bridge.sendActionBar(player, "§e§lRun Away! §eYou're being chased, better move quickly!");
-                    board.getTeam("info").setPrefix("§e Run from the");
-                    board.getTeam("info").setSuffix("§e  bot!");
-                    board.getTeam("mode").setSuffix("§aBot Chase");
-                    vars.npc = new NPC(player, null, null, null)
-                            .setLocation(vars.bridgeLocation)
-                            .setBridge(Color.BLACK)
-                            .showToPlayer(false)
-                            .setVeloRunnable((npc)->{
-                                long timeSinceLastJump = System.currentTimeMillis() - npc.lastJump;
-                                boolean isOnGround = npc.npcLoc.clone().subtract(0, 0.05, 0).getBlock().getType() != Material.AIR ||
-                                        npc.npcLoc.clone().subtract(-0.15, 0.05, 0).getBlock().getType() != Material.AIR ||
-                                        npc.npcLoc.clone().subtract(0.15, 0.05, 0).getBlock().getType() != Material.AIR;
-
-                                if(timeSinceLastJump > 500 && isOnGround) {
-                                    npc.jump();
-                                }
-                                if(npc.npcLoc.getZ() < player.getLocation().getZ()+0.5) {
-                                    npc.velocity.add(new Vector(0, 0, (vars.getTimeSinceLastStateChange()/100_000D)+0.03));
-                                }
-
-                                if(vars.getTimeSinceLastStateChange() > 1000 && npc.isPlayerInSight(2) && vars.state == State.BotChase) {
-                                    npc.swingHand();
-                                    npc.veloRunnable.cancel();
-
-                                    int leftOrRight = Math.random() > 0.5 ? -1 : 1;
-                                    int difficulty = info.locSettings.difficulty+1; // 0=easy, 1=normal, 2=hard
-
-                                    RavenAntiCheat.emulatePlayerTakeKnockback(player);
-                                    if(difficulty == 0) {
-                                        player.setVelocity(new Vector(leftOrRight*(Math.random()*0.02+0.25), 0.50, 0.30));
-                                    } else if(difficulty == 1) {
-                                        player.setVelocity(new Vector(leftOrRight*(Math.random()*0.03+0.31), 0.49, 0.40));
-                                    } else if(difficulty == 2) {
-                                        player.setVelocity(new Vector(leftOrRight*(Math.random()*0.03+0.40), 0.35, Math.random()*0.05+0.4));
-                                    }
-
-
-                                    player.playSound(player.getLocation(), Sound.HURT_FLESH, 1, 1);
-                                    vars.setState(State.BotChaseClutching);
-                                    board.getTeam("info").setPrefix("§f Time: ");
-                                    vars.clutchingChecker = (new BukkitRunnable() {
-                                        @Override
-                                        public void run() {
-                                            boolean isPlayerOnGround = player.getLocation().subtract(0, 0.001, 0).getBlock().getType() != Material.AIR; // NOTE: this is inaccurate if shifting to edge; works fine for other cases
-                                            long lastStateChange = vars.getTimeSinceLastStateChange();
-                                            if((lastStateChange > 500 && isPlayerOnGround) // fast path
-                                                || lastStateChange > 3000) {
-                                                cancel();
-                                                // win!
-                                                player.sendMessage("§aYou clutched!");
-                                                nextGameMode(player, info, vars);
-                                                player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
-                                                return;
-                                            }
-                                            String secs = String.format("%.3f", (3000 - vars.getTimeSinceLastStateChange())/1000D);
-                                            Bridge.sendActionBar(player, "§eTime Remaining: §f"+secs);
-                                            board.getTeam("info").setSuffix("§a"+secs);
-                                        }
-                                    }).runTaskTimer(Bridge.instance, 0, 5);
-                                }
-                            }, true);
-                    info.locSettings.npcId = vars.npc.npc.getId();
-                    info.locSettings.onNpcHit = (i) -> {
-                        player.sendMessage("§cYou cannot hit the bot in this mode!");
-                    };
-                    vars.npc.healthScore.setScore(999);
-                    player.playSound(player.getLocation(), Sound.ENDERDRAGON_GROWL, 0.3f, 1);
-                    player.setGameMode(GameMode.SURVIVAL);
+                    beginBotChase(player, vars, info);
                 }
             }
         }));
@@ -216,9 +145,136 @@ public class CommandClutch implements CommandExecutor {
         return true;
     }
 
-    public void nextGameMode(Player player, PlayerInfo info, Variables vars) {
+    private void nextGameMode(Player player, Variables vars, PlayerInfo info) {
+        int gameMode = ThreadLocalRandom.current().nextInt(1, 2);
+        reset(player, vars, info);
         info.respawnLocation = vars.bridgeLocation;
         new ResetBridgePlayer(player, info, false, true).run();
+        try {
+            player.getInventory().setHeldItemSlot(player.getInventory().first(Material.STAINED_CLAY));
+        } catch(IllegalArgumentException ignored) {}
+        switch(gameMode) {
+            case 1: {
+                player.teleport(vars.bridgeLocation.clone().add(0, 0, 5));
+                beginBotChase(player, vars, info);
+                break;
+            }
+            case 2: {
+
+                break;
+            }
+        }
+
+
+
+    }
+    private void beginBotChase(Player player, Variables vars, PlayerInfo info) {
+        Scoreboard board = player.getScoreboard();
+        vars.setState(State.BotChase);
+        Bridge.sendTitle(player, "", "", 0, 0, 0);
+        vars.bridge.place(vars.bridgeLocation.clone().subtract(0, 7, 0));
+        vars.spawn.remove();
+        Bridge.sendActionBar(player, "§e§lRun Away! §eYou're being chased, better move quickly!");
+        board.getTeam("info").setPrefix("§e Run from the");
+        board.getTeam("info").setSuffix("§e  bot!");
+        board.getTeam("mode").setSuffix("§aBot Chase");
+        vars.npc = new NPC(player, null, null, null)
+                .setLocation(vars.bridgeLocation)
+                .setBridge(Color.BLACK)
+                .showToPlayer(false)
+                .setVeloRunnable((npc)->{
+                    long timeSinceLastJump = System.currentTimeMillis() - npc.lastJump;
+                    boolean isOnGround = npc.npcLoc.clone().subtract(0, 0.05, 0).getBlock().getType() != Material.AIR ||
+                            npc.npcLoc.clone().subtract(-0.15, 0.05, 0).getBlock().getType() != Material.AIR ||
+                            npc.npcLoc.clone().subtract(0.15, 0.05, 0).getBlock().getType() != Material.AIR;
+                    int difficulty = info.locSettings.difficulty+1; // 0=easy, 1=normal, 2=hard
+
+                    if(timeSinceLastJump > 500 && isOnGround) {
+                        npc.jump();
+                    }
+                    if(npc.npcLoc.getZ() < player.getLocation().getZ()+0.5) {
+                        npc.velocity.add(new Vector(0, 0, (difficulty*0.01)+(vars.getTimeSinceLastStateChange()/20_000D)+0.03));
+                    }
+
+                    if(vars.getTimeSinceLastStateChange() > 1000 && player.getLocation().getZ() - npc.npcLoc.getZ() < 2 && npc.isPlayerInSight(2) && vars.state == State.BotChase) {
+                        npc.swingHand();
+                        npc.veloRunnable.cancel();
+
+                        int leftOrRight = Math.random() > 0.5 ? -1 : 1;
+
+                        RavenAntiCheat.emulatePlayerTakeKnockback(player);
+                        if(difficulty == 0) {
+                            player.setVelocity(new Vector(leftOrRight*(Math.random()*0.02+0.25), 0.50, 0.30));
+                        } else if(difficulty == 1) {
+                            player.setVelocity(new Vector(leftOrRight*(Math.random()*0.03+0.31), 0.49, 0.40));
+                        } else if(difficulty == 2) {
+                            player.setVelocity(new Vector(leftOrRight*(Math.random()*0.03+0.40), 0.35, Math.random()*0.05+0.4));
+                        }
+
+
+                        player.playSound(player.getLocation(), Sound.HURT_FLESH, 1, 1);
+                        vars.setState(State.BotChaseClutching);
+                        board.getTeam("info").setPrefix("§f Time: ");
+                        int clutchSecs = 2000;
+                        vars.tasks.add((new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                if(vars.state != State.BotChaseClutching) {
+                                    cancel();
+                                    return;
+                                }
+                                boolean isPlayerOnGround = player.getLocation().subtract(0, 0.001, 0).getBlock().getType() != Material.AIR; // NOTE: this is inaccurate if shifting to edge; works fine for other cases
+                                long lastStateChange = vars.getTimeSinceLastStateChange();
+                                if((lastStateChange > 500 && isPlayerOnGround) // fast path
+                                        || lastStateChange > clutchSecs) {
+                                    cancel();
+                                    // win!
+                                    vars.setState(State.Winning);
+                                    player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                                    int gainedXp = (difficulty*2)+3;
+                                    player.sendMessage("§aYou clutched! §b+"+gainedXp+"xp");
+                                    Bridge.sendTitle(player, "", "§aYou clutched! §b+"+gainedXp+"xp", 5, 5, 25);
+                                    vars.xpGained += gainedXp;
+                                    vars.tasks.add((new BukkitRunnable() {
+                                        @Override
+                                        public void run() {
+                                            nextGameMode(player, vars, info);
+                                        }
+                                    }).runTaskLater(Bridge.instance, 25));
+                                    return;
+                                }
+                                String secs = Bridge.prettifyNumber((float) (clutchSecs - vars.getTimeSinceLastStateChange()));
+                                Bridge.sendActionBar(player, "§eTime Remaining: §f"+secs);
+                                board.getTeam("info").setSuffix("§a"+secs);
+                            }
+                        }).runTaskTimer(Bridge.instance, 0, 5));
+                    }
+                }, true);
+        info.locSettings.npcId = vars.npc.npc.getId();
+        info.locSettings.onNpcHit = (i) -> {
+            player.sendMessage("§cYou cannot hit the bot in this mode!");
+        };
+        vars.npc.healthScore.setScore(999);
+        player.playSound(player.getLocation(), Sound.ENDERDRAGON_GROWL, 0.3f, 1);
+        player.setGameMode(GameMode.SURVIVAL);
+    }
+    private void reset(Player player, Variables vars, PlayerInfo info) {
+        Bridge.sendTitle(player, "", "", 0, 0, 0);
+        vars.spawn.remove();
+        vars.bridge.remove();
+        if(vars.npc != null) {
+            vars.npc.remove();
+        }
+        for(BukkitTask task : vars.tasks) {
+            if(task != null) {
+                task.cancel();
+            }
+        }
+        vars.tasks.clear();
+        for(Location loc : info.changedBlocks) {
+            loc.getBlock().setType(Material.AIR);
+        }
+        info.changedBlocks.clear();
     }
 
     static class Variables {
@@ -228,8 +284,12 @@ public class CommandClutch implements CommandExecutor {
         State state = State.WaitingForWalkOnGold;
         Location bridgeLocation;
         long lastStateChange = 0;
-        BukkitTask clutchingChecker;
         int blocksPlaced = 0;
+        int xpGained = 0;
+
+        // all tasks are canceled before the next gamemode or on leave
+        ArrayList<BukkitTask> tasks = new ArrayList<>();
+
         public void setState(State state) {
             this.state = state;
             lastStateChange = System.currentTimeMillis();
@@ -242,6 +302,8 @@ public class CommandClutch implements CommandExecutor {
         WaitingForWalkOnGold,
         WalkingOnGold,
         BotChase,
-        BotChaseClutching
+        BotChaseClutching,
+        Dying,
+        Winning,
     }
 }

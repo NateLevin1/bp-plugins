@@ -1109,7 +1109,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
                     case "§r§7Difficulty: §aEasy ♟ §7(Right Click)":
                         info.locSettings.difficulty = -1;
                         player.sendMessage("§a✔ §7Selected \"§aEasy§7\" difficulty.");
-                        player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 1);
+                        player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 1.3f);
                         player.getScoreboard().getTeam("difficulty").setSuffix("§aEasy");
                         break;
                     case "§r§7Difficulty: §eNormal ♜ §7(Right Click)":
@@ -1121,7 +1121,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
                     case "§r§7Difficulty: §c§lHard ♚ §7(Right Click)":
                         info.locSettings.difficulty = 1;
                         player.sendMessage("§a✔ §7Selected \"§c§lHard§7\" difficulty.");
-                        player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 1);
+                        player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 0.7f);
                         player.getScoreboard().getTeam("difficulty").setSuffix("§c§lHard");
                         break;
                     default:
