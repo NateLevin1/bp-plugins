@@ -57,6 +57,8 @@ public class CommandClutch implements CommandExecutor {
                 "",
                 "%blocks% §fBlocks Plac%§fed: §a0",
                 "",
+                "%attempt% §fAttempt: %§a0§7/5",
+                "",
                 "%info% §eWalk forward!",
                 "",
                 "   §7bridgepractice.net  "
@@ -106,6 +108,7 @@ public class CommandClutch implements CommandExecutor {
                     vars.bridge.place(vars.bridgeLocation.clone().subtract(0, 7, 0));
                     Bridge.sendTitle(player, "", "Continue to The Bridge!", 0, 0, Integer.MAX_VALUE);
                     player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.2f, 1.3f);
+                    nextAttempt(player, vars);
                     Bridge.setBridgeInventory(player, false);
                     try {
                         player.getInventory().setHeldItemSlot(player.getInventory().first(Material.STAINED_CLAY));
@@ -113,6 +116,7 @@ public class CommandClutch implements CommandExecutor {
                 }
             } else if(vars.state == State.WalkingOnGold) {
                 if(relZ > 10) {
+                    Bridge.sendTitle(player, "", "", 0, 0, 0);
                     beginBotChase(player, vars, info);
                 }
             }
@@ -146,7 +150,21 @@ public class CommandClutch implements CommandExecutor {
     }
 
     private void nextGameMode(Player player, Variables vars, PlayerInfo info) {
-        int gameMode = ThreadLocalRandom.current().nextInt(1, 2);
+        int gameMode;
+        boolean isNewMode;
+        if(vars.attempt < vars.maxAttempts) {
+            // still attempting, do not go to new gamemode
+            nextAttempt(player, vars);
+            gameMode = vars.curGameMode;
+            isNewMode = false;
+        } else {
+            // go to new gamemode
+            vars.attempt = 1;
+            updateAttempt(player, vars);
+            gameMode = ThreadLocalRandom.current().nextInt(1, 2);
+            isNewMode = true;
+        }
+
         reset(player, vars, info);
         info.respawnLocation = vars.bridgeLocation;
         new ResetBridgePlayer(player, info, false, true).run();
@@ -155,6 +173,9 @@ public class CommandClutch implements CommandExecutor {
         } catch(IllegalArgumentException ignored) {}
         switch(gameMode) {
             case 1: {
+                if(isNewMode) {
+                    Bridge.sendTitle(player, "", "§eRun Forward!", 5, 5, 30);
+                }
                 player.teleport(vars.bridgeLocation.clone().add(0, 0, 5));
                 beginBotChase(player, vars, info);
                 break;
@@ -163,20 +184,30 @@ public class CommandClutch implements CommandExecutor {
 
                 break;
             }
+            default: {
+                player.sendMessage("§c§lUh Oh!§c Your clutch game tried to start a mode that doesn't exist! Please report this to the discord!");
+                player.chat("/l");
+            }
         }
 
-
-
+        if(vars.attempt == vars.maxAttempts) {
+            vars.tasks.add((new BukkitRunnable() {
+                @Override
+                public void run() {
+                    player.sendMessage("§e§l⚠ Final attempt for this mode! ⚠");
+                    player.playSound(player.getLocation(), Sound.FIREWORK_LARGE_BLAST2, 1.5f, 0.8f);
+                }
+            }).runTaskLater(Bridge.instance, 20));
+        }
     }
     private void beginBotChase(Player player, Variables vars, PlayerInfo info) {
         Scoreboard board = player.getScoreboard();
         vars.setState(State.BotChase);
-        Bridge.sendTitle(player, "", "", 0, 0, 0);
         vars.bridge.place(vars.bridgeLocation.clone().subtract(0, 7, 0));
         vars.spawn.remove();
         Bridge.sendActionBar(player, "§e§lRun Away! §eYou're being chased, better move quickly!");
         board.getTeam("info").setPrefix("§e Run from the");
-        board.getTeam("info").setSuffix("§e  bot!");
+        board.getTeam("info").setSuffix("§e bot!");
         board.getTeam("mode").setSuffix("§aBot Chase");
         vars.npc = new NPC(player, null, null, null)
                 .setLocation(vars.bridgeLocation)
@@ -253,6 +284,7 @@ public class CommandClutch implements CommandExecutor {
         info.locSettings.npcId = vars.npc.npc.getId();
         info.locSettings.onNpcHit = (i) -> {
             player.sendMessage("§cYou cannot hit the bot in this mode!");
+            player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1, 1);
         };
         vars.npc.healthScore.setScore(999);
         player.playSound(player.getLocation(), Sound.ENDERDRAGON_GROWL, 0.3f, 1);
@@ -276,6 +308,13 @@ public class CommandClutch implements CommandExecutor {
         }
         info.changedBlocks.clear();
     }
+    private void nextAttempt(Player player, Variables vars) {
+        vars.attempt++;
+        updateAttempt(player, vars);
+    }
+    private void updateAttempt(Player player, Variables vars) {
+        player.getScoreboard().getTeam("attempt").setSuffix("§a" + vars.attempt + "§7/" + vars.maxAttempts);
+    }
 
     static class Variables {
         Structure spawn;
@@ -286,6 +325,9 @@ public class CommandClutch implements CommandExecutor {
         long lastStateChange = 0;
         int blocksPlaced = 0;
         int xpGained = 0;
+        int attempt = 0;
+        int maxAttempts = 5;
+        int curGameMode = 1;
 
         // all tasks are canceled before the next gamemode or on leave
         ArrayList<BukkitTask> tasks = new ArrayList<>();
