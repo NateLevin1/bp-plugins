@@ -759,7 +759,7 @@ public class NPC {
         double accuracy = 0.1;
         Vector origin = new Vector(npc.locX, npc.locY + 1, npc.locZ); // add 1 so it is the head
         for(double d = 0; d <= reach; d += accuracy) {
-            Vector vec = origin.clone().add(direction.clone().multiply(d));
+            Vector vec = origin.clone().add(direction.clone().normalize().multiply(d));
             Location adjustedLoc = vec.toLocation(Bridge.instance.world);
             if(adjustedLoc.getBlock().getType() != Material.AIR) {
                 return false;

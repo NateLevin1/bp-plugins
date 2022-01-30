@@ -20,6 +20,7 @@ public class CommandClutch implements CommandExecutor {
     public static BlockState[][][] spawnContent;
     public static BlockState[][][] spawnContent2;
     public static BlockState[][][] bridgeContent;
+    public static BlockState[][][] bridgeDevelopedContent;
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
@@ -117,7 +118,7 @@ public class CommandClutch implements CommandExecutor {
             } else if(vars.state == State.WalkingOnGold) {
                 if(relZ > 10) {
                     Bridge.sendTitle(player, "", "", 0, 0, 0);
-                    beginBotChase(player, vars, info);
+                    beginBotChase(player, vars, info, false, vars.bridgeLocation);
                 }
             }
         }));
@@ -150,7 +151,7 @@ public class CommandClutch implements CommandExecutor {
     }
 
     private void nextGameMode(Player player, Variables vars, PlayerInfo info) {
-        int gameMode;
+        MiniMode gameMode;
         boolean isNewMode;
         if(vars.attempt < vars.maxAttempts) {
             // still attempting, do not go to new gamemode
@@ -161,7 +162,9 @@ public class CommandClutch implements CommandExecutor {
             // go to new gamemode
             vars.attempt = 1;
             updateAttempt(player, vars);
-            gameMode = ThreadLocalRandom.current().nextInt(1, 2);
+            gameMode = MiniMode.values()[ThreadLocalRandom.current().nextInt(0, MiniMode.values().length)];
+            // TODO: make sure is not equal to last mode
+            vars.curGameMode = gameMode;
             isNewMode = true;
         }
 
@@ -171,24 +174,42 @@ public class CommandClutch implements CommandExecutor {
         try {
             player.getInventory().setHeldItemSlot(player.getInventory().first(Material.STAINED_CLAY));
         } catch(IllegalArgumentException ignored) {}
+        boolean botOpposite;
+        Location npcSpawnLoc;
+        String modeName;
         switch(gameMode) {
-            case 1: {
-                if(isNewMode) {
-                    Bridge.sendTitle(player, "", "§eRun Forward!", 5, 5, 30);
-                }
+            case Flat:
+            {
                 player.teleport(vars.bridgeLocation.clone().add(0, 0, 5));
-                beginBotChase(player, vars, info);
+                botOpposite = false;
+                vars.bridge.switchContent(bridgeContent);
+                npcSpawnLoc = vars.bridgeLocation;
+                modeName = "Bot Chase";
                 break;
             }
-            case 2: {
-
+            case Developed: {
+                player.teleport(vars.bridgeLocation.clone().add(0, -2, 6));
+                botOpposite = true;
+                vars.bridge.switchContent(bridgeDevelopedContent);
+                npcSpawnLoc = vars.bridgeLocation.clone().add(0,-1,31);
+                modeName = "Dev. Bot Chase";
                 break;
             }
             default: {
-                player.sendMessage("§c§lUh Oh!§c Your clutch game tried to start a mode that doesn't exist! Please report this to the discord!");
+                player.sendMessage("§c§lUh Oh!§c Your clutch game tried to start a mode that doesn't exist! Please report this to the discord! (gm="+gameMode+")");
                 player.chat("/l");
+                return;
             }
         }
+        if(isNewMode) {
+            Bridge.sendTitle(player, "", "§eRun Forward!", 5, 5, 30);
+        }
+        Bridge.sendActionBar(player, "§e§lRun "+(botOpposite ? "Forward" : "Away")+"! §e"+(botOpposite ? "Run towards the bot to fight it" : "You're being chased, better move quickly")+"!");
+        Scoreboard board = player.getScoreboard();
+        board.getTeam("info").setPrefix("§e Run " + (botOpposite ? "towards" : "from the"));
+        board.getTeam("info").setSuffix("§e "+(botOpposite ? "the " : "")+"bot!");
+        board.getTeam("mode").setSuffix("§a"+modeName);
+        beginBotChase(player, vars, info, botOpposite, npcSpawnLoc);
 
         if(vars.attempt == vars.maxAttempts) {
             vars.tasks.add((new BukkitRunnable() {
@@ -200,17 +221,14 @@ public class CommandClutch implements CommandExecutor {
             }).runTaskLater(Bridge.instance, 20));
         }
     }
-    private void beginBotChase(Player player, Variables vars, PlayerInfo info) {
+    private void beginBotChase(Player player, Variables vars, PlayerInfo info, boolean botOpposite, Location npcSpawnLoc) {
         Scoreboard board = player.getScoreboard();
+        int zDir = botOpposite ? -1 : 1;
         vars.setState(State.BotChase);
         vars.bridge.place(vars.bridgeLocation.clone().subtract(0, 7, 0));
         vars.spawn.remove();
-        Bridge.sendActionBar(player, "§e§lRun Away! §eYou're being chased, better move quickly!");
-        board.getTeam("info").setPrefix("§e Run from the");
-        board.getTeam("info").setSuffix("§e bot!");
-        board.getTeam("mode").setSuffix("§aBot Chase");
         vars.npc = new NPC(player, null, null, null)
-                .setLocation(vars.bridgeLocation)
+                .setLocation(npcSpawnLoc)
                 .setBridge(Color.BLACK)
                 .showToPlayer(false)
                 .setVeloRunnable((npc)->{
@@ -223,11 +241,19 @@ public class CommandClutch implements CommandExecutor {
                     if(timeSinceLastJump > 500 && isOnGround) {
                         npc.jump();
                     }
-                    if(npc.npcLoc.getZ() < player.getLocation().getZ()+0.5) {
-                        npc.velocity.add(new Vector(0, 0, (difficulty*0.01)+(vars.getTimeSinceLastStateChange()/20_000D)+0.03));
+                    if((!botOpposite && npc.npcLoc.getZ() < player.getLocation().getZ()+0.5)
+                        || (botOpposite && npc.npcLoc.getZ() > player.getLocation().getZ()-0.5)) {
+                        npc.velocity.add(new Vector(0, 0, zDir*((difficulty*0.01)+(vars.getTimeSinceLastStateChange()/(botOpposite ? 40_000D : 20_000D))+0.03)));
                     }
 
-                    if(vars.getTimeSinceLastStateChange() > 1000 && player.getLocation().getZ() - npc.npcLoc.getZ() < 2 && npc.isPlayerInSight(2) && vars.state == State.BotChase) {
+                    if(vars.getTimeSinceLastStateChange() > 1000
+                            && (
+                                (!botOpposite && player.getLocation().getZ() - npc.npcLoc.getZ() < 2)
+                                || (botOpposite && npc.npcLoc.getZ() - player.getLocation().getZ() < 2)
+                            )
+                            && npc.isPlayerInSight(2)
+                            && vars.state == State.BotChase
+                    ) {
                         npc.swingHand();
                         npc.veloRunnable.cancel();
 
@@ -235,11 +261,11 @@ public class CommandClutch implements CommandExecutor {
 
                         RavenAntiCheat.emulatePlayerTakeKnockback(player);
                         if(difficulty == 0) {
-                            player.setVelocity(new Vector(leftOrRight*(Math.random()*0.02+0.25), 0.50, 0.30));
+                            player.setVelocity(new Vector(leftOrRight*(Math.random()*0.02+0.25), 0.50, zDir*0.30));
                         } else if(difficulty == 1) {
-                            player.setVelocity(new Vector(leftOrRight*(Math.random()*0.03+0.31), 0.49, 0.40));
+                            player.setVelocity(new Vector(leftOrRight*(Math.random()*0.03+0.31), 0.49, zDir*0.40));
                         } else if(difficulty == 2) {
-                            player.setVelocity(new Vector(leftOrRight*(Math.random()*0.03+0.40), 0.35, Math.random()*0.05+0.4));
+                            player.setVelocity(new Vector(leftOrRight*(Math.random()*0.03+0.40), 0.35, zDir*(Math.random()*0.05+0.4)));
                         }
 
 
@@ -327,7 +353,7 @@ public class CommandClutch implements CommandExecutor {
         int xpGained = 0;
         int attempt = 0;
         int maxAttempts = 5;
-        int curGameMode = 1;
+        MiniMode curGameMode = MiniMode.Flat;
 
         // all tasks are canceled before the next gamemode or on leave
         ArrayList<BukkitTask> tasks = new ArrayList<>();
@@ -347,5 +373,11 @@ public class CommandClutch implements CommandExecutor {
         BotChaseClutching,
         Dying,
         Winning,
+    }
+    enum MiniMode {
+        Flat,
+        Developed,
+        Bypass1,
+        Bypass2
     }
 }

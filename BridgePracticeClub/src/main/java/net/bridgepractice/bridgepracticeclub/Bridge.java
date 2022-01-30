@@ -72,7 +72,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
     public static WorldServer nmsWorld;
     public static HashMap<String, Boolean> disabledGames = new HashMap<>();
 
-    public static final boolean debug = false;
+    public static final boolean debug = true;
 
     // db related things
     String host = "localhost";
@@ -311,6 +311,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         CommandClutch.spawnContent = getBlocks(new Location(Bridge.instance.world, 963, 95, -17), 9, 8, 14);
         CommandClutch.spawnContent2 = getBlocks(new Location(Bridge.instance.world, 963, 105, -17), 9, 8, 14);
         CommandClutch.bridgeContent = getBlocks(new Location(Bridge.instance.world, 967, 102, 0), 1, 7, 42);
+        CommandClutch.bridgeDevelopedContent = getBlocks(new Location(Bridge.instance.world, 967-10, 102, 0), 1, 7, 42);
 
         PlayerInfo.queues.put(PlayerLocation.Bypass, new ArrayList<>());
         PlayerInfo.queues.put(PlayerLocation.BridgeBot, new ArrayList<>());
@@ -1265,22 +1266,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
                     @Override
                     public void run() {
                         Player p = getServer().getPlayerExact(finalPName);
-                        switch(finalGameName) {
-                            case "wing":
-                                p.chat("/wing");
-                                break;
-                            case "bot":
-                                p.chat("/bot");
-                                break;
-                            case "bypass":
-                                p.chat("/bypass");
-                                break;
-                            case "prebow":
-                                p.chat("/prebow");
-                                break;
-                            default:
-                                break;
-                        }
+                        p.chat("/"+finalGameName);
                     }
                 }).runTaskLater(this, 10);
 
