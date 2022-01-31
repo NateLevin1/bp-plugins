@@ -1,12 +1,16 @@
 package net.bridgepractice.bridgepracticeclub;
 
 import net.bridgepractice.RavenAntiCheat.RavenAntiCheat;
+import net.minecraft.server.v1_8_R3.EntityPlayer;
+import net.minecraft.server.v1_8_R3.PacketPlayOutAnimation;
 import org.bukkit.*;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -21,6 +25,12 @@ public class CommandClutch implements CommandExecutor {
     public static BlockState[][][] spawnContent2;
     public static BlockState[][][] bridgeContent;
     public static BlockState[][][] bridgeDevelopedContent;
+    public static BlockState[][][] bridgeBypassContent;
+    public static ItemStack difficultyItemEasy = Bridge.makeItem(Material.STAINED_CLAY, 1, "§7Difficulty: §aEasy ♟ §7(Right Click)", new String[]{"Select the §aeasy§7 difficulty"}, 5);
+    public static ItemStack difficultyItemNormal = Bridge.makeItem(Material.STAINED_CLAY, 1, "§7Difficulty: §eNormal ♜ §7(Right Click)", new String[]{"Select the §enormal§7 difficulty"}, 4);
+    public static ItemStack difficultyItemHard = Bridge.makeItem(Material.STAINED_CLAY, 1, "§7Difficulty: §c§lHard ♚ §7(Right Click)", new String[]{"Select the §chard§7 difficulty"}, 14);
+    public static ItemStack singleHitItem = Bridge.makeItem(Material.STICK, 1, "§aSingle Hit§2/Double Hit §7(Right Click)", new String[]{"The bot will hit you one time.","Right click to so it will","hit you two times."}, -1);
+    public static ItemStack doubleHitItem = Bridge.makeItem(Material.BLAZE_ROD, 1, "§2Single Hit/§aDouble Hit §7(Right Click)", new String[]{"The bot will hit you two times.","Right click to so it will","hit you one time."}, -1);
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
@@ -91,7 +101,12 @@ public class CommandClutch implements CommandExecutor {
         }, (info)->{
             // on location change
             reset(player, vars, info);
-            // TODO: give xp from vars.xpGained
+            (new BukkitRunnable() {
+                @Override
+                public void run() {
+                    Bridge.givePlayerXP(player, vars.xpGained);
+                }
+            }).runTaskAsynchronously(Bridge.instance);
         }, null, null, (info) -> {
             // on move
 
@@ -118,7 +133,7 @@ public class CommandClutch implements CommandExecutor {
             } else if(vars.state == State.WalkingOnGold) {
                 if(relZ > 10) {
                     Bridge.sendTitle(player, "", "", 0, 0, 0);
-                    beginBotChase(player, vars, info, false, vars.bridgeLocation);
+                    beginBotChase(player, vars, info, false, vars.bridgeLocation, HitDirection.Random, 1);
                 }
             }
         }));
@@ -130,9 +145,10 @@ public class CommandClutch implements CommandExecutor {
         player.teleport(info.respawnLocation);
         PlayerInventory inv = player.getInventory();
         inv.clear();
-        inv.setItem(0, Bridge.makeItem(Material.STAINED_CLAY, 1, "§7Difficulty: §aEasy ♟ §7(Right Click)", new String[]{"Select the §aeasy§7 difficulty"}, 5));
-        inv.setItem(1, Bridge.makeItem(Material.STAINED_CLAY, 1, "§7Difficulty: §eNormal ♜ §7(Right Click)", new String[]{"Select the §enormal§7 difficulty"}, 4));
-        inv.setItem(2, Bridge.makeItem(Material.STAINED_CLAY, 1, "§7Difficulty: §c§lHard ♚ §7(Right Click)", new String[]{"Select the §chard§7 difficulty"}, 14));
+        inv.setItem(0, difficultyItemEasy);
+        inv.setItem(1, Bridge.getEnchanted(difficultyItemNormal.clone()));
+        inv.setItem(2, difficultyItemHard);
+        inv.setItem(4, singleHitItem);
         inv.setHeldItemSlot(1);
 
         Bridge.sendTitle(player, "Walk Forward to Begin", "§7Step on the §6GOLD§7 blocks!", 0, 0, Integer.MAX_VALUE);
@@ -162,8 +178,10 @@ public class CommandClutch implements CommandExecutor {
             // go to new gamemode
             vars.attempt = 1;
             updateAttempt(player, vars);
-            gameMode = MiniMode.values()[ThreadLocalRandom.current().nextInt(0, MiniMode.values().length)];
-            // TODO: make sure is not equal to last mode
+            // ensure that the gamemode is different every time
+            do {
+                gameMode = MiniMode.values()[ThreadLocalRandom.current().nextInt(0, MiniMode.values().length)];
+            } while(gameMode == vars.curGameMode);
             vars.curGameMode = gameMode;
             isNewMode = true;
         }
@@ -177,12 +195,14 @@ public class CommandClutch implements CommandExecutor {
         boolean botOpposite;
         Location npcSpawnLoc;
         String modeName;
+        HitDirection hitDirection = HitDirection.Random;
+        double hitDistanceModifier = 1;
         switch(gameMode) {
             case Flat:
             {
                 player.teleport(vars.bridgeLocation.clone().add(0, 0, 5));
                 botOpposite = false;
-                vars.bridge.switchContent(bridgeContent);
+                vars.bridge = new Structure(bridgeContent);
                 npcSpawnLoc = vars.bridgeLocation;
                 modeName = "Bot Chase";
                 break;
@@ -190,9 +210,26 @@ public class CommandClutch implements CommandExecutor {
             case Developed: {
                 player.teleport(vars.bridgeLocation.clone().add(0, -2, 6));
                 botOpposite = true;
-                vars.bridge.switchContent(bridgeDevelopedContent);
+                vars.bridge = new Structure(bridgeDevelopedContent);
                 npcSpawnLoc = vars.bridgeLocation.clone().add(0,-1,31);
                 modeName = "Dev. Bot Chase";
+                break;
+            }
+            case Bypass1:
+            case Bypass2: {
+                if(gameMode == MiniMode.Bypass1) {
+                    player.teleport(vars.bridgeLocation.clone().add(1, -3, 8));
+                    hitDirection = HitDirection.Left;
+                } else {
+                    player.teleport(vars.bridgeLocation.clone().add(-1, -3, 8));
+                    hitDirection = HitDirection.Right;
+                }
+
+                botOpposite = false;
+                vars.bridge = new Structure(bridgeBypassContent);
+                npcSpawnLoc = vars.bridgeLocation.clone().add(0,0,3);
+                modeName = "Bypass Chase";
+                hitDistanceModifier = 0.5;
                 break;
             }
             default: {
@@ -203,13 +240,14 @@ public class CommandClutch implements CommandExecutor {
         }
         if(isNewMode) {
             Bridge.sendTitle(player, "", "§eRun Forward!", 5, 5, 30);
+            player.sendMessage("§a§l➡ §aNext Mode: §b"+modeName);
         }
         Bridge.sendActionBar(player, "§e§lRun "+(botOpposite ? "Forward" : "Away")+"! §e"+(botOpposite ? "Run towards the bot to fight it" : "You're being chased, better move quickly")+"!");
         Scoreboard board = player.getScoreboard();
         board.getTeam("info").setPrefix("§e Run " + (botOpposite ? "towards" : "from the"));
         board.getTeam("info").setSuffix("§e "+(botOpposite ? "the " : "")+"bot!");
         board.getTeam("mode").setSuffix("§a"+modeName);
-        beginBotChase(player, vars, info, botOpposite, npcSpawnLoc);
+        beginBotChase(player, vars, info, botOpposite, npcSpawnLoc, hitDirection, hitDistanceModifier);
 
         if(vars.attempt == vars.maxAttempts) {
             vars.tasks.add((new BukkitRunnable() {
@@ -221,11 +259,16 @@ public class CommandClutch implements CommandExecutor {
             }).runTaskLater(Bridge.instance, 20));
         }
     }
-    private void beginBotChase(Player player, Variables vars, PlayerInfo info, boolean botOpposite, Location npcSpawnLoc) {
+    enum HitDirection {
+        Left,
+        Right,
+        Random
+    }
+    private void beginBotChase(Player player, Variables vars, PlayerInfo info, boolean botOpposite, Location npcSpawnLoc, HitDirection hitDirection, double hitDistanceModifier) {
         Scoreboard board = player.getScoreboard();
         int zDir = botOpposite ? -1 : 1;
         vars.setState(State.BotChase);
-        vars.bridge.place(vars.bridgeLocation.clone().subtract(0, 7, 0));
+        vars.bridge.place(vars.bridgeLocation.clone().subtract((int)(vars.bridge.width/3), 7, 0));
         vars.spawn.remove();
         vars.npc = new NPC(player, null, null, null)
                 .setLocation(npcSpawnLoc)
@@ -254,22 +297,50 @@ public class CommandClutch implements CommandExecutor {
                             && npc.isPlayerInSight(2)
                             && vars.state == State.BotChase
                     ) {
-                        npc.swingHand();
                         npc.veloRunnable.cancel();
 
-                        int leftOrRight = Math.random() > 0.5 ? -1 : 1;
+                        int leftOrRight;
+                        switch(hitDirection) {
+                            case Left: leftOrRight = 1; break;
+                            case Right: leftOrRight = -1; break;
+                            case Random: leftOrRight = Math.random() > 0.5 ? -1 : 1; break;
+                            default: new Exception("Unknown hit direction "+hitDirection).printStackTrace(); return;
+                        }
 
-                        RavenAntiCheat.emulatePlayerTakeKnockback(player);
-                        if(difficulty == 0) {
-                            player.setVelocity(new Vector(leftOrRight*(Math.random()*0.02+0.25), 0.50, zDir*0.30));
-                        } else if(difficulty == 1) {
-                            player.setVelocity(new Vector(leftOrRight*(Math.random()*0.03+0.31), 0.49, zDir*0.40));
-                        } else if(difficulty == 2) {
-                            player.setVelocity(new Vector(leftOrRight*(Math.random()*0.03+0.40), 0.35, zDir*(Math.random()*0.05+0.4)));
+                        double[] xDoubleHitModifier = {1};
+                        double[] yDoubleHitModifier = {info.locSettings.doubleHit ? 0.8 : 1};
+                        double[] zDoubleHitModifier = {1};
+                        Runnable hitPlayer = ()->{
+                            npc.swingHand();
+                            RavenAntiCheat.emulatePlayerTakeKnockback(player);
+                            if(difficulty == 0) {
+                                player.setVelocity(new Vector(xDoubleHitModifier[0]*hitDistanceModifier*leftOrRight*(Math.random()*0.02+0.25), yDoubleHitModifier[0]*0.50, zDoubleHitModifier[0]*zDir*0.30));
+                            } else if(difficulty == 1) {
+                                player.setVelocity(new Vector(xDoubleHitModifier[0]*hitDistanceModifier*leftOrRight*(Math.random()*0.03+0.31), yDoubleHitModifier[0]*0.49, zDoubleHitModifier[0]*zDir*0.40));
+                            } else if(difficulty == 2) {
+                                player.setVelocity(new Vector(xDoubleHitModifier[0]*hitDistanceModifier*leftOrRight*(Math.random()*0.03+0.40), yDoubleHitModifier[0]*0.35, zDoubleHitModifier[0]*zDir*(Math.random()*0.05+0.4)));
+                            }
+                            player.playSound(player.getLocation(), Sound.HURT_FLESH, 1, 1);
+                            EntityPlayer entityPlayer = ((CraftPlayer) player).getHandle();
+                            entityPlayer.playerConnection.sendPacket(new PacketPlayOutAnimation(entityPlayer, 1));
+                        };
+
+                        hitPlayer.run();
+
+                        if(info.locSettings.doubleHit) {
+                            vars.tasks.add(new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    xDoubleHitModifier[0] = 1.3;
+                                    yDoubleHitModifier[0] = 0.7;
+                                    zDoubleHitModifier[0] = 0.7;
+                                    hitPlayer.run();
+                                }
+                            }.runTaskLater(Bridge.instance, 9));
                         }
 
 
-                        player.playSound(player.getLocation(), Sound.HURT_FLESH, 1, 1);
+
                         vars.setState(State.BotChaseClutching);
                         board.getTeam("info").setPrefix("§f Time: ");
                         int clutchSecs = 2000;
@@ -288,7 +359,7 @@ public class CommandClutch implements CommandExecutor {
                                     // win!
                                     vars.setState(State.Winning);
                                     player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
-                                    int gainedXp = (difficulty*2)+3;
+                                    int gainedXp = (info.locSettings.doubleHit ? 2 : 1)*((difficulty*2)+3);
                                     player.sendMessage("§aYou clutched! §b+"+gainedXp+"xp");
                                     Bridge.sendTitle(player, "", "§aYou clutched! §b+"+gainedXp+"xp", 5, 5, 25);
                                     vars.xpGained += gainedXp;

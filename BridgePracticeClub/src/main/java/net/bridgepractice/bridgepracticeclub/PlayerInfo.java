@@ -38,6 +38,7 @@ public class PlayerInfo {
         public PlayerInfoHandler onNpcHit;
         public boolean isSprintingHit = false;
         public int difficulty = 0;
+        public boolean doubleHit = false;
     }
 
     LocSettings locSettings = new LocSettings();
