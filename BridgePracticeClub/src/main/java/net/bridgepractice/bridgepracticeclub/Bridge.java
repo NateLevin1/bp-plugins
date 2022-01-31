@@ -1117,28 +1117,19 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
                             info.locSettings.difficulty = -1;
                             player.sendMessage("§a✔ §7Selected \"§aEasy§7\" difficulty.");
                             player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 1.3f);
-                            player.getScoreboard().getTeam("difficulty").setSuffix("§aEasy");
-                            inv.setItem(0, Bridge.getEnchanted(CommandClutch.difficultyItemEasy.clone()));
-                            inv.setItem(1, CommandClutch.difficultyItemNormal);
-                            inv.setItem(2, CommandClutch.difficultyItemHard);
+                            CommandClutch.selectDifficulty(player, -1);
                             break;
                         case "§r§7Difficulty: §eNormal ♜ §7(Right Click)":
                             info.locSettings.difficulty = 0;
                             player.sendMessage("§a✔ §7Selected \"§eNormal§7\" difficulty.");
                             player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 1);
-                            player.getScoreboard().getTeam("difficulty").setSuffix("§eNormal");
-                            inv.setItem(0, CommandClutch.difficultyItemEasy);
-                            inv.setItem(1, Bridge.getEnchanted(CommandClutch.difficultyItemNormal.clone()));
-                            inv.setItem(2, CommandClutch.difficultyItemHard);
+                            CommandClutch.selectDifficulty(player, 0);
                             break;
                         case "§r§7Difficulty: §c§lHard ♚ §7(Right Click)":
                             info.locSettings.difficulty = 1;
                             player.sendMessage("§a✔ §7Selected \"§c§lHard§7\" difficulty.");
                             player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 0.7f);
-                            player.getScoreboard().getTeam("difficulty").setSuffix("§c§lHard");
-                            inv.setItem(0, CommandClutch.difficultyItemEasy);
-                            inv.setItem(1, CommandClutch.difficultyItemNormal);
-                            inv.setItem(2, Bridge.getEnchanted(CommandClutch.difficultyItemHard.clone()));
+                            CommandClutch.selectDifficulty(player, 1);
                             break;
                         default:
                             break;
@@ -1146,9 +1137,19 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
                 } else if(stack.getType() == Material.STICK) {
                     info.locSettings.doubleHit = true;
                     inv.setItem(4, CommandClutch.doubleHitItem);
+                    player.sendMessage("§a✔ §7You will now be hit §atwice§7.");
+                    player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 1.5f);
+                    (new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 1.5f);
+                        }
+                    }).runTaskLater(this, 3);
                 } else if(stack.getType() == Material.BLAZE_ROD) {
                     info.locSettings.doubleHit = false;
                     inv.setItem(4, CommandClutch.singleHitItem);
+                    player.sendMessage("§a✔ §7You will now be hit §aonce§7.");
+                    player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 1.5f);
                 }
             }
         }

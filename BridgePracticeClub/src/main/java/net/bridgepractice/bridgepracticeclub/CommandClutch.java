@@ -15,8 +15,12 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -101,12 +105,16 @@ public class CommandClutch implements CommandExecutor {
         }, (info)->{
             // on location change
             reset(player, vars, info);
-            (new BukkitRunnable() {
-                @Override
-                public void run() {
-                    Bridge.givePlayerXP(player, vars.xpGained);
-                }
-            }).runTaskAsynchronously(Bridge.instance);
+            Bridge.givePlayerXP(player, vars.xpGained);
+            try(PreparedStatement statement = Bridge.connection.prepareStatement("UPDATE players SET clutchDifficulty = ?, clutchDoubleHit = ? WHERE uuid=?;")) {
+                statement.setInt(1, info.locSettings.difficulty); // clutchDifficulty
+                statement.setBoolean(2, info.locSettings.doubleHit); // clutchDoubleHit
+                statement.setString(3, player.getUniqueId().toString()); // uuid, set to player uuid
+                statement.executeUpdate();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+                player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your settings to our database. Please open a ticket on the discord!");
+            }
         }, null, null, (info) -> {
             // on move
 
@@ -162,6 +170,36 @@ public class CommandClutch implements CommandExecutor {
                 "§f \n§a§m----------------------------------------");
 
         vars.spawn.place(info.respawnLocation.clone().subtract(4,4,4));
+
+        // load settings from DB
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                try(PreparedStatement statement = Bridge.connection.prepareStatement("SELECT clutchDifficulty, clutchDoubleHit FROM players WHERE uuid=?;")) {
+                    statement.setString(1, player.getUniqueId().toString()); // uuid
+                    ResultSet res = statement.executeQuery();
+                    if(!res.next()) {
+                        throw new SQLException("Did not get a row from the database. Player name: " + player.getName() + " Player UUID: " + player.getUniqueId());
+                    }
+                    int difficulty = res.getInt(1);
+                    boolean doubleHit = res.getBoolean(2);
+                    if(difficulty != 0 || doubleHit) {
+                        info.locSettings.difficulty = difficulty;
+                        info.locSettings.doubleHit = doubleHit;
+                        selectDifficulty(player, difficulty);
+                        PlayerInventory inv = player.getInventory();
+                        inv.setHeldItemSlot(difficulty+1);
+                        if(doubleHit) {
+                            inv.setItem(4, doubleHitItem);
+                        }
+                        player.sendMessage("§a✔ §7Successfully loaded your settings!");
+                    }
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                    player.sendMessage("§c§lUh oh!§r§c Something went wrong fetching your information from our database. Please open a ticket on the discord!");
+                }
+            }
+        }).runTaskAsynchronously(Bridge.instance);
 
         return true;
     }
@@ -450,5 +488,27 @@ public class CommandClutch implements CommandExecutor {
         Developed,
         Bypass1,
         Bypass2
+    }
+    public static void selectDifficulty(Player player, int num) {
+        // this is unreadable, but is the most efficient way
+        // this method makes the clay block at index `num`+1 enchanted
+        PlayerInventory inv = player.getInventory();
+        Team difficultyTeam = player.getScoreboard().getTeam("difficulty");
+        if(num == -1) {
+            inv.setItem(0, Bridge.getEnchanted(difficultyItemEasy.clone()));
+            inv.setItem(1, difficultyItemNormal);
+            inv.setItem(2, difficultyItemHard);
+            difficultyTeam.setSuffix("§aEasy");
+        } else if(num == 0) {
+            inv.setItem(0, difficultyItemEasy);
+            inv.setItem(1, Bridge.getEnchanted(difficultyItemNormal.clone()));
+            inv.setItem(2, difficultyItemHard);
+            difficultyTeam.setSuffix("§eNormal");
+        } else if(num == 1) {
+            inv.setItem(0, difficultyItemEasy);
+            inv.setItem(1, difficultyItemNormal);
+            inv.setItem(2, Bridge.getEnchanted(difficultyItemHard.clone()));
+            difficultyTeam.setSuffix("§c§lHard");
+        }
     }
 }
