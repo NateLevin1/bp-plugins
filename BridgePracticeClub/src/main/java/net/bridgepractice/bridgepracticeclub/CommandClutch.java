@@ -74,6 +74,8 @@ public class CommandClutch implements CommandExecutor {
                 "",
                 "%attempt% §fAttempt: %§a0§7/5",
                 "",
+                "%clutches% §fTotal Clutc%§fhes: §a0",
+                "",
                 "%info% §eWalk forward!",
                 "",
                 "   §7bridgepractice.net  "
@@ -106,10 +108,11 @@ public class CommandClutch implements CommandExecutor {
             // on location change
             reset(player, vars, info);
             Bridge.givePlayerXP(player, vars.xpGained);
-            try(PreparedStatement statement = Bridge.connection.prepareStatement("UPDATE players SET clutchDifficulty = ?, clutchDoubleHit = ? WHERE uuid=?;")) {
+            try(PreparedStatement statement = Bridge.connection.prepareStatement("UPDATE players SET clutchDifficulty = ?, clutchDoubleHit = ?, clutchesTotal = ? WHERE uuid=?;")) {
                 statement.setInt(1, info.locSettings.difficulty); // clutchDifficulty
                 statement.setBoolean(2, info.locSettings.doubleHit); // clutchDoubleHit
-                statement.setString(3, player.getUniqueId().toString()); // uuid, set to player uuid
+                statement.setInt(3, vars.totalClutches); // clutchesTotal
+                statement.setString(4, player.getUniqueId().toString()); // uuid, set to player uuid
                 statement.executeUpdate();
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
@@ -175,7 +178,7 @@ public class CommandClutch implements CommandExecutor {
         (new BukkitRunnable() {
             @Override
             public void run() {
-                try(PreparedStatement statement = Bridge.connection.prepareStatement("SELECT clutchDifficulty, clutchDoubleHit FROM players WHERE uuid=?;")) {
+                try(PreparedStatement statement = Bridge.connection.prepareStatement("SELECT clutchDifficulty, clutchDoubleHit, clutchesTotal FROM players WHERE uuid=?;")) {
                     statement.setString(1, player.getUniqueId().toString()); // uuid
                     ResultSet res = statement.executeQuery();
                     if(!res.next()) {
@@ -183,6 +186,7 @@ public class CommandClutch implements CommandExecutor {
                     }
                     int difficulty = res.getInt(1);
                     boolean doubleHit = res.getBoolean(2);
+                    int clutchesTotal = res.getInt(3);
                     if(difficulty != 0 || doubleHit) {
                         info.locSettings.difficulty = difficulty;
                         info.locSettings.doubleHit = doubleHit;
@@ -194,6 +198,8 @@ public class CommandClutch implements CommandExecutor {
                         }
                         player.sendMessage("§a✔ §7Successfully loaded your settings!");
                     }
+                    player.getScoreboard().getTeam("clutches").setSuffix("§fhes: §a"+clutchesTotal);
+                    vars.totalClutches = clutchesTotal;
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                     player.sendMessage("§c§lUh oh!§r§c Something went wrong fetching your information from our database. Please open a ticket on the discord!");
@@ -401,6 +407,8 @@ public class CommandClutch implements CommandExecutor {
                                     player.sendMessage("§aYou clutched! §b+"+gainedXp+"xp");
                                     Bridge.sendTitle(player, "", "§aYou clutched! §b+"+gainedXp+"xp", 5, 5, 25);
                                     vars.xpGained += gainedXp;
+                                    vars.totalClutches++;
+                                    board.getTeam("clutches").setSuffix("§fhes: §a"+vars.totalClutches);
                                     vars.tasks.add((new BukkitRunnable() {
                                         @Override
                                         public void run() {
@@ -462,6 +470,7 @@ public class CommandClutch implements CommandExecutor {
         int xpGained = 0;
         int attempt = 0;
         int maxAttempts = 5;
+        int totalClutches = 0;
         MiniMode curGameMode = MiniMode.Flat;
 
         // all tasks are canceled before the next gamemode or on leave
