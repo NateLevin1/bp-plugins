@@ -1,6 +1,7 @@
 package net.bridgepractice.BridgePracticeLobby;
 
 import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -43,18 +44,20 @@ public class StatsCommand implements CommandExecutor {
         MenuItem bypass = new MenuItem(2, 2, Utils.makeItem(Material.SUGAR, "§eBypass Practice", "§8Singleplayer", ""), null);
         MenuItem prebow = new MenuItem(3, 1, Utils.makeItem(Material.ARROW, "§ePrebow Practice", "§8Singleplayer", ""), null);
         MenuItem bot = new MenuItem(3, 2, Utils.makeItem(Material.STONE_SWORD, "§eBot 1v1", "§8Singleplayer", ""), null);
+        MenuItem clutch = new MenuItem(4, 1, Utils.makeDyed(Material.RAW_FISH, DyeColor.MAGENTA, "§eClutch Practice", "§8Singleplayer", ""), null);
         MenuItem unranked = new MenuItem(2, 6, Utils.makeItem(Material.IRON_SWORD, "§eBridge Duel", "§8Multiplayer", ""), null);
         MenuItem pvp = new MenuItem(2, 7, Utils.makeItem(Material.IRON_BOOTS, "§eBridge PvP 1v1", "§8Multiplayer", ""), null);
 
         MenuItem star = new MenuItem(3, 4, Utils.makeItem(Material.NETHER_STAR, "§eOther Stats", ""), null);
 
-        Menu stats = new Menu(playerName + "'s Stats", 5, true,
+        Menu stats = new Menu(playerName + "'s Stats", 6, true,
                 new MenuItem(1, 4, Utils.makeItem(Material.BEACON, "§5"+playerName+"'s Statistics", "§7View "+playerName+"'s statistics", "§7across the network"), null),
 
                 wing,
                 bypass,
                 prebow,
                 bot,
+                clutch,
 
                 unranked,
                 pvp,
@@ -112,6 +115,9 @@ public class StatsCommand implements CommandExecutor {
                     Utils.addLore(bot.item, "§7 - §fWin Streak: §a" + botWinStreak);
                     int botWins = res.getInt("botWins");
                     inv.setItem(bot.index, Utils.addLore(bot.item, "§7 - §fTotal Wins: §a" + botWins));
+
+                    int clutchesTotal = res.getInt("clutchesTotal");
+                    inv.setItem(clutch.index, Utils.addLore(clutch.item, "§7 - §fTotal Clutches: §a"+clutchesTotal, ""));
 
                     int xp = res.getInt("xp");
                     Utils.addLore(star.item, "§7 - §fXP: §a" + xp);
