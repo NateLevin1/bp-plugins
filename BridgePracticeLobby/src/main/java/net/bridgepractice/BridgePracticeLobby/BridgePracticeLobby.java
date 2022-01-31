@@ -216,7 +216,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 }),
 
                 new MenuItem(1, 3, singleplayer, (p, m) -> sendPlayerToServer(p, "singleplayer")),
-                new MenuItem(1, 4, singleplayer, (p, m) -> sendPlayerToServer(p, "singleplayer")),
+                new MenuItem(1, 4, Utils.makeDyed(Material.RAW_FISH, DyeColor.MAGENTA, "§aClutch Practice", "§8Singleplayer", "", "§7Practice clutching in", "§arealistic situations", "§7against a bot!", "", "§eClick to Play!"), (p, m) -> playSingleplayerGame(p, "clutch")),
                 new MenuItem(2, 3, Utils.makeItem(Material.STONE_SWORD, "§aBot 1v1", "§8Singleplayer", "", "§7Try out new strategies", "§7and get high winstreaks", "§7against an AI!", "", "§eClick to Play!"), (p, m) -> playSingleplayerGame(p, "bot")),
                 new MenuItem(2, 4, Utils.makeItem(Material.SUGAR, "§aBypass Practice", "§8Singleplayer", "", "§7Practice bypassing at", "§7different game times", "", "§eClick to Play!"), (p, m) -> playSingleplayerGame(p, "bypass")),
                 new MenuItem(3, 3, Utils.makeItem(Material.CLAY_BRICK, "§aWing Practice", "§8Singleplayer", "", "§7Sharpen your bridging", "§7skills!", "", "§eClick to Play!"), (p, m) -> playSingleplayerGame(p, "wing")),
