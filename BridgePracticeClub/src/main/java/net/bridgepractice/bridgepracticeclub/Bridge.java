@@ -72,7 +72,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
     public static WorldServer nmsWorld;
     public static HashMap<String, Boolean> disabledGames = new HashMap<>();
 
-    public static final boolean debug = true;
+    public static final boolean debug = false;
 
     // db related things
     String host = "localhost";
@@ -774,7 +774,8 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         }
         return result;
     }
-    public static void damagePlayer(Player player, double amount) {
+    // returns if they died
+    public static boolean damagePlayer(Player player, double amount) {
         double playerHealth = player.getHealth();
         if(player.isBlocking())
             amount *= 0.5;
@@ -783,9 +784,11 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
 
         if(playerHealth - amount > 0) {
             player.damage(amount);
+            return false;
         } else {
             PlayerInfo info = instance.getPlayer(player.getUniqueId());
             info.onDeath.call(info);
+            return true;
         }
     }
     public static String hearts(int num) {

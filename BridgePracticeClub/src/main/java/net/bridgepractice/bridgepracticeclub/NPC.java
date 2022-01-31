@@ -2,6 +2,7 @@ package net.bridgepractice.bridgepracticeclub;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import net.bridgepractice.RavenAntiCheat.RavenAntiCheat;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -300,10 +301,16 @@ public class NPC {
                         if(player.getHealth() - 5 <= 0) {
                             onPlayerKilled();
                         }
-                        Bridge.damagePlayer(player, 5);
+                        boolean died = Bridge.damagePlayer(player, 5);
                         int newPlayerHealth = (int) Math.round(player.getHealth());
                         playerHealthScore.setScore(newPlayerHealth);
                         tabPlayerHealthScore.setScore(newPlayerHealth);
+
+                        if(died) {
+                            player.setVelocity(new Vector());
+                            return;
+                        }
+
                         Vector kb = npcLoc.getDirection();
                         kb.multiply(0.6);
                         if(Math.random() > 0.9) {
@@ -314,7 +321,9 @@ public class NPC {
                             // reducing
                             kb.multiply(0.2);
                         }
+
                         player.setVelocity(kb);
+                        connection.sendPacket(new PacketPlayOutAnimation(connection.player, 1));
                     }
 
                     if(Math.abs(pLoc.getX() - bridgeX) >= 4 && (goal == Goal.Defend || goal == Goal.Start)) {
