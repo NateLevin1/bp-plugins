@@ -471,6 +471,13 @@ public class BPBungee extends Plugin implements Listener {
                     queuingWorlds.add(worldName);
                     getProxy().getScheduler().schedule(this, ()->{
                         if(queuingWorlds.contains(worldName)) {
+                            ProxiedPlayer queueingPlayer = null;
+                            if(event.getReceiver() instanceof ProxiedPlayer) {
+                                queueingPlayer = ((ProxiedPlayer) event.getReceiver());
+                                if(!queueingPlayer.getServer().getInfo().getName().equals("multiplayer_1")) {
+                                    return;
+                                }
+                            }
                             BaseComponent[] queuingMessage = new ComponentBuilder("\n").append(Utils.getGameModeName(multiplayerMode))
                                     .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§aClick to join this "+Utils.getGameModeName(multiplayerMode)+" game!")))
                                     .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/q ifavailable "+worldName+" "+gameMode))
@@ -483,11 +490,9 @@ public class BPBungee extends Plugin implements Listener {
                                     numAdvertisedTo++;
                                 }
                             }
-                            if(event.getReceiver() instanceof ProxiedPlayer) {
-                                ProxiedPlayer player = ((ProxiedPlayer) event.getReceiver());
-                                player.sendMessage(new ComponentBuilder("\nYour game has been advertised to ").color(ChatColor.GREEN).append(numAdvertisedTo+"").color(ChatColor.AQUA).bold(true).append(" players since it has not queued!").color(ChatColor.GREEN).bold(false).create());
-                                player.sendMessage();
-                            }
+                            if(queueingPlayer == null) return;
+                            queueingPlayer.sendMessage(new ComponentBuilder("\nYour game has been advertised to ").color(ChatColor.GREEN).append(numAdvertisedTo+"").color(ChatColor.AQUA).bold(true).append(" players since it has not queued!").color(ChatColor.GREEN).bold(false).create());
+                            queueingPlayer.sendMessage();
                         }
                     }, 20, TimeUnit.SECONDS);
                     break;
