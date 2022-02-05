@@ -122,7 +122,9 @@ public class CommandBypass implements CommandExecutor {
                     (itemClicked, groupName) -> {
                         PlayerInfo info = Bridge.instance.getPlayer(player.getUniqueId());
                         if(groupName.equals("hit")) {
-                            info.locSettings.shouldHit = !info.locSettings.shouldHit;
+                            info.locSettings.shouldHit = itemClicked.getDurability() == 13;
+                            player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 1, 1);
+                            player.sendMessage("§a§lHey!§a If you use hitting to practice clutching, why not try §6Clutch Practice§a? §eTry typing /clutch!");
                         } else if(groupName.equals("map")) {
                             if(overlay[0] != null) {
                                 overlay[0].removeIfContentNotAir();
