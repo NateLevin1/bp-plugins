@@ -28,6 +28,7 @@ public class Help extends Command {
                     sender.sendMessage(new ComponentBuilder("/prebow").color(ChatColor.GOLD).append(new ComponentBuilder(" - Joins prebow practice").color(ChatColor.GRAY).create()).create());
                     sender.sendMessage(new ComponentBuilder("/bypass").color(ChatColor.GOLD).append(new ComponentBuilder(" - Joins bypass practice").color(ChatColor.GRAY).create()).create());
                     sender.sendMessage(new ComponentBuilder("/bot").color(ChatColor.GOLD).append(new ComponentBuilder(" - Joins bot practice").color(ChatColor.GRAY).create()).create());
+                    sender.sendMessage(new ComponentBuilder("/clutch").color(ChatColor.GOLD).append(new ComponentBuilder(" - Joins clutch practice").color(ChatColor.GRAY).create()).create());
                     sender.sendMessage(new ComponentBuilder("/lq").color(ChatColor.GOLD).append(new ComponentBuilder(" - Leave the current queue you are in").color(ChatColor.GRAY).create()).create());
                     sender.sendMessage(new ComponentBuilder("/whereis <player>").color(ChatColor.GOLD).append(new ComponentBuilder(" - Tells you which mode a player is in").color(ChatColor.GRAY).create()).create());
                     break;
