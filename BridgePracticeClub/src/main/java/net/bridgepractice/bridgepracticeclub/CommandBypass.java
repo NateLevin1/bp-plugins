@@ -28,9 +28,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
 public class CommandBypass implements CommandExecutor {
-    public static BlockState[][][] earlyContent;
-    public static BlockState[][][] middleContent;
-    public static BlockState[][][] lateContent;
+    public static BlockState[][][][] earlyContents;
+    public static BlockState[][][][] middleContents;
+    public static BlockState[][][][] lateContents;
+    private static final int curBridge = 1; // SHOULD BE BETWEEN 0 AND 1
+    private static final String earlySql = "bypassEarlyPB"+getCurBridgeSQL();
+    private static final String midSql = "bypassMiddlePB"+getCurBridgeSQL();
+    private static final String lateSql = "bypassLatePB"+getCurBridgeSQL();
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(sender instanceof Player) {
@@ -55,7 +59,7 @@ public class CommandBypass implements CommandExecutor {
 
             final long[] time = {0};
 
-            Scoreboard board = Bridge.createScoreboard("    §b§eBypass Practice     ", new String[]{
+            Scoreboard board = Bridge.createScoreboard("  §b§eBypass Practice §7(Map "+(curBridge+1)+") ", new String[]{
                     "",
                     " §l§bTime",
                     "%time%§e 0",
@@ -81,7 +85,7 @@ public class CommandBypass implements CommandExecutor {
             final int[] goals = {0};
             boolean wasStartNull = false;
             Leaderboard[] leaderboard = {null};
-            try(PreparedStatement statement = Bridge.connection.prepareStatement("SELECT bypassGoals, bypassStartPB, bypassEarlyPB, bypassMiddlePB, bypassLatePB FROM players WHERE uuid=?;")) {
+            try(PreparedStatement statement = Bridge.connection.prepareStatement("SELECT bypassGoals, bypassStartPB, "+earlySql+", "+midSql+", "+lateSql+" FROM players WHERE uuid=?;")) {
                 statement.setString(1, player.getUniqueId().toString()); // uuid
                 ResultSet res = statement.executeQuery();
                 if(!res.next()) {
@@ -138,21 +142,21 @@ public class CommandBypass implements CommandExecutor {
                                     leaderboard[0].setTitle("§bLeaderboard");
                                     break;
                                 case 4:
-                                    overlay[0] = new Structure(earlyContent);
+                                    overlay[0] = new Structure(earlyContents[curBridge]);
                                     overlay[0].placeIfContentNotAir(new Location(Bridge.instance.world, info.winBox.relXZ[0] - 2, 87, info.winBox.relXZ[1] + 3));
                                     info.locSettings.mode = "bypassEarlyPB";
                                     board.getTeam("mode").setSuffix(" §9(Early Game)");
                                     leaderboard[0].setTitle("§bEarly Leaderboard");
                                     break;
                                 case 5:
-                                    overlay[0] = new Structure(middleContent);
+                                    overlay[0] = new Structure(middleContents[curBridge]);
                                     overlay[0].placeIfContentNotAir(new Location(Bridge.instance.world, info.winBox.relXZ[0] - 2, 84, info.winBox.relXZ[1] + 3));
                                     info.locSettings.mode = "bypassMiddlePB";
                                     board.getTeam("mode").setSuffix(" §9(Mid Game)");
                                     leaderboard[0].setTitle("§bMiddle Leaderboard");
                                     break;
                                 case 11:
-                                    overlay[0] = new Structure(lateContent);
+                                    overlay[0] = new Structure(lateContents[curBridge]);
                                     overlay[0].placeIfContentNotAir(new Location(Bridge.instance.world, info.winBox.relXZ[0] - 7, 84, info.winBox.relXZ[1] + 3));
                                     info.locSettings.mode = "bypassLatePB";
                                     board.getTeam("mode").setSuffix(" §9(Late Game)");
@@ -236,7 +240,7 @@ public class CommandBypass implements CommandExecutor {
                     (new BukkitRunnable() {
                         @Override
                         public void run() {
-                            try(PreparedStatement statement = Bridge.connection.prepareStatement("UPDATE players SET " + info.locSettings.mode + " = ? WHERE uuid=?;")) {
+                            try(PreparedStatement statement = Bridge.connection.prepareStatement("UPDATE players SET " + info.locSettings.mode + (info.locSettings.mode.equals("bypassStartPB") ? "" : getCurBridgeSQL()) + " = ? WHERE uuid=?;")) {
                                 statement.setFloat(1, timeTakenNum); // set to the new PB
                                 statement.setString(2, player.getUniqueId().toString()); // uuid, set to player uuid
                                 statement.executeUpdate();
@@ -398,5 +402,12 @@ public class CommandBypass implements CommandExecutor {
                 Utils.sendWebhookSync(webhook);
             }
         }).runTaskAsynchronously(Bridge.instance);
+    }
+    // gets the string needed to be added to the end of the mode to form the correct SQL column
+    private static String getCurBridgeSQL() {
+        if(curBridge == 0) {
+            return "";
+        }
+        return (curBridge+1)+"";
     }
 }

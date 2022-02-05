@@ -302,9 +302,9 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         CommandPrebow.mushroomContent = getBlocks(new Location(Bridge.instance.world, 1012, 93, -24), 9, 6, 7);
         CommandPrebow.flowerContent = getBlocks(new Location(Bridge.instance.world, 1036, 91, -24), 9, 8, 7);
         CommandPrebow.sailboatContent = getBlocks(new Location(Bridge.instance.world, 1055, 94, -24), 9, 6, 7);
-        CommandBypass.earlyContent = getBlocks(new Location(Bridge.instance.world, 1082, 87, -24), 4, 10, 37);
-        CommandBypass.middleContent = getBlocks(new Location(Bridge.instance.world, 1092, 84, -24), 7, 16, 40);
-        CommandBypass.lateContent = getBlocks(new Location(Bridge.instance.world, 1110, 84, -24), 16, 16, 40);
+        CommandBypass.earlyContents = new BlockState[][][][] {getBlocks(new Location(Bridge.instance.world, 1082, 87, -24), 4, 10, 37), getBlocks(new Location(Bridge.instance.world, 1082, 87, 23), 4, 10, 37)};
+        CommandBypass.middleContents = new BlockState[][][][] {getBlocks(new Location(Bridge.instance.world, 1092, 84, -24), 7, 16, 40), getBlocks(new Location(Bridge.instance.world, 1092, 84, 22), 7, 16, 40)};
+        CommandBypass.lateContents = new BlockState[][][][] {getBlocks(new Location(Bridge.instance.world, 1110, 84, -24), 16, 16, 40), getBlocks(new Location(Bridge.instance.world, 1110, 84, 22), 16, 16, 40)};
         CommandBridgeBot.bridgeContent = getBlocks(new Location(Bridge.instance.world, 1138, 84, -23), 1, 9, 41);
         CommandBridgeBot.cageContent = getBlocks(new Location(Bridge.instance.world, 1012, 93, -24), 9, 6, 7);
         CommandBridgeBot.npcCageContent = getBlocks(new Location(Bridge.instance.world, 1012, 102, -24), 9, 6, 7);
