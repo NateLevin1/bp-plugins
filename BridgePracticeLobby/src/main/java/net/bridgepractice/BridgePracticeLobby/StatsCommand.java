@@ -101,11 +101,11 @@ public class StatsCommand implements CommandExecutor {
 
                     double startGame = res.getFloat("bypassStartPB") * 0.001;
                     Utils.addLore(bypass.item, "§7 - §fStart Game: " + (res.wasNull() ? "§cN/A" : "§a" + prettifyTime(startGame)));
-                    double earlyGame = res.getFloat("bypassEarlyPB") * 0.001;
+                    double earlyGame = res.getFloat("bypassEarlyPB2") * 0.001;
                     Utils.addLore(bypass.item, "§7 - §fEarly Game: " + (res.wasNull() ? "§cN/A" : "§a" + prettifyTime(earlyGame)));
-                    double middleGame = res.getFloat("bypassMiddlePB") * 0.001;
+                    double middleGame = res.getFloat("bypassMiddlePB2") * 0.001;
                     Utils.addLore(bypass.item, "§7 - §fMiddle Game: " + (res.wasNull() ? "§cN/A" : "§a" + prettifyTime(middleGame)));
-                    double lateGame = res.getFloat("bypassLatePB") * 0.001;
+                    double lateGame = res.getFloat("bypassLatePB2") * 0.001;
                     inv.setItem(bypass.index, Utils.addLore(bypass.item, "§7 - §fLate Game: " + (res.wasNull() ? "§cN/A" : "§a" + prettifyTime(lateGame)), ""));
 
                     int prebowHits = res.getInt("prebowHits");
