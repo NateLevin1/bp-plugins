@@ -403,7 +403,7 @@ public class CommandClutch implements CommandExecutor {
                                     // win!
                                     vars.setState(State.Winning);
                                     player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
-                                    int gainedXp = (info.locSettings.doubleHit ? 2 : 1)*((difficulty*2)+3);
+                                    int gainedXp = (info.locSettings.doubleHit ? 2 : 1)*((difficulty*2)+1);
                                     player.sendMessage("§aYou clutched! §b+"+gainedXp+"xp");
                                     Bridge.sendTitle(player, "", "§aYou clutched! §b+"+gainedXp+"xp", 5, 5, 25);
                                     vars.xpGained += gainedXp;
