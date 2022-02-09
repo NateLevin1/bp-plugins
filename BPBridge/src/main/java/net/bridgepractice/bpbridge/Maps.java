@@ -27,6 +27,7 @@ public class Maps {
             case "lighthouse":
                 return Utils.getMapSpawnLoc(world, 30, 97, true);
             case "fortress":
+            case "fortress2":
                 return Utils.getMapSpawnLoc(world, 31, 100, true);
             case "galaxy":
             case "developedgalaxy":
@@ -43,6 +44,7 @@ public class Maps {
             case "treehouse":
                 return Utils.getMapSpawnLoc(world, 28, 99, true);
             case "tundra":
+            case "tundra2":
                 return Utils.getMapSpawnLoc(world, 24, 100, true);
             case "twilight":
                 return Utils.getMapSpawnLoc(world, 31, 98, true);
@@ -50,11 +52,19 @@ public class Maps {
                 return Utils.getMapSpawnLoc(world, 30, 96, true);
             case "crystal":
                 return Utils.getMapSpawnLoc(world, 41, 98, true);
-
+            case "ashgate":
+                return Utils.getMapSpawnLoc(world, 28, 101, true);
+            case "lighthouse2":
+                return Utils.getMapSpawnLoc(world, 28, 98, true);
+            case "outpost":
+                return Utils.getMapSpawnLoc(world, 30, 103, true);
+            case "palaestra":
+                return Utils.getMapSpawnLoc(world, 41, 102, true);
         }
         return new Location(world, 37.5, 105, 0.5, 90, 0);
     }
     public static Location getBlueSpawnLoc(String mapName, World world) {
+        // TODO: refactor this so that it is just getRedSpawnLoc with a negative x
         switch(mapName) {
             case "aquatica":
                 return Utils.getMapSpawnLoc(world, -29, 97, false);
@@ -77,6 +87,7 @@ public class Maps {
             case "lighthouse":
                 return Utils.getMapSpawnLoc(world, -30, 97, false);
             case "fortress":
+            case "fortress2":
                 return Utils.getMapSpawnLoc(world, -31, 100, false);
             case "galaxy":
             case "developedgalaxy":
@@ -93,6 +104,7 @@ public class Maps {
             case "treehouse":
                 return Utils.getMapSpawnLoc(world, -28, 99, false);
             case "tundra":
+            case "tundra2":
                 return Utils.getMapSpawnLoc(world, -24, 100, false);
             case "twilight":
                 return Utils.getMapSpawnLoc(world, -31, 98, false);
@@ -100,6 +112,14 @@ public class Maps {
                 return Utils.getMapSpawnLoc(world, -30, 96, false);
             case "crystal":
                 return Utils.getMapSpawnLoc(world, -41, 98, false);
+            case "ashgate":
+                return Utils.getMapSpawnLoc(world, -28, 101, false);
+            case "lighthouse2":
+                return Utils.getMapSpawnLoc(world, -28, 98, false);
+            case "outpost":
+                return Utils.getMapSpawnLoc(world, -30, 103, false);
+            case "palaestra":
+                return Utils.getMapSpawnLoc(world, -41, 102, false);
         }
         return new Location(world, -36.5, 105, 0.5, -90, 0);
     }
@@ -117,14 +137,18 @@ public class Maps {
             case "developedsorcery":
             case "stumped":
             case "developedstumped":
+            case "palaestra":
                 return 107-5;
             case "chronon":
             case "fortress":
+            case "fortress2":
             case "sunstone":
             case "tundra":
+            case "tundra2":
                 return 105-5;
             case "condo":
             case "flora":
+            case "lighthouse2":
                 return 103-5;
             case "dojo":
             case "hyperfrost":
@@ -134,10 +158,12 @@ public class Maps {
                 return 104-5;
             case "galaxy":
             case "developedgalaxy":
+            case "ashgate":
                 return 106-5;
             case "urban":
                 return 101-5;
-
+            case "outpost":
+                return 108-5;
         }
         return 99;
     }
@@ -145,7 +171,6 @@ public class Maps {
         switch(mapName) {
             case "hyperfrost":
                 return new Rectangle(35, 90, -2, 4, 4, 4);
-
             case "aquatica":
                 return new Rectangle(31, 87, -2, 4, 4, 4);
             case "atlantis":
@@ -163,6 +188,7 @@ public class Maps {
             case "flora":
                 return new Rectangle(28, 87, -2, 4, 4, 4);
             case "fortress":
+            case "fortress2":
                 return new Rectangle(30, 90, -2, 4, 4, 4);
             case "galaxy":
                 return new Rectangle(33, 88, -2, 4, 4, 4);
@@ -179,15 +205,25 @@ public class Maps {
             case "treehouse":
                 return new Rectangle(31, 89, -2, 4, 4, 4);
             case "tundra":
+            case "tundra2":
                 return new Rectangle(26, 90, -2, 4, 4, 4);
             case "twilight":
                 return new Rectangle(31, 90, -3, 5, 4, 5);
             case "urban":
                 return new Rectangle(31, 88, -2, 4, 4, 4);
+            case "ashgate":
+                return new Rectangle(34, 90, -2, 4, 4, 4);
+            case "lighthouse2":
+                return new Rectangle(33, 89, -1, 3, 3, 3);
+            case "outpost":
+                return new Rectangle(33, 89, -1, 3, 3, 3);
+            case "palaestra":
+                return new Rectangle(45, 91, -2, 4, 4, 4);
         }
         return new Rectangle(35, 90, -2, 4, 4, 4);
     }
     public static Rectangle getBlueGoal(String mapName) {
+        // TODO: refactor to be based off of getRedGoal
         switch(mapName) {
             case "hyperfrost":
                 return new Rectangle(-39, 90, -2, 4, 4, 4);
@@ -210,6 +246,7 @@ public class Maps {
             case "flora":
                 return new Rectangle(-32, 87, -2, 4, 4, 4);
             case "fortress":
+            case "fortress2":
                 return new Rectangle(-34, 90, -2, 4, 4, 4);
             case "galaxy":
                 return new Rectangle(-37, 88, -2, 4, 4, 4);
@@ -226,11 +263,20 @@ public class Maps {
             case "treehouse":
                 return new Rectangle(-35, 89, -2, 4, 4, 4);
             case "tundra":
+            case "tundra2":
                 return new Rectangle(-30, 90, -2, 4, 4, 4);
             case "twilight":
                 return new Rectangle(-36, 90, -3, 5, 4, 5);
             case "urban":
                 return new Rectangle(-35, 88, -2, 4, 4, 4);
+            case "ashgate":
+                return new Rectangle(-38, 90, -2, 4, 4, 4);
+            case "lighthouse2":
+                return new Rectangle(-35, 89, -1, 3, 3, 3);
+            case "outpost":
+                return new Rectangle(-35, 89, -1, 3, 3, 3);
+            case "palaestra":
+                return new Rectangle(-49, 91, -2, 4, 4, 4);
         }
         return new Rectangle(-39, 90, -2, 4, 4, 4);
     }
@@ -248,6 +294,7 @@ public class Maps {
             case "boo":
             case "chronon":
             case "fortress":
+            case "fortress2":
             case "sorcery":
             case "developedsorcery":
             case "twilight":
@@ -256,6 +303,7 @@ public class Maps {
             case "lighthouse":
             case "sunstone":
             case "tundra":
+            case "tundra2":
                 return Rectangle.fromMap(-21);
             case "flora":
                 return Rectangle.fromMap(-35, -20, 46, 20);
@@ -269,6 +317,14 @@ public class Maps {
                 return Rectangle.fromMap(-24);
             case "urban":
                 return Rectangle.fromMap(-26);
+            case "ashgate":
+                return Rectangle.fromMap(-27);
+            case "lighthouse2":
+                return Rectangle.fromMap(-25);
+            case "outpost":
+                return Rectangle.fromMap(-30);
+            case "palaestra":
+                return Rectangle.fromMap(-35);
         }
         return null;
     }
@@ -322,6 +378,18 @@ public class Maps {
                 return "Twilight";
             case "urban":
                 return "Urban";
+            case "ashgate":
+                return "Ashgate";
+            case "lighthouse2":
+                return "Lighthouse V2";
+            case "outpost":
+                return "Outpost";
+            case "palaestra":
+                return "Palaestra";
+            case "tundra2":
+                return "Tundra V2";
+            case "fortress2":
+                return "Fortress V2";
         }
         return "Unknown Map";
     }

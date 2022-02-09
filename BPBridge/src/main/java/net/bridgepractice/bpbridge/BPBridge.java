@@ -567,7 +567,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         }
     }
 
-    private final String[] mapNames = {"aquatica", "atlantis", "boo", "cheesy", "chronon", "condo", "dojo", "flora", "fortress", "galaxy", "hyperfrost", "licorice", "lighthouse", "sorcery", "stumped", "sunstone", "treehouse", "tundra", "twilight", "urban"};
+    private final String[] mapNames = {"aquatica", "ashgate", "atlantis", "boo", "cheesy", "chronon", "condo", "dojo", "flora", "fortress2", "galaxy", "hyperfrost", "licorice", "lighthouse2", "outpost", "palaestra", "sorcery", "stumped", "sunstone", "treehouse", "tundra2", "twilight", "urban"};
     private final String[] pvpMapNames = {"developedatlantis", "developedgalaxy", "developedsorcery", "developedstumped"};
     private String getRandomUnrankedMap() {
         return mapNames[ThreadLocalRandom.current().nextInt(mapNames.length)];
