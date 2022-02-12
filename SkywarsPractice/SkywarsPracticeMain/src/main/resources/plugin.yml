@@ -1,0 +1,16 @@
+name: SkywarsPractice
+main: net.bridgepractice.skywarspractice.SkywarsPracticeMain.Main
+version: 1.0
+author: OffensivelyKind
+website: bridgepractice.net
+description: Skywars Practice Main Plugin
+commands:
+  loot:
+    usage: /loot
+    description: Queue Loot Practice
+    aliases:
+      - lootpractice
+  debug:
+    usage: /debug <mode> <variable>
+    description: Admin Only Command
+    permission: skywarspractice.debug
