@@ -2,9 +2,7 @@ package net.bridgepractice.skywarspractice.SkywarsPracticeMain;
 
 import net.bridgepractice.skywarspractice.SkywarsPracticeMain.commands.Debug;
 import net.bridgepractice.skywarspractice.SkywarsPracticeMain.commands.LootPractice;
-import net.bridgepractice.skywarspractice.SkywarsPracticeMain.listeners.OnBlockBreak;
-import net.bridgepractice.skywarspractice.SkywarsPracticeMain.listeners.OnBlockPlace;
-import net.bridgepractice.skywarspractice.SkywarsPracticeMain.listeners.OnPlayerMove;
+import net.bridgepractice.skywarspractice.SkywarsPracticeMain.listeners.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -23,13 +21,10 @@ public class Main extends JavaPlugin {
 
     public static Main instance;
 
-    public static Connection conn;
-
     public static List<UUID> lootPracticeQueue = new ArrayList<>();
     public static List<String> availableLootPracticeMaps = new ArrayList<>();
     public static HashMap<UUID, String> playersInLootPractice = new HashMap<>();
     public static HashMap<UUID, List<Block>> lootPracticeBlocksPlaced = new HashMap<>();
-    public static HashMap<UUID, List<Block>> lootPracticeBlocksBroken = new HashMap<>();
     public static HashMap<String, Long> lootPracticeTimes = new HashMap<>();
 
     // db related things
@@ -38,7 +33,7 @@ public class Main extends JavaPlugin {
     String database = "bridge";
     String username = "mc";
     String password = "mcserver";
-    static Connection connection;
+    public static Connection connection;
 
     public static Location spawn;
 
@@ -65,6 +60,9 @@ public class Main extends JavaPlugin {
         Bukkit.getServer().getPluginManager().registerEvents(new OnPlayerMove(), Main.instance);
         Bukkit.getServer().getPluginManager().registerEvents(new OnBlockPlace(), Main.instance);
         Bukkit.getServer().getPluginManager().registerEvents(new OnBlockBreak(), Main.instance);
+        Bukkit.getServer().getPluginManager().registerEvents(new OnPlayerJoin(), Main.instance);
+        Bukkit.getServer().getPluginManager().registerEvents(new OnPlayerLeave(), Main.instance);
+        Bukkit.getServer().getPluginManager().registerEvents(new OnPlayerFoodChange(), Main.instance);
 
 
         getLogger().info("Skywars Practice enabled!");}
@@ -90,9 +88,33 @@ public class Main extends JavaPlugin {
             throwables.printStackTrace();
             player.sendMessage("§c§lUh oh!§r§c Something went wrong pushing your information to our database. Please open a ticket on the discord!");
         }
+
+        try(PreparedStatement statement = connection.prepareStatement("UPDATE skywarsPlayers SET xp = xp + ? WHERE uuid=?;")) {
+            statement.setInt(1, xpAmount); // xp amount
+            statement.setString(2, player.getUniqueId().toString()); // uuid
+            statement.executeUpdate();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+            player.sendMessage("§c§lUh oh!§r§c Something went wrong pushing your information to our database. Please open a ticket on the discord!");
+        }
     }
-    public static int getPlayerXP(Player player) {
+    public static int getNetworkPlayerXP(Player player) {
         try(PreparedStatement statement = Main.connection.prepareStatement("SELECT xp FROM players WHERE uuid=?;")) {
+            statement.setString(1, player.getUniqueId().toString()); // uuid
+            ResultSet res = statement.executeQuery();
+            if(!res.next()) {
+                throw new SQLException("Did not get a row from the database. Player name: " + player.getName() + " Player UUID: " + player.getUniqueId());
+            }
+            return res.getInt(1); // 1 indexing!
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+            player.sendMessage("§c§lUh oh!§r§c Something went wrong fetching your xp from our database. Please open a ticket on the discord!");
+        }
+        return -1;
+    }
+
+    public static int getPlayerXP(Player player) {
+        try(PreparedStatement statement = Main.connection.prepareStatement("SELECT xp FROM skywarsPlayers WHERE uuid=?;")) {
             statement.setString(1, player.getUniqueId().toString()); // uuid
             ResultSet res = statement.executeQuery();
             if(!res.next()) {

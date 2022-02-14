@@ -1,6 +1,8 @@
 package net.bridgepractice.skywarspractice.SkywarsPracticeMain.listeners;
 
 import net.bridgepractice.skywarspractice.SkywarsPracticeMain.Main;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,9 +19,10 @@ public class OnBlockBreak implements Listener {
 
         // Loot Practice stuff
         if (Main.playersInLootPractice.containsKey(player.getUniqueId())) {
-            List<Block> blocksBroken = Main.lootPracticeBlocksBroken.get(player.getUniqueId());
-            blocksBroken.add(e.getBlock());
-            Main.lootPracticeBlocksBroken.put(player.getUniqueId(), blocksBroken);
+            if (e.getBlock().getType() != Material.CHEST || !(Main.lootPracticeBlocksPlaced.get(player.getUniqueId()).contains(e.getBlock()))) {
+                e.setCancelled(true);
+                player.sendMessage(ChatColor.RED + "Breaking blocks is not the aim of the game!");
+            }
         }
     }
 }

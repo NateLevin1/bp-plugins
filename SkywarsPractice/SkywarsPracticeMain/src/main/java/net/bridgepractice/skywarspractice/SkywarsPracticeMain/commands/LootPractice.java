@@ -1,12 +1,11 @@
 package net.bridgepractice.skywarspractice.SkywarsPracticeMain.commands;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.bridgepractice.skywarspractice.SkywarsPracticeMain.Main;
 import net.bridgepractice.skywarspractice.SkywarsPracticeMain.Utils;
 import net.minecraft.server.v1_8_R3.Container;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Chest;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -18,28 +17,38 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class LootPractice implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) { return true; }
-            Player player = (Player) sender;
-            if (Main.lootPracticeQueue.contains(player.getUniqueId())) {
-                player.sendMessage("You are already in the Loot Practice queue!");
+        if (!(sender instanceof Player)) {
+            return true;
+        }
+        Player player = (Player) sender;
+        if (Main.lootPracticeQueue.contains(player.getUniqueId())) {
+            player.sendMessage("You are already in the Loot Practice queue!");
+        } else if (Main.playersInLootPractice.containsKey(player.getUniqueId())) {
+            player.sendMessage("You are already in Loot Practice!");
+        } else {
+            int lastplace = Main.lootPracticeQueue.toArray().length;
+            Main.lootPracticeQueue.add(lastplace, player.getUniqueId());
+            String placeMessage = "There are " + Main.lootPracticeQueue.indexOf(player.getUniqueId()) + " players ahead of you.";
+            if (Integer.toString(Main.lootPracticeQueue.indexOf(player.getUniqueId())).equals("0")) {
+                player.sendMessage("You are next in queue!");
+            } else if (placeMessage.equals("There are 1 players ahead of you.")) {
+                player.sendMessage("There is 1 player ahead of you.");
             } else {
-                int lastplace = Main.lootPracticeQueue.toArray().length;
-                Main.lootPracticeQueue.add(lastplace, player.getUniqueId());
-                String placeMessage = "There are " + Main.lootPracticeQueue.indexOf(player.getUniqueId()) + " players ahead of you.";
-                if (Integer.toString(Main.lootPracticeQueue.indexOf(player.getUniqueId())).equals("0")) {
-                    player.sendMessage("You are next in queue!");
-                } else if (placeMessage.equals("There are 1 players ahead of you.")) {
-                    player.sendMessage("There is 1 player ahead of you.");
-                } else {
-                    player.sendMessage(placeMessage);
-                }
+                player.sendMessage(placeMessage);
             }
+        }
         return true;
     }
 
@@ -47,10 +56,9 @@ public class LootPractice implements CommandExecutor {
         PlayerInventory pli1 = p1.getInventory();
         pli1.clear();
         Main.lootPracticeQueue.remove(p1.getUniqueId());
-        Main.availableLootPracticeMaps.remove(mapname);
         Main.playersInLootPractice.put(p1.getUniqueId(), mapname + ":" + "none");
         Main.lootPracticeBlocksPlaced.put(p1.getUniqueId(), new ArrayList<>());
-        Main.lootPracticeBlocksBroken.put(p1.getUniqueId(), new ArrayList<>());
+        p1.setGameMode(GameMode.ADVENTURE);
 
         Location chest1;
         Location chest2;
@@ -75,14 +83,15 @@ public class LootPractice implements CommandExecutor {
                 Location finalChest1 = chest2;
                 Location finalChest2 = chest3;
                 countdown = new BukkitRunnable() {
-                    int counter = 10;
+                    int counter = 5;
+
                     @Override
                     public void run() {
-                        if ( counter == 0) {
+                        if (counter == 0) {
                             this.cancel();
                             gameP2(p1, finalPlayer1Loc, finalChest, finalChest1, finalChest2);
                         } else {
-                            Utils.sendTitle(p1, String.valueOf(counter), "", 0, 0, 25);
+                            Utils.sendTitle(p1, colorNumber(counter), "", 0, 0, 25);
                             counter--;
                         }
                     }
@@ -104,14 +113,15 @@ public class LootPractice implements CommandExecutor {
                 Location finalChest4 = chest2;
                 Location finalChest5 = chest3;
                 countdown = new BukkitRunnable() {
-                    int counter = 10;
+                    int counter = 5;
+
                     @Override
                     public void run() {
-                        if ( counter == 0) {
+                        if (counter == 0) {
                             this.cancel();
                             gameP2(p1, finalPlayer1Loc1, finalChest3, finalChest4, finalChest5);
                         } else {
-                            Utils.sendTitle(p1, String.valueOf(counter), "", 0, 0, 25);
+                            Utils.sendTitle(p1, colorNumber(counter), "", 0, 0, 25);
                             counter--;
                         }
                     }
@@ -133,14 +143,15 @@ public class LootPractice implements CommandExecutor {
                 Location finalChest7 = chest3;
                 Location finalChest8 = chest1;
                 countdown = new BukkitRunnable() {
-                    int counter = 10;
+                    int counter = 5;
+
                     @Override
                     public void run() {
-                        if ( counter == 0) {
+                        if (counter == 0) {
                             this.cancel();
                             gameP2(p1, finalPlayer1Loc2, finalChest8, finalChest6, finalChest7);
                         } else {
-                            Utils.sendTitle(p1, String.valueOf(counter), "", 0, 0, 25);
+                            Utils.sendTitle(p1, colorNumber(counter), "", 0, 0, 25);
                             counter--;
                         }
                     }
@@ -162,14 +173,15 @@ public class LootPractice implements CommandExecutor {
                 Location finalChest10 = chest2;
                 Location finalChest11 = chest3;
                 countdown = new BukkitRunnable() {
-                    int counter = 10;
+                    int counter = 5;
+
                     @Override
                     public void run() {
-                        if ( counter == 0) {
+                        if (counter == 0) {
                             this.cancel();
                             gameP2(p1, finalPlayer1Loc3, finalChest9, finalChest10, finalChest11);
                         } else {
-                            Utils.sendTitle(p1, String.valueOf(counter), "", 0, 0, 25);
+                            Utils.sendTitle(p1, colorNumber(counter), "", 0, 0, 25);
                             counter--;
                         }
                     }
@@ -180,6 +192,7 @@ public class LootPractice implements CommandExecutor {
 
     public static void gameP2(Player p1, Location player1Loc, Location chest1Loc, Location chest2Loc, Location chest3Loc) {
         Location cage = new Location(player1Loc.getWorld(), player1Loc.getX(), player1Loc.getY() - 1, player1Loc.getZ());
+        p1.setGameMode(GameMode.ADVENTURE);
 
         if (chest1Loc.getBlock().getState() instanceof Container) {
             org.bukkit.block.Chest chest1 = (Chest) chest1Loc.getBlock().getState();
@@ -256,6 +269,20 @@ public class LootPractice implements CommandExecutor {
                 if (counter == 0) {
                     this.cancel();
                     cage.getBlock().setType(Material.GLASS);
+                    BukkitRunnable countdown = new BukkitRunnable() {
+                        int counter = 40;
+
+                        @Override
+                        public void run() {
+                            if (counter == 0) {
+                                this.cancel();
+                                p1.setFallDistance(0F);
+                            } else {
+                                counter--;
+                            }
+                        }
+                    };
+                    countdown.runTaskTimer(Main.instance, 0L, 1);
                 } else {
                     counter--;
                 }
@@ -266,14 +293,42 @@ public class LootPractice implements CommandExecutor {
 
     public static void win(String mapname, Player player) {
         // Reset map
-        Utils.resetBlocks(Main.lootPracticeBlocksPlaced.get(player.getUniqueId()), Main.lootPracticeBlocksBroken.get(player.getUniqueId()));
+        Utils.resetBlocks(Main.lootPracticeBlocksPlaced.get(player.getUniqueId()));
+        // Stop repeat PlayerMoveEvents
+        Main.playersInLootPractice.remove(player.getUniqueId());
 
         long finish = System.currentTimeMillis();
         long timeElapsed = finish - Main.lootPracticeTimes.get(mapname);
-        int secs = (int) timeElapsed / 1000;
+        float secs = (float) timeElapsed / 1000;
         int mili = (int) timeElapsed / 10;
+        int pb = getPB(player);
+        // publish to db if pb
+        if (pb > timeElapsed) {
+            try (PreparedStatement statement = Main.connection.prepareStatement("UPDATE skywarsPlayers SET lootPB = ? WHERE uuid=?;")) {
+                statement.setFloat(1, timeElapsed); // wingPB, set to the new PB
+                statement.setString(2, player.getUniqueId().toString()); // uuid, set to player uuid
+                statement.executeUpdate();
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+                player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your PB to our database. Please open a ticket on the discord and screenshot your time!");
+            }
+            // display in #multiplayer-logs
+            sendNewPBWebhook(player, Utils.prettifyNumber(timeElapsed));
+            // show to player (we don't need to go through the db at this point)
+//            board.getTeam("pb").setPrefix("§e " + secs);
+            Utils.sendTitle(player, "§bNew PB! §e" + Utils.prettifyNumber(timeElapsed), "§a+15§r xp", 10, 10, 80);
 
-        PlayerInventory pli1= player.getInventory();
+//            (new BukkitRunnable() {
+//                @Override
+//                public void run() {
+//                    board.getTeam("pb").setSuffix(" §b#" + Leaderboard.getPlace("wingPB", timeTakenNum, Leaderboard.Direction.Ascending));
+//                }
+//            }).runTaskAsynchronously(Main.instance);
+        } else {
+            Utils.sendTitle(player, "§bTime: §e" + Utils.prettifyNumber(timeElapsed), "§a+15§r xp", 10, 10, 80);
+        }
+
+        PlayerInventory pli1 = player.getInventory();
         pli1.clear();
 
         pli1.setHelmet(new ItemStack(Material.AIR));
@@ -281,24 +336,38 @@ public class LootPractice implements CommandExecutor {
         pli1.setLeggings(new ItemStack(Material.AIR));
         pli1.setBoots(new ItemStack(Material.AIR));
 
-        player.sendMessage(String.valueOf(secs) + "." + String.valueOf(mili) + " seconds!");
+        // Give XP
+        Main.givePlayerXP(player, 20);
+
         // We don't need this:
         // Main.availableLootPracticeMaps.add(mapname);
-        start(mapname, player);
+        BukkitRunnable countdown = new BukkitRunnable() {
+            int counter = 5;
+
+            @Override
+            public void run() {
+                if (counter == 0) {
+                    this.cancel();
+                    start(mapname, player);
+                } else {
+                    counter--;
+                }
+            }
+        };
+        countdown.runTaskTimer(Main.instance, 0L, 20);
     }
 
     public static void lose(Player player, String mapname, Integer data) {
 //         Reset map
-        Utils.resetBlocks(Main.lootPracticeBlocksPlaced.get(player.getUniqueId()), Main.lootPracticeBlocksBroken.get(player.getUniqueId()));
+        Utils.resetBlocks(Main.lootPracticeBlocksPlaced.get(player.getUniqueId()));
 
         Main.availableLootPracticeMaps.add(mapname);
         Utils.sendPlayerToSpawn(player);
         Main.playersInLootPractice.remove(player.getUniqueId());
         player.getInventory().clear();
 
-        PlayerInventory pli1= player.getInventory();
+        PlayerInventory pli1 = player.getInventory();
         pli1.clear();
-        pli1.setItem(0, new ItemStack(Material.COMPASS, 1));
 
         pli1.setHelmet(new ItemStack(Material.AIR));
         pli1.setChestplate(new ItemStack(Material.AIR));
@@ -312,5 +381,79 @@ public class LootPractice implements CommandExecutor {
         } else if (data == 2) {
             Utils.sendTitle(player, ChatColor.BOLD + "" + ChatColor.RED + "YOU DIED!", ChatColor.YELLOW + "Acquire a weapon for self-defence!", 0, 1, 50);
         }
+    }
+
+    public static void disconnect(Player player, String mapname) {
+//         Reset map
+        Utils.resetBlocks(Main.lootPracticeBlocksPlaced.get(player.getUniqueId()));
+
+        Main.availableLootPracticeMaps.add(mapname);
+        Main.playersInLootPractice.remove(player.getUniqueId());
+    }
+
+    private static String colorNumber(int i) {
+        if (i >= 4) {
+            return ChatColor.GREEN + String.valueOf(i);
+        } else if (i == 3) {
+            return ChatColor.YELLOW + String.valueOf(i);
+        } else {
+            return ChatColor.RED + String.valueOf(i);
+        }
+    }
+
+    private static int getPB(Player player) {
+        try(PreparedStatement statement = Main.connection.prepareStatement("SELECT lootPB FROM skywarsPlayers WHERE uuid=?;")) {
+            statement.setString(1, player.getUniqueId().toString()); // uuid
+            ResultSet res = statement.executeQuery();
+            if(!res.next()) {
+                throw new SQLException("Did not get a row from the database. Player name: " + player.getName() + " Player UUID: " + player.getUniqueId());
+            }
+            return res.getInt(1); // 1 indexing!
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+            player.sendMessage("§c§lUh oh!§r§c Something went wrong fetching your xp from our database. Please open a ticket on the discord!");
+        }
+        return 999999;
+    }
+
+    private static void sendNewPBWebhook(Player player, String time) {
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                JsonObject webhook = new JsonObject();
+                JsonArray embeds = new JsonArray();
+                JsonObject embed = new JsonObject();
+                JsonObject author = new JsonObject();
+
+                webhook.add("embeds", embeds);
+                embeds.add(embed);
+
+                embed.addProperty("color", 0x39c2ff);
+
+                embed.add("author", author);
+                author.addProperty("name", "New PB (Mode: Loot)");
+
+                String playerName = player.getName();
+
+                embed.addProperty("title", playerName + ": " + (time));
+
+                embed.addProperty("description", playerName + " got new PB            |           on Loot Practice\n"
+                        + "```pascal\n"
+                        + " New Time: " + time + " \n"
+                        + "```");
+
+                JsonObject thumbnail = new JsonObject();
+                thumbnail.addProperty("url", ("https://minotar.net/armor/bust/" + playerName + "/64"));
+                embed.add("thumbnail", thumbnail);
+
+                JsonObject footer = new JsonObject();
+                footer.addProperty("text", playerName + " got a new PB");
+                embed.add("footer", footer);
+
+                embed.addProperty("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
+
+                Utils.sendWebhookSync(webhook);
+            }
+        }).runTaskAsynchronously(Main.instance);
     }
 }
