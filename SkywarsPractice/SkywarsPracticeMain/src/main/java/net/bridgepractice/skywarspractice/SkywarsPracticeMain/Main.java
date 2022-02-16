@@ -8,14 +8,12 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class Main extends JavaPlugin {
 
@@ -25,7 +23,8 @@ public class Main extends JavaPlugin {
     public static List<String> availableLootPracticeMaps = new ArrayList<>();
     public static HashMap<UUID, String> playersInLootPractice = new HashMap<>();
     public static HashMap<UUID, List<Block>> lootPracticeBlocksPlaced = new HashMap<>();
-    public static HashMap<String, Long> lootPracticeTimes = new HashMap<>();
+    public static HashMap<String, Long> lootPracticeMapTimes = new HashMap<>();
+    public ScoreboardManager sm;
 
     // db related things
     String host = "localhost";
@@ -40,6 +39,7 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        sm = this.getServer().getScoreboardManager();
         spawn = new Location(Bukkit.getWorld("skywars"), -1, 98, 4, -180, 0);
 
         availableLootPracticeMaps.add("plainsone");
@@ -126,6 +126,59 @@ public class Main extends JavaPlugin {
             player.sendMessage("§c§lUh oh!§r§c Something went wrong fetching your xp from our database. Please open a ticket on the discord!");
         }
         return -1;
+    }
+
+    public static void setScoreboard(Player player, Scoreboard scoreboard) {
+        player.setScoreboard(scoreboard);
+    }
+
+    public static String ordinal(int i) {
+        int mod100 = i % 100;
+        int mod10 = i % 10;
+        if(mod10 == 1 && mod100 != 11) {
+            return i + "st";
+        } else if(mod10 == 2 && mod100 != 12) {
+            return i + "nd";
+        } else if(mod10 == 3 && mod100 != 13) {
+            return i + "rd";
+        } else {
+            return i + "th";
+        }
+    }
+    public static Scoreboard createScoreboard(String displayName, String[] scores) {
+        Scoreboard board = instance.sm.getNewScoreboard();
+        Objective objective = board.registerNewObjective("scoreboard", "dummy");
+        objective.setDisplayName(displayName);
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+
+        int numSpaces = 0;
+        int numResets = 1;
+        for(int i = 0; i < scores.length; i++) {
+            if(scores[i].equals("")) {
+                objective.getScore(String.join("", Collections.nCopies(numSpaces, " "))).setScore(scores.length - i);
+                numSpaces++;
+            } else if(scores[i].startsWith("%")) {
+                int percent = scores[i].substring(1).indexOf('%') + 1;
+                String teamName = scores[i].substring(1, percent);
+                Team team = board.registerNewTeam(teamName);
+                String entry = String.join("", Collections.nCopies(numResets, "§r"));
+                team.addEntry(entry);
+                String content = scores[i].substring(percent + 1);
+                int split = content.indexOf("%");
+                if(split == -1) {
+                    team.setPrefix(content);
+                } else {
+                    team.setPrefix(content.substring(0, split));
+                    team.setSuffix(content.substring(split + 1));
+                }
+                objective.getScore(entry).setScore(scores.length - i);
+                numResets++;
+            } else {
+                objective.getScore(scores[i]).setScore(scores.length - i);
+            }
+        }
+
+        return board;
     }
 
     // DB Related Methods

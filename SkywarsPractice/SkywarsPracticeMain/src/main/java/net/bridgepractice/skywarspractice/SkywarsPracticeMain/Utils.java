@@ -3,6 +3,7 @@ package net.bridgepractice.skywarspractice.SkywarsPracticeMain;
 import com.google.gson.JsonObject;
 import net.minecraft.server.v1_8_R3.IChatBaseComponent;
 import net.minecraft.server.v1_8_R3.PacketPlayOutTitle;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -60,6 +61,7 @@ public class Utils {
     public static void sendPlayerToSpawn(Player player) {
         player.setFallDistance(0F);
         player.setHealth(20);
+        player.setGameMode(GameMode.ADVENTURE);
         player.teleport(Main.spawn);
     }
 

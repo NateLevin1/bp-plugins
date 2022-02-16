@@ -31,7 +31,7 @@ public class Debug implements CommandExecutor {
                 case "players":
                     player.sendMessage(Main.playersInLootPractice.toString());
                 case "times":
-                    player.sendMessage(Main.lootPracticeTimes.toString());
+                    player.sendMessage(Main.lootPracticeMapTimes.toString());
             }
         }
 

@@ -12,6 +12,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.logging.Logger;
+
 public class OnPlayerMove implements Listener {
     @EventHandler
     public static void onPlayerMove(PlayerMoveEvent e) {
@@ -29,7 +33,6 @@ public class OnPlayerMove implements Listener {
         // Loot Practice Managing
         if (Main.lootPracticeQueue.size() > 0 && Main.availableLootPracticeMaps.size() > 0) {
             // New game
-            Bukkit.getLogger().info("Loot Practice on " + Main.availableLootPracticeMaps.get(0));
             LootPractice.start(Main.availableLootPracticeMaps.get(Main.availableLootPracticeMaps.size() - 1), Bukkit.getPlayer(Main.lootPracticeQueue.get(0)));
         }
 
@@ -37,24 +40,24 @@ public class OnPlayerMove implements Listener {
         if (Main.playersInLootPractice.containsKey(player.getUniqueId())) {
             String[] data = Main.playersInLootPractice.get(player.getUniqueId()).split(":");
             String mapname = data[0];
-            switch(mapname) {
-                case "plainsone":
-                    if (!(Utils.isLocationInLocation(player.getLocation(), new Location(Bukkit.getWorld("skywars"), 56,95, -74), new Location(Bukkit.getWorld("skywars"), 29, -10, -59)))) {
-                        player.teleport(new Location(Bukkit.getWorld("skywars"), 52, 83, -68));
-                    }
-                case "plainstwo":
-                    if (!(Utils.isLocationInLocation(player.getLocation(), new Location(Bukkit.getWorld("skywars"), 56,95, -89), new Location(Bukkit.getWorld("skywars"), 29, -10, -74)))) {
-                        player.teleport(new Location(Bukkit.getWorld("skywars"), 52, 83, -83));
-                    }
-                case "plainsthree":
-                    if (!(Utils.isLocationInLocation(player.getLocation(), new Location(Bukkit.getWorld("skywars"), 56,95, -105), new Location(Bukkit.getWorld("skywars"), 29, -10, -90)))) {
-                        player.teleport(new Location(Bukkit.getWorld("skywars"), 52, 83, -99));
-                    }
-                case "plainsfour":
-                    if (!(Utils.isLocationInLocation(player.getLocation(), new Location(Bukkit.getWorld("skywars"), 56,95, -121), new Location(Bukkit.getWorld("skywars"), 29, -10, -106)))) {
-                        player.teleport(new Location(Bukkit.getWorld("skywars"), 52, 83, -115));
-                    }
+            if (Objects.equals(mapname, "plainsone")) {
+                if (!(Utils.isLocationInLocation(player.getLocation(), new Location(Bukkit.getWorld("skywars"), 56, 95, -74), new Location(Bukkit.getWorld("skywars"), 29, -10, -59))) && !(LootPractice.playersInCage.contains(player.getUniqueId()))) {
+                    player.teleport(new Location(Bukkit.getWorld("skywars"), 52, 83, -68));
+                }
+            } else if (Objects.equals(mapname, "plainstwo")) {
+                if (!(Utils.isLocationInLocation(player.getLocation(), new Location(Bukkit.getWorld("skywars"), 56, 95, -89), new Location(Bukkit.getWorld("skywars"), 29, -10, -74))) && !(LootPractice.playersInCage.contains(player.getUniqueId()))) {
+                    player.teleport(new Location(Bukkit.getWorld("skywars"), 52, 83, -83));
+                }
+            } else if (Objects.equals(mapname, "plainsthree")) {
+                if (!(Utils.isLocationInLocation(player.getLocation(), new Location(Bukkit.getWorld("skywars"), 56, 95, -105), new Location(Bukkit.getWorld("skywars"), 29, -10, -90))) && !(LootPractice.playersInCage.contains(player.getUniqueId()))) {
+                    player.teleport(new Location(Bukkit.getWorld("skywars"), 52, 83, -99));
+                }
+            } else if (Objects.equals(mapname, "plainsfour")) {
+                if (!(Utils.isLocationInLocation(player.getLocation(), new Location(Bukkit.getWorld("skywars"), 56, 95, -121), new Location(Bukkit.getWorld("skywars"), 29, -10, -106))) && !(LootPractice.playersInCage.contains(player.getUniqueId()))) {
+                    player.teleport(new Location(Bukkit.getWorld("skywars"), 52, 83, -115));
+                }
             }
+
             Location blockBelow = new Location(Bukkit.getWorld("skywars"), player.getLocation().getBlockX(), player.getLocation().getBlockY() - 1, player.getLocation().getBlockZ());
             if (blockBelow.getBlock().getType() == Material.GOLD_BLOCK) {
                 // Player touched Gold block and won

@@ -16,6 +16,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,10 +25,14 @@ import java.sql.SQLException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class LootPractice implements CommandExecutor {
+    static HashMap<UUID, Team> leaderTeams = new HashMap<>();
+    static HashMap<String, Float> playerTimes = new HashMap<>();
+    public static List<UUID> playersInCage = new ArrayList<>();
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
@@ -55,144 +61,193 @@ public class LootPractice implements CommandExecutor {
     public static void start(String mapname, Player p1) {
         PlayerInventory pli1 = p1.getInventory();
         pli1.clear();
+        Main.availableLootPracticeMaps.remove(mapname);
+        p1.sendMessage(Main.availableLootPracticeMaps.toString());
         Main.lootPracticeQueue.remove(p1.getUniqueId());
+        playersInCage.add(p1.getUniqueId());
         Main.playersInLootPractice.put(p1.getUniqueId(), mapname + ":" + "none");
         Main.lootPracticeBlocksPlaced.put(p1.getUniqueId(), new ArrayList<>());
         p1.setGameMode(GameMode.ADVENTURE);
 
-        Location chest1;
-        Location chest2;
-        Location chest3;
-        Location player1Loc;
-        BukkitRunnable countdown;
+        Scoreboard board = Main.createScoreboard("    §b§eLoot Practice     ", new String[] {
+                "",
+                " §l§bTime",
+                "%time%§e 0",
+                "",
+                " §l§dSession Leader",
+                "%leader%§e None",
+                "",
+                " §l§9Personal Best  ",
+                "%pb%§e None",
+                "",
+                "   §7bridgepractice.net  "
+        });
+        Main.setScoreboard(p1, board);
+        updateSessionLeader();
+        leaderTeams.put(p1.getUniqueId(), board.getTeam("leader"));
 
-        switch (mapname) {
-            case "plainsone":
-                Main.availableLootPracticeMaps.remove("plainsone");
-                chest1 = new Location(Bukkit.getWorld("skywars"), 51, 80, -64);
-                chest2 = new Location(Bukkit.getWorld("skywars"), 54, 83, -69);
-                chest3 = new Location(Bukkit.getWorld("skywars"), 51, 85, -64);
-
-                player1Loc = new Location(Bukkit.getWorld("skywars"), 52.5, 88.1, -67.5);
-
-                p1.teleport(player1Loc);
-                p1.getInventory().clear();
-
-                Location finalPlayer1Loc = player1Loc;
-                Location finalChest = chest1;
-                Location finalChest1 = chest2;
-                Location finalChest2 = chest3;
-                countdown = new BukkitRunnable() {
-                    int counter = 5;
-
+        // get pb from db
+        float pb = 0;
+        try(PreparedStatement statement = Main.connection.prepareStatement("SELECT lootPB FROM skywarsPlayers WHERE uuid=?;")) {
+            statement.setString(1, p1.getUniqueId().toString()); // uuid
+            ResultSet res = statement.executeQuery();
+            if(!res.next()) {
+                throw new SQLException("Did not get a row from the database. Player name: "+p1.getName()+" Player UUID: "+p1.getUniqueId());
+            }
+            // display it if it exists, otherwise display "None"
+            pb = res.getFloat(1); // 1 indexing!
+            if(!res.wasNull()) {
+                board.getTeam("pb").setPrefix("§e "+Utils.prettifyNumber(pb));
+            } else {
+                // intro message
+                BukkitRunnable intro = new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (counter == 0) {
-                            this.cancel();
-                            gameP2(p1, finalPlayer1Loc, finalChest, finalChest1, finalChest2);
-                        } else {
-                            Utils.sendTitle(p1, colorNumber(counter), "", 0, 0, 25);
-                            counter--;
-                        }
+                        p1.sendMessage("\n§6"+new String(new char[54]).replace("\0", "-"));
+                        p1.sendMessage("\nLooks like it's your first time playing §aLoot Practice§f!");
+                        p1.playSound(p1.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                        BukkitRunnable a = new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                p1.sendMessage("\nThe goal is to loot the chests, obtaining armour, a melee weapon and some blocks.");
+                                p1.playSound(p1.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                            }
+                        };
+                        BukkitRunnable b = new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                p1.sendMessage("\nYou should then bridge to the other side and stand on the gold blocks. Have fun!");
+                                p1.playSound(p1.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                            }
+                        };
+                        a.runTaskLater(Main.instance, 3*20);
+                        b.runTaskLater(Main.instance, 6*20);
                     }
                 };
-                countdown.runTaskTimer(Main.instance, 0L, 20);
-            case "plainstwo":
-                Main.availableLootPracticeMaps.remove("plainstwo");
-                chest1 = new Location(Bukkit.getWorld("skywars"), 51, 80, -79);
-                chest2 = new Location(Bukkit.getWorld("skywars"), 54, 83, -84);
-                chest3 = new Location(Bukkit.getWorld("skywars"), 51, 85, -79);
 
-                player1Loc = new Location(Bukkit.getWorld("skywars"), 52.5, 88.1, -82.5);
+                intro.runTaskLater(Main.instance, 10);
 
-                p1.teleport(player1Loc);
-                p1.getInventory().clear();
+                board.getTeam("pb").setPrefix("§e None");
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+            p1.sendMessage("§c§lUh oh!§r§c Something went wrong fetching your information from our database. Please open a ticket on the discord!");
+        }
 
-                Location finalPlayer1Loc1 = player1Loc;
-                Location finalChest3 = chest1;
-                Location finalChest4 = chest2;
-                Location finalChest5 = chest3;
-                countdown = new BukkitRunnable() {
-                    int counter = 5;
+        if (Objects.equals(mapname, "plainsone")) {
+            Bukkit.getLogger().info("Loot Practice on " + mapname);
+            Main.availableLootPracticeMaps.remove("plainsone");
+            Location chest1 = new Location(Bukkit.getWorld("skywars"), 51, 80, -64);
+            Location chest2 = new Location(Bukkit.getWorld("skywars"), 54, 83, -69);
+            Location chest3 = new Location(Bukkit.getWorld("skywars"), 51, 85, -64);
 
-                    @Override
-                    public void run() {
-                        if (counter == 0) {
-                            this.cancel();
-                            gameP2(p1, finalPlayer1Loc1, finalChest3, finalChest4, finalChest5);
-                        } else {
-                            Utils.sendTitle(p1, colorNumber(counter), "", 0, 0, 25);
-                            counter--;
-                        }
+            Location player1Loc = new Location(Bukkit.getWorld("skywars"), 52.5, 88.1, -67.5);
+
+            p1.teleport(player1Loc);
+            p1.getInventory().clear();
+
+            BukkitRunnable countdown = new BukkitRunnable() {
+                int counter = 5;
+
+                @Override
+                public void run() {
+                    if (counter == 0) {
+                        this.cancel();
+                        gameP2(p1, player1Loc, chest1, chest2, chest3);
+                    } else {
+                        Utils.sendTitle(p1, colorNumber(counter), "", 0, 0, 25);
+                        counter--;
                     }
-                };
-                countdown.runTaskTimer(Main.instance, 0L, 20);
-            case "plainsthree":
-                Main.availableLootPracticeMaps.remove("plainsthree");
-                chest1 = new Location(Bukkit.getWorld("skywars"), 51, 80, -95);
-                chest2 = new Location(Bukkit.getWorld("skywars"), 54, 83, -100);
-                chest3 = new Location(Bukkit.getWorld("skywars"), 51, 85, -95);
+                }
+            };
+            countdown.runTaskTimer(Main.instance, 0L, 20);
+        } else if (Objects.equals(mapname, "plainstwo")) {
+            Bukkit.getLogger().info("Loot Practice on " + mapname);
+            Main.availableLootPracticeMaps.remove("plainstwo");
+            Location chest1 = new Location(Bukkit.getWorld("skywars"), 51, 80, -79);
+            Location chest2 = new Location(Bukkit.getWorld("skywars"), 54, 83, -84);
+            Location chest3 = new Location(Bukkit.getWorld("skywars"), 51, 85, -79);
 
-                player1Loc = new Location(Bukkit.getWorld("skywars"), 52.5, 88.1, -98);
+            Location player1Loc = new Location(Bukkit.getWorld("skywars"), 52.5, 88.1, -82.5);
 
-                p1.teleport(player1Loc);
-                p1.getInventory().clear();
+            p1.teleport(player1Loc);
+            p1.getInventory().clear();
 
-                Location finalPlayer1Loc2 = player1Loc;
-                Location finalChest6 = chest2;
-                Location finalChest7 = chest3;
-                Location finalChest8 = chest1;
-                countdown = new BukkitRunnable() {
-                    int counter = 5;
+            BukkitRunnable countdown = new BukkitRunnable() {
+                int counter = 5;
 
-                    @Override
-                    public void run() {
-                        if (counter == 0) {
-                            this.cancel();
-                            gameP2(p1, finalPlayer1Loc2, finalChest8, finalChest6, finalChest7);
-                        } else {
-                            Utils.sendTitle(p1, colorNumber(counter), "", 0, 0, 25);
-                            counter--;
-                        }
+                @Override
+                public void run() {
+                    if (counter == 0) {
+                        this.cancel();
+                        gameP2(p1, player1Loc, chest1, chest2, chest3);
+                    } else {
+                        Utils.sendTitle(p1, colorNumber(counter), "", 0, 0, 25);
+                        counter--;
                     }
-                };
-                countdown.runTaskTimer(Main.instance, 0L, 20);
-            case "plainsfour":
-                Main.availableLootPracticeMaps.remove("plainsfour");
-                chest1 = new Location(Bukkit.getWorld("skywars"), 51, 80, -111);
-                chest2 = new Location(Bukkit.getWorld("skywars"), 54, 83, -116);
-                chest3 = new Location(Bukkit.getWorld("skywars"), 51, 85, -111);
+                }
+            };
+            countdown.runTaskTimer(Main.instance, 0L, 20);
+        } else if (Objects.equals(mapname, "plainsthree")) {
+            Bukkit.getLogger().info("Loot Practice on " + mapname);
+            Main.availableLootPracticeMaps.remove("plainsthree");
+            Location chest1 = new Location(Bukkit.getWorld("skywars"), 51, 80, -95);
+            Location chest2 = new Location(Bukkit.getWorld("skywars"), 54, 83, -100);
+            Location chest3 = new Location(Bukkit.getWorld("skywars"), 51, 85, -95);
 
-                player1Loc = new Location(Bukkit.getWorld("skywars"), 52.5, 88.1, -114.5);
+            Location player1Loc = new Location(Bukkit.getWorld("skywars"), 52.5, 88.1, -98.5);
 
-                p1.teleport(player1Loc);
-                p1.getInventory().clear();
+            p1.teleport(player1Loc);
+            p1.getInventory().clear();
 
-                Location finalPlayer1Loc3 = player1Loc;
-                Location finalChest9 = chest1;
-                Location finalChest10 = chest2;
-                Location finalChest11 = chest3;
-                countdown = new BukkitRunnable() {
-                    int counter = 5;
+            BukkitRunnable countdown = new BukkitRunnable() {
+                int counter = 5;
 
-                    @Override
-                    public void run() {
-                        if (counter == 0) {
-                            this.cancel();
-                            gameP2(p1, finalPlayer1Loc3, finalChest9, finalChest10, finalChest11);
-                        } else {
-                            Utils.sendTitle(p1, colorNumber(counter), "", 0, 0, 25);
-                            counter--;
-                        }
+                @Override
+                public void run() {
+                    if (counter == 0) {
+                        this.cancel();
+                        gameP2(p1, player1Loc, chest1, chest2, chest3);
+                    } else {
+                        Utils.sendTitle(p1, colorNumber(counter), "", 0, 0, 25);
+                        counter--;
                     }
-                };
-                countdown.runTaskTimer(Main.instance, 0L, 20);
+                }
+            };
+            countdown.runTaskTimer(Main.instance, 0L, 20);
+        } else if (Objects.equals(mapname, "plainsfour")) {
+            Bukkit.getLogger().info("Loot Practice on " + mapname);
+            Main.availableLootPracticeMaps.remove("plainsfour");
+            Location chest1 = new Location(Bukkit.getWorld("skywars"), 51, 80, -111);
+            Location chest2 = new Location(Bukkit.getWorld("skywars"), 54, 83, -116);
+            Location chest3 = new Location(Bukkit.getWorld("skywars"), 51, 85, -111);
+
+            Location player1Loc = new Location(Bukkit.getWorld("skywars"), 52.5, 88.1, -114.5);
+
+            p1.teleport(player1Loc);
+            p1.getInventory().clear();
+
+            BukkitRunnable countdown = new BukkitRunnable() {
+                int counter = 5;
+
+                @Override
+                public void run() {
+                    if (counter == 0) {
+                        this.cancel();
+                        gameP2(p1, player1Loc, chest1, chest2, chest3);
+                    } else {
+                        Utils.sendTitle(p1, colorNumber(counter), "", 0, 0, 25);
+                        counter--;
+                    }
+                }
+            };
+            countdown.runTaskTimer(Main.instance, 0L, 20);
         }
     }
 
     public static void gameP2(Player p1, Location player1Loc, Location chest1Loc, Location chest2Loc, Location chest3Loc) {
         Location cage = new Location(player1Loc.getWorld(), player1Loc.getX(), player1Loc.getY() - 1, player1Loc.getZ());
-        p1.setGameMode(GameMode.ADVENTURE);
+        p1.setGameMode(GameMode.SURVIVAL);
 
         if (chest1Loc.getBlock().getState() instanceof Container) {
             org.bukkit.block.Chest chest1 = (Chest) chest1Loc.getBlock().getState();
@@ -260,7 +315,8 @@ public class LootPractice implements CommandExecutor {
 
 
         cage.getBlock().setType(Material.AIR);
-        Main.lootPracticeTimes.put(Main.playersInLootPractice.get(p1.getUniqueId()).split(":")[0], System.currentTimeMillis());
+        Main.lootPracticeMapTimes.put(Main.playersInLootPractice.get(p1.getUniqueId()).split(":")[0], System.currentTimeMillis());
+        playersInCage.remove(p1.getUniqueId());
         BukkitRunnable countdown = new BukkitRunnable() {
             int counter = 3;
 
@@ -298,7 +354,7 @@ public class LootPractice implements CommandExecutor {
         Main.playersInLootPractice.remove(player.getUniqueId());
 
         long finish = System.currentTimeMillis();
-        long timeElapsed = finish - Main.lootPracticeTimes.get(mapname);
+        long timeElapsed = finish - Main.lootPracticeMapTimes.get(mapname);
         float secs = (float) timeElapsed / 1000;
         int mili = (int) timeElapsed / 10;
         int pb = getPB(player);
@@ -315,7 +371,8 @@ public class LootPractice implements CommandExecutor {
             // display in #multiplayer-logs
             sendNewPBWebhook(player, Utils.prettifyNumber(timeElapsed));
             // show to player (we don't need to go through the db at this point)
-//            board.getTeam("pb").setPrefix("§e " + secs);
+            Scoreboard board = player.getScoreboard();
+            board.getTeam("pb").setPrefix("§e " + secs);
             Utils.sendTitle(player, "§bNew PB! §e" + Utils.prettifyNumber(timeElapsed), "§a+15§r xp", 10, 10, 80);
 
 //            (new BukkitRunnable() {
@@ -327,6 +384,17 @@ public class LootPractice implements CommandExecutor {
         } else {
             Utils.sendTitle(player, "§bTime: §e" + Utils.prettifyNumber(timeElapsed), "§a+15§r xp", 10, 10, 80);
         }
+
+        String timeTaken = Utils.prettifyNumber(timeElapsed);
+
+        Scoreboard board = player.getScoreboard();
+        board.getTeam("time").setPrefix("§e "+timeTaken);
+
+            Float oldTime = playerTimes.get(player.getName());
+            if(oldTime == null || timeElapsed < oldTime) {
+                playerTimes.put(player.getName(), (float) timeElapsed);
+            }
+            updateSessionLeader();
 
         PlayerInventory pli1 = player.getInventory();
         pli1.clear();
@@ -366,6 +434,11 @@ public class LootPractice implements CommandExecutor {
         Main.playersInLootPractice.remove(player.getUniqueId());
         player.getInventory().clear();
 
+        leaderTeams.remove(player.getUniqueId());
+        playerTimes.remove(player.getName());
+        updateSessionLeader();
+        player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+
         PlayerInventory pli1 = player.getInventory();
         pli1.clear();
 
@@ -389,6 +462,11 @@ public class LootPractice implements CommandExecutor {
 
         Main.availableLootPracticeMaps.add(mapname);
         Main.playersInLootPractice.remove(player.getUniqueId());
+
+        leaderTeams.remove(player.getUniqueId());
+        playerTimes.remove(player.getName());
+        updateSessionLeader();
+        playersInCage.remove(player.getUniqueId());
     }
 
     private static String colorNumber(int i) {
@@ -455,5 +533,20 @@ public class LootPractice implements CommandExecutor {
                 Utils.sendWebhookSync(webhook);
             }
         }).runTaskAsynchronously(Main.instance);
+    }
+
+    private static void updateSessionLeader() {
+        final float[] lowestTime = {200*1000};
+        final String[] lowestName = {"None"};
+        playerTimes.forEach((playerName, playerTime) -> {
+            if(playerTime < lowestTime[0]) {
+                lowestTime[0] = playerTime;
+                lowestName[0] = playerName;
+            }
+        });
+        for(Team team : leaderTeams.values()) {
+            team.setPrefix("§e "+lowestName[0].substring(0, Math.min(13, lowestName[0].length())));
+            team.setSuffix((lowestTime[0] == 200*1000 ? "" : "§7: §a"+Utils.prettifyNumber(lowestTime[0])));
+        }
     }
 }

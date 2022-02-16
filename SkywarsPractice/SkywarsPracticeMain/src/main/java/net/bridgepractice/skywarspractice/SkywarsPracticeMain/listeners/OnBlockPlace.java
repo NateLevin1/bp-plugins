@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
 import java.util.List;
+import java.util.Objects;
 
 public class OnBlockPlace implements Listener {
     @EventHandler
@@ -22,43 +23,42 @@ public class OnBlockPlace implements Listener {
         if (Main.playersInLootPractice.containsKey(player.getUniqueId())) {
             String[] data = Main.playersInLootPractice.get(player.getUniqueId()).split(":");
             String mapname = data[0];
-            switch(mapname) {
-                case "plainsone":
-                    if ((Utils.isLocationInLocation(block.getLocation(), new Location(Bukkit.getWorld("skywars"), 56,95, -74), new Location(Bukkit.getWorld("skywars"), 29, -10, -59)))) {
-                        List<Block> blocksPlaced = Main.lootPracticeBlocksPlaced.get(player.getUniqueId());
-                        blocksPlaced.add(e.getBlockPlaced());
-                        Main.lootPracticeBlocksPlaced.put(player.getUniqueId(), blocksPlaced);
-                    } else {
-                        e.setCancelled(true);
-                        player.sendMessage(ChatColor.RED + "You can't place blocks here!");
-                    }
-                case "plainstwo":
-                    if ((Utils.isLocationInLocation(block.getLocation(), new Location(Bukkit.getWorld("skywars"), 56,95, -89), new Location(Bukkit.getWorld("skywars"), 29, -10, -74)))) {
-                        List<Block> blocksPlaced = Main.lootPracticeBlocksPlaced.get(player.getUniqueId());
-                        blocksPlaced.add(e.getBlockPlaced());
-                        Main.lootPracticeBlocksPlaced.put(player.getUniqueId(), blocksPlaced);
-                    } else {
-                        e.setCancelled(true);
-                        player.sendMessage(ChatColor.RED + "You can't place blocks here!");
-                    }
-                case "plainsthree":
-                    if ((Utils.isLocationInLocation(block.getLocation(), new Location(Bukkit.getWorld("skywars"), 56,95, -105), new Location(Bukkit.getWorld("skywars"), 29, -10, -90)))) {
-                        List<Block> blocksPlaced = Main.lootPracticeBlocksPlaced.get(player.getUniqueId());
-                        blocksPlaced.add(e.getBlockPlaced());
-                        Main.lootPracticeBlocksPlaced.put(player.getUniqueId(), blocksPlaced);
-                    } else {
-                        e.setCancelled(true);
-                        player.sendMessage(ChatColor.RED + "You can't place blocks here!");
-                    }
-                case "plainsfour":
-                    if ((Utils.isLocationInLocation(block.getLocation(), new Location(Bukkit.getWorld("skywars"), 56,95, -121), new Location(Bukkit.getWorld("skywars"), 29, -10, -106)))) {
-                        List<Block> blocksPlaced = Main.lootPracticeBlocksPlaced.get(player.getUniqueId());
-                        blocksPlaced.add(e.getBlockPlaced());
-                        Main.lootPracticeBlocksPlaced.put(player.getUniqueId(), blocksPlaced);
-                    } else {
-                        e.setCancelled(true);
-                        player.sendMessage(ChatColor.RED + "You can't place blocks here!");
-                    }
+            if (Objects.equals(mapname, "plainsone")) {
+                if ((Utils.isLocationInLocation(block.getLocation(), new Location(Bukkit.getWorld("skywars"), 56, 95, -74), new Location(Bukkit.getWorld("skywars"), 29, -10, -59)))) {
+                    List<Block> blocksPlaced = Main.lootPracticeBlocksPlaced.get(player.getUniqueId());
+                    blocksPlaced.add(e.getBlockPlaced());
+                    Main.lootPracticeBlocksPlaced.put(player.getUniqueId(), blocksPlaced);
+                } else {
+                    e.setCancelled(true);
+                    player.sendMessage(ChatColor.RED + "You can't place blocks here!");
+                }
+            } else if (Objects.equals(mapname, "plainstwo")) {
+                if ((Utils.isLocationInLocation(block.getLocation(), new Location(Bukkit.getWorld("skywars"), 56, 95, -89), new Location(Bukkit.getWorld("skywars"), 29, -10, -74)))) {
+                    List<Block> blocksPlaced = Main.lootPracticeBlocksPlaced.get(player.getUniqueId());
+                    blocksPlaced.add(e.getBlockPlaced());
+                    Main.lootPracticeBlocksPlaced.put(player.getUniqueId(), blocksPlaced);
+                } else {
+                    e.setCancelled(true);
+                    player.sendMessage(ChatColor.RED + "You can't place blocks here!");
+                }
+            } else if (Objects.equals(mapname, "plainsthree")) {
+                if ((Utils.isLocationInLocation(block.getLocation(), new Location(Bukkit.getWorld("skywars"), 56, 95, -105), new Location(Bukkit.getWorld("skywars"), 29, -10, -90)))) {
+                    List<Block> blocksPlaced = Main.lootPracticeBlocksPlaced.get(player.getUniqueId());
+                    blocksPlaced.add(e.getBlockPlaced());
+                    Main.lootPracticeBlocksPlaced.put(player.getUniqueId(), blocksPlaced);
+                } else {
+                    e.setCancelled(true);
+                    player.sendMessage(ChatColor.RED + "You can't place blocks here!");
+                }
+            } else if (Objects.equals(mapname, "plainsfour")) {
+                if ((Utils.isLocationInLocation(block.getLocation(), new Location(Bukkit.getWorld("skywars"), 56, 95, -121), new Location(Bukkit.getWorld("skywars"), 29, -10, -106)))) {
+                    List<Block> blocksPlaced = Main.lootPracticeBlocksPlaced.get(player.getUniqueId());
+                    blocksPlaced.add(e.getBlockPlaced());
+                    Main.lootPracticeBlocksPlaced.put(player.getUniqueId(), blocksPlaced);
+                } else {
+                    e.setCancelled(true);
+                    player.sendMessage(ChatColor.RED + "You can't place blocks here!");
+                }
             }
         }
     }
