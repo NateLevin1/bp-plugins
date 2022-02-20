@@ -1151,6 +1151,10 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
                     player.sendMessage("§a✔ §7You will now be hit §aonce§7.");
                     player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 0.3f, 1.5f);
                 }
+            } else if(info.location == PlayerLocation.Spawn) {
+                if(stack.getType() == Material.NETHER_STAR) {
+                    PlayerInfo.removeFromQueue(player, true);
+                }
             }
         }
     }

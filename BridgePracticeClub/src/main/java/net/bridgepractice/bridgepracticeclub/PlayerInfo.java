@@ -134,8 +134,12 @@ public class PlayerInfo {
                 }
                 break;
             case Prebow:
-            case BridgeBot:
                 if(position > 3) {
+                    return addToQueue(player, loc);
+                }
+                break;
+            case BridgeBot:
+                if(position > 5) {
                     return addToQueue(player, loc);
                 }
                 break;
@@ -165,6 +169,7 @@ public class PlayerInfo {
         queues.get(loc).add(player.getUniqueId());
         player.sendMessage("§aYou were added to the " + Bridge.getPlayerReadableLocation(loc) + " queue!");
         announcePlace(player, loc);
+        player.getInventory().setItem(0, Bridge.makeItem(Material.NETHER_STAR, 1, "§6Leave Queue §7(Right Click)", new String[]{"§7Right click to leave the","§a"+Bridge.getPlayerReadableLocation(loc)+"§7 queue!"}, -1));
         return true;
     }
 
@@ -180,6 +185,7 @@ public class PlayerInfo {
             }
             if(wasRemoveSuccessful && tellPlayer) {
                 player.sendMessage("§6You were removed from the " + Bridge.getPlayerReadableLocation(l) + " queue!");
+                player.getInventory().setItem(0, new ItemStack(Material.AIR));
             }
         }
     }
