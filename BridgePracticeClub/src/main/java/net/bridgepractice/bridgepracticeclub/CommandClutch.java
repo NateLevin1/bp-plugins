@@ -186,7 +186,6 @@ public class CommandClutch implements CommandExecutor {
                     }
                     int difficulty = res.getInt(1);
                     boolean doubleHit = res.getBoolean(2);
-                    int clutchesTotal = res.getInt(3);
                     if(difficulty != 0 || doubleHit) {
                         info.locSettings.difficulty = difficulty;
                         info.locSettings.doubleHit = doubleHit;
@@ -197,6 +196,11 @@ public class CommandClutch implements CommandExecutor {
                             inv.setItem(4, doubleHitItem);
                         }
                         player.sendMessage("§a✔ §7Successfully loaded your settings!");
+                    }
+                    int clutchesTotal = res.getInt(3);
+                    if(res.wasNull()) {
+                        sendIntroMessage(player);
+                        clutchesTotal = 0;
                     }
                     player.getScoreboard().getTeam("clutches").setSuffix("§fhes: §a"+clutchesTotal);
                     vars.totalClutches = clutchesTotal;
@@ -457,6 +461,68 @@ public class CommandClutch implements CommandExecutor {
     }
     private void updateAttempt(Player player, Variables vars) {
         player.getScoreboard().getTeam("attempt").setSuffix("§a" + vars.attempt + "§7/" + vars.maxAttempts);
+    }
+    private void sendIntroMessage(Player player) {
+        // FIXME: we should refactor this so it is just a utils method that we can call with varargs
+        BukkitRunnable intro = new BukkitRunnable() {
+            @Override
+            public void run() {
+                player.sendMessage("\n§6"+new String(new char[54]).replace("\0", "-"));
+                player.sendMessage("\nLooks like it's your first time playing §aClutch Practice§f!");
+                player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                BukkitRunnable a = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        player.sendMessage("\nYour goal is to clutch as many times as possible");
+                        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                    }
+                };
+                BukkitRunnable b = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        player.sendMessage("\nAs you run along the bridge, a bot will hit you");
+                        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                    }
+                };
+                BukkitRunnable c = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        player.sendMessage("\nYou should then attempt to \"clutch\", which means placing blocks under you to land on");
+                        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                    }
+                };
+                BukkitRunnable d = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        player.sendMessage("\nEvery 5 attempts you will switch to a new map");
+                        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                    }
+                };
+                BukkitRunnable e = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        player.sendMessage("\nYou can select a difficulty by right clicking on the items in your inventory");
+                        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                    }
+                };
+                BukkitRunnable f = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        player.sendMessage("\nFollow the instructions on your screen to start!");
+                        player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
+                        player.sendMessage("\n§6"+new String(new char[54]).replace("\0", "-"));
+                    }
+                };
+                a.runTaskLater(Bridge.instance, 2*20);
+                b.runTaskLater(Bridge.instance, 4*20);
+                c.runTaskLater(Bridge.instance, 6*20);
+                d.runTaskLater(Bridge.instance, 8*20);
+                e.runTaskLater(Bridge.instance, 10*20);
+                f.runTaskLater(Bridge.instance, 12*20);
+            }
+        };
+
+        intro.runTaskLater(Bridge.instance, 10);
     }
 
     static class Variables {
