@@ -139,7 +139,7 @@ public class Ban extends Command {
             return true;
         }
 
-        String resetStatsSql = "xp = 0, wingPB = NULL, prebowHits = 0, bypassGoals = 0, bypassStartPB = NULL, bypassEarlyPB = NULL, bypassMiddlePB = NULL, bypassLatePB = NULL, botWinStreak = 0, botWins = 0, unrankedCurrentWinStreak = 0, unrankedAllTimeWinStreak = 0, pvpCurrentWinStreak = 0, pvpAllTimeWinStreak = 0, unrankedWins = 0, unrankedLosses = 0, pvpWins = 0, pvpLosses = 0";
+        String resetStatsSql = "xp = 0, wingPB = NULL, prebowHits = 0, bypassGoals = 0, bypassStartPB = NULL, bypassEarlyPB = NULL, bypassMiddlePB = NULL, bypassLatePB = NULL, botWinStreak = 0, botWins = 0, unrankedCurrentWinStreak = 0, unrankedAllTimeWinStreak = 0, pvpCurrentWinStreak = 0, pvpAllTimeWinStreak = 0, unrankedWins = 0, unrankedLosses = 0, pvpWins = 0, pvpLosses = 0, clutchesTotal = NULL, bypassEarlyPB2 = NULL, bypassMiddlePB2 = NULL, bypassLatePB2 = NULL";
 
         // add to database
         try(PreparedStatement statement = BPBungee.connection.prepareStatement("UPDATE players SET bannedAt = ?, bannedDays = ?, bannedReason = ?, "+resetStatsSql+" WHERE uuid=?;")) {
