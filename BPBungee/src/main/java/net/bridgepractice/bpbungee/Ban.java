@@ -17,6 +17,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class Ban extends Command {
@@ -118,6 +119,14 @@ public class Ban extends Command {
             }
 
             embed.addProperty("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
+            Long logOnTime = BPBungee.instance.playerSessionLogOnTime.get(UUID.fromString(playerUuid));
+            if(logOnTime != null) {
+                int sessionTime = Math.round((int) (((System.currentTimeMillis() - logOnTime) / 1000) / 60));
+                JsonObject footer = new JsonObject();
+                footer.addProperty("text", "They played for "+sessionTime+" mins before ban!");
+                embed.add("footer", footer);
+            }
+
 
             BPBungee.instance.getProxy().getScheduler().runAsync(BPBungee.instance, ()-> {
                 Utils.sendWebhook(webhook, errorTo);
