@@ -69,7 +69,7 @@ public class PlayerInfo {
         position = getPosition(loc);
         switch(loc) {
             case Spawn:
-                respawnLocation = new Location(Bridge.instance.world, 2.5, 100, 0.5, -90, 0);
+                respawnLocation = new Location(Bridge.instance.world, 0.5, 100, 0.5, 90, 0);
                 break;
             case Wing:
                 relXZ = new int[]{97 + (position * 19), -2};

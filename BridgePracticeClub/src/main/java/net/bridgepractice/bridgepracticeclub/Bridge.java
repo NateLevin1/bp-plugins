@@ -1015,7 +1015,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
 
                 menu.onClick.call(e.getCurrentItem(), groupName);
             }
-            if(!debug)
+            if(!(debug || e.getWhoClicked().getGameMode() == GameMode.CREATIVE))
                 e.setCancelled(true);
         }
     }
@@ -1047,6 +1047,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
     private boolean cannotPlaceBlocks(BlockPlaceEvent event, Player player) {
         Location loc = event.getBlock().getLocation();
         if(debug) return false;
+        if(player.getGameMode() == GameMode.CREATIVE) return false;
         if(loc.getY() > 99 || loc.getY() < 84) return true;
 
         AllowedLocation[] allowedPlacing = getPlayer(player.getUniqueId()).allowedPlacing;
@@ -1069,7 +1070,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         Player player = event.getPlayer();
         PlayerInfo info = getPlayer(player.getUniqueId());
         Block block = event.getBlock();
-        if(!debug)
+        if(!(debug || player.getGameMode() == GameMode.CREATIVE))
             event.setCancelled(true);
         if(info.allowedBreaking != null) {
             for(AllBreak ab : info.allowedBreaking) {
