@@ -165,7 +165,7 @@ public class CommandBypass implements CommandExecutor {
                                     leaderboard[0].setTitle("§bLate Leaderboard");
                                     break;
                             }
-                            leaderboard[0].loadColumn(info.locSettings.mode);
+                            leaderboard[0].loadColumn(info.locSettings.mode+getCurBridgeSQL());
                             if(pbs.get(info.locSettings.mode) != 0) {
                                 board.getTeam("pb").setPrefix("§e " + Bridge.prettifyNumber(pbs.get(info.locSettings.mode)));
                             } else {
@@ -246,7 +246,7 @@ public class CommandBypass implements CommandExecutor {
                                 statement.setFloat(1, timeTakenNum); // set to the new PB
                                 statement.setString(2, player.getUniqueId().toString()); // uuid, set to player uuid
                                 statement.executeUpdate();
-                                leaderboard[0].loadColumn(info.locSettings.mode); // update leaderboard
+                                leaderboard[0].loadColumn(info.locSettings.mode+getCurBridgeSQL()); // update leaderboard
                             } catch (SQLException throwables) {
                                 throwables.printStackTrace();
                                 player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your information to our database. Please open a ticket on the discord and screenshot your time!");
