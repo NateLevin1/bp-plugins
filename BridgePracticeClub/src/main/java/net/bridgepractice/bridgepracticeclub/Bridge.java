@@ -898,7 +898,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         player.chat("/spawn");
 
 
-        if(getServer().getOnlinePlayers().size() <= 15) {
+        if(getServer().getOnlinePlayers().size() <= 4) {
             event.setJoinMessage("§7[§a+§7] " + event.getPlayer().getDisplayName() + "§7 joined the server!");
         } else {
             event.setJoinMessage("");
@@ -931,7 +931,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         PlayerInfo.nextInQueue(info.location, getCommandFromPlayerLocation(info.location));
 
         event.setQuitMessage("§7[§c-§7] " + event.getPlayer().getDisplayName() + "§7 left the server.");
-        if(getServer().getOnlinePlayers().size() > 15) {
+        if(getServer().getOnlinePlayers().size() > 4) {
             event.setQuitMessage("");
         }
     }
