@@ -144,6 +144,7 @@ public class CommandClutch implements CommandExecutor {
             } else if(vars.state == State.WalkingOnGold) {
                 if(relZ > 10) {
                     Bridge.sendTitle(player, "", "", 0, 0, 0);
+                    player.playSound(player.getLocation(), Sound.ENDERDRAGON_GROWL, 0.3f, 1);
                     beginBotChase(player, vars, info, false, vars.bridgeLocation, HitDirection.Random, 1);
                 }
             }
@@ -434,7 +435,7 @@ public class CommandClutch implements CommandExecutor {
             player.playSound(player.getLocation(), Sound.VILLAGER_NO, 1, 1);
         };
         vars.npc.healthScore.setScore(999);
-        player.playSound(player.getLocation(), Sound.ENDERDRAGON_GROWL, 0.3f, 1);
+        player.playSound(player.getLocation(), Sound.FALL_SMALL, 0.3f, 0.7f);
         player.setGameMode(GameMode.SURVIVAL);
     }
     private void reset(Player player, Variables vars, PlayerInfo info) {
