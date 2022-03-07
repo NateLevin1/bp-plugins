@@ -229,6 +229,11 @@ public class CommandClutch implements CommandExecutor {
             updateAttempt(player, vars);
             // ensure that the gamemode is different every time
             do {
+                // make developed slightly more likely
+                if(Math.random() < 0.1) {
+                    gameMode = MiniMode.Developed;
+                    continue;
+                }
                 gameMode = MiniMode.values()[ThreadLocalRandom.current().nextInt(0, MiniMode.values().length)];
             } while(gameMode == vars.curGameMode);
             vars.curGameMode = gameMode;
