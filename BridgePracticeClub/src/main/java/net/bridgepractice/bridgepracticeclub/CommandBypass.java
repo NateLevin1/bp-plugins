@@ -165,7 +165,7 @@ public class CommandBypass implements CommandExecutor {
                                     leaderboard[0].setTitle("§bLate Leaderboard");
                                     break;
                             }
-                            leaderboard[0].loadColumn(info.locSettings.mode+getCurBridgeSQL());
+                            leaderboard[0].loadColumn(getCurBridgeSQLFromInfo(info));
                             if(pbs.get(info.locSettings.mode) != 0) {
                                 board.getTeam("pb").setPrefix("§e " + Bridge.prettifyNumber(pbs.get(info.locSettings.mode)));
                             } else {
@@ -218,6 +218,21 @@ public class CommandBypass implements CommandExecutor {
             }, (info) -> {
                 // on win
                 float timeTakenNum = (System.currentTimeMillis() - time[0]);
+                if(((CraftPlayer)player).getHandle().ping < 250) {
+                    if(timeTakenNum < 4000) {
+                        info.onDeath.call(info);
+                        // they are cheating. lets ban them!
+                        // FIXME: this should probably use plugin messaging channels. Oh well!
+                        try(PreparedStatement statement = Bridge.connection.prepareStatement("INSERT INTO commandQueue (target, type, content) VALUES ('proxy', 'excmd', ?);")) {
+                            statement.setString(1, "ban "+player.getName()+" 27 IMPOSSIBLE BYPASS TIME");
+                            statement.executeUpdate();
+                            return;
+                        } catch (SQLException throwables) {
+                            throwables.printStackTrace();
+                        }
+                    }
+                }
+
                 String timeTaken = Bridge.prettifyNumber(timeTakenNum);
 
                 tu[0].cancel();
@@ -242,11 +257,11 @@ public class CommandBypass implements CommandExecutor {
                     (new BukkitRunnable() {
                         @Override
                         public void run() {
-                            try(PreparedStatement statement = Bridge.connection.prepareStatement("UPDATE players SET " + info.locSettings.mode + (info.locSettings.mode.equals("bypassStartPB") ? "" : getCurBridgeSQL()) + " = ? WHERE uuid=?;")) {
+                            try(PreparedStatement statement = Bridge.connection.prepareStatement("UPDATE players SET " + getCurBridgeSQLFromInfo(info) + " = ? WHERE uuid=?;")) {
                                 statement.setFloat(1, timeTakenNum); // set to the new PB
                                 statement.setString(2, player.getUniqueId().toString()); // uuid, set to player uuid
                                 statement.executeUpdate();
-                                leaderboard[0].loadColumn(info.locSettings.mode+getCurBridgeSQL()); // update leaderboard
+                                leaderboard[0].loadColumn(getCurBridgeSQLFromInfo(info)); // update leaderboard
                             } catch (SQLException throwables) {
                                 throwables.printStackTrace();
                                 player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your information to our database. Please open a ticket on the discord and screenshot your time!");
@@ -411,5 +426,8 @@ public class CommandBypass implements CommandExecutor {
             return "";
         }
         return (curBridge+1)+"";
+    }
+    private static String getCurBridgeSQLFromInfo(PlayerInfo info) {
+        return info.locSettings.mode + (info.locSettings.mode.equals("bypassStartPB") ? "" : getCurBridgeSQL());
     }
 }
