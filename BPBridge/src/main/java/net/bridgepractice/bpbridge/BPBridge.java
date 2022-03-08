@@ -24,6 +24,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -158,6 +159,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                     plugin.generateWorld(world);
                 } catch (UnknownWorldException | IOException | CorruptedWorldException | NewerFormatException | WorldInUseException | NoSuchFieldException | IllegalAccessException e) {
                     e.printStackTrace();
+                    Utils.sendDebugErrorWebhook(e);
                 }
             }
         }).runTaskAsynchronously(this);
@@ -179,7 +181,14 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             public void run() {
                 boolean unloaded = getServer().unloadWorld(worldName, false);
                 if(!unloaded) {
-                    getLogger().severe("Could not unload world '" + worldName + "'");
+                    World world = getServer().getWorld(worldName);
+                    Utils.sendDebugErrorWebhook("Could not unload world `" + worldName + "`!" +
+                            (world == null
+                                    ? "\nNo world with that name exists!"
+                                    : "\ncurplayers="+world.getPlayers().stream().map(HumanEntity::getName)) +
+                            "\ngamesByWorld=" + gamesByWorld +
+                            "\nworldCallbackByWorldName=" + worldCallbackByWorldName +
+                            "\nworlds=" + getServer().getWorlds());
                 }
             }
         }).runTaskLater(this, 3*20);
@@ -442,7 +451,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         event.setDeathMessage("");
-        getLogger().severe("Player "+event.getEntity().getName()+" died while playing a game!");
+        Utils.sendDebugErrorWebhook("Player "+event.getEntity().getName()+" died while playing a game!");
     }
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {

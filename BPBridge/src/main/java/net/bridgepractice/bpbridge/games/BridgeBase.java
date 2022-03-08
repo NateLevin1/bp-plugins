@@ -287,12 +287,17 @@ public class BridgeBase extends Game {
                         timeTeam.setSuffix("§a" + formatted);
                 }
                 if(time <= 0) {
-                    if(redGoals == blueGoals) {
-                        onWin("draw", "f");
-                    } else if(redGoals > blueGoals) {
-                        onWin("red", "c");
-                    } else {
-                        onWin("blue", "9");
+                    cancel();
+                    try {
+                        if(redGoals == blueGoals) {
+                            onWin("draw", "f");
+                        } else if(redGoals > blueGoals) {
+                            onWin("red", "c");
+                        } else {
+                            onWin("blue", "9");
+                        }
+                    } catch(Exception e) {
+                        Utils.sendDebugErrorWebhook(e);
                     }
                 }
             }

@@ -1,8 +1,10 @@
 package net.bridgepractice.bpbridge;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.luckperms.api.model.user.User;
 import net.minecraft.server.v1_8_R3.*;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bukkit.*;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -29,6 +31,9 @@ import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -294,5 +299,38 @@ public class Utils {
             return "    PvP";
         }
         return "Unknown Mode";
+    }
+    public static void sendDebugErrorWebhook(Exception e) {
+        sendDebugErrorWebhook(ExceptionUtils.getStackTrace(e));
+    }
+
+    public static void sendDebugErrorWebhook(String s) {
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                // send a winstreak log message in the discord - this is so winstreak audits are possible
+                JsonObject webhook = new JsonObject();
+                JsonArray embeds = new JsonArray();
+                JsonObject embed = new JsonObject();
+
+                webhook.addProperty("content", "<@729682275897442344>");
+
+                webhook.add("embeds", embeds);
+                embeds.add(embed);
+
+                embed.addProperty("color", 0xff0000);
+
+                embed.addProperty("description", "```java\n" + s + "\n```");
+                embed.addProperty("title", "<a:no_animated:908859577146159204> DEBUG ERROR!");
+
+                JsonObject footer = new JsonObject();
+                footer.addProperty("text", "Something went very wrong!");
+                footer.addProperty("icon_url", "https://cdn.discordapp.com/emojis/908859577146159204.gif?v=1");
+                embed.add("footer", footer);
+                embed.addProperty("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
+
+                Utils.sendWebhookSync(webhook);
+            }
+        }).runTaskAsynchronously(BPBridge.instance);
     }
 }
