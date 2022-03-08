@@ -4,6 +4,7 @@ import net.bridgepractice.RavenAntiCheat.RavenAntiCheat;
 import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.PacketPlayOutAnimation;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -405,11 +406,17 @@ public class CommandClutch implements CommandExecutor {
                                     cancel();
                                     return;
                                 }
-                                boolean isPlayerOnGround = player.getLocation().subtract(0, 0.001, 0).getBlock().getType() != Material.AIR; // NOTE: this is inaccurate if shifting to edge; works fine for other cases
+                                Block blockUnderPlayer = player.getLocation().subtract(0, 0.001, 0).getBlock();
+                                boolean isPlayerOnGround = blockUnderPlayer.getType() != Material.AIR; // NOTE: this is inaccurate if shifting to edge; works fine for other cases
                                 long lastStateChange = vars.getTimeSinceLastStateChange();
                                 if((lastStateChange > 500 && isPlayerOnGround) // fast path
                                         || lastStateChange > clutchSecs) {
                                     cancel();
+                                    // prevent cheating :)
+                                    if(info.changedBlocks.size() == 0 || (lastStateChange < clutchSecs && !info.changedBlocks.contains(blockUnderPlayer.getLocation()))) {
+                                        info.onDeath.call(info);
+                                        return;
+                                    }
                                     // win!
                                     vars.setState(State.Winning);
                                     player.playSound(player.getLocation(), Sound.ORB_PICKUP, 1, 1);
