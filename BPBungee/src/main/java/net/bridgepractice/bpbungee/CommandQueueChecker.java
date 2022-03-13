@@ -71,7 +71,7 @@ public class CommandQueueChecker {
                             int months = rankRes.getInt("months");
                             Date dateBought = rankRes.getDate("boughtAt");
                             Date currentDate = new Date();
-                            int timeSincePurchase = dateBought.getDay() - currentDate.getDay();
+                            long timeSincePurchase = (currentDate.getTime() - dateBought.getTime()) * 1000  * 60 * 60 * 24;
 
                             BPBungee.luckPerms.getUserManager().modifyUser(UUID.fromString(content), user -> {
                                 // change tag
