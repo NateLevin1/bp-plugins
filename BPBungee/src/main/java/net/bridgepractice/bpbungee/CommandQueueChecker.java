@@ -1,11 +1,17 @@
 package net.bridgepractice.bpbungee;
 
 import net.luckperms.api.node.Node;
+import net.luckperms.api.node.NodeType;
 import net.luckperms.api.node.types.PrefixNode;
 
+import java.lang.reflect.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -49,6 +55,27 @@ public class CommandQueueChecker {
                                     // if regular dont make it expire
                                     user.data().add(Node.builder("group."+permission).build());
                                 }
+                            });
+                        } else {
+                            BPBungee.instance.getLogger().severe("Did not find a rank for uuid="+content);
+                        }
+                    }
+                } else if(type.equals("settag")) {
+                    // content is the uuid of the player who's rank changed
+                    try(PreparedStatement getRank = BPBungee.connection.prepareStatement("SELECT * FROM rankedPlayers WHERE uuid = ?;")) {
+                        getRank.setString(1, content);
+                        ResultSet rankRes = getRank.executeQuery();
+                        if(rankRes.next()) {
+                            String tag = rankRes.getString("tag");
+                            String color = rankRes.getString("color");
+                            int months = rankRes.getInt("months");
+                            Date dateBought = rankRes.getDate("boughtAt");
+                            Date currentDate = new Date();
+                            long timeSincePurchase = (currentDate.getTime() - dateBought.getTime()) / 1000 / 60 / 60 / 24;
+
+                            BPBungee.luckPerms.getUserManager().modifyUser(UUID.fromString(content), user -> {
+                                // change tag
+                                user.data().add(PrefixNode.builder("§"+color+"["+tag+"] ", 25).expiry(months * 30L - timeSincePurchase, TimeUnit.DAYS).build());
                             });
                         } else {
                             BPBungee.instance.getLogger().severe("Did not find a rank for uuid="+content);
