@@ -1,11 +1,17 @@
 package net.bridgepractice.bpbungee;
 
 import net.luckperms.api.node.Node;
+import net.luckperms.api.node.NodeType;
 import net.luckperms.api.node.types.PrefixNode;
 
+import java.lang.reflect.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -54,13 +60,36 @@ public class CommandQueueChecker {
                             BPBungee.instance.getLogger().severe("Did not find a rank for uuid="+content);
                         }
                     }
+                } else if(type.equals("settag")) {
+                    // content is the uuid of the player who's rank changed
+                    try(PreparedStatement getRank = BPBungee.connection.prepareStatement("SELECT * FROM rankedPlayers WHERE uuid = ?;")) {
+                        getRank.setString(1, content);
+                        ResultSet rankRes = getRank.executeQuery();
+                        if(rankRes.next()) {
+                            String tag = rankRes.getString("tag");
+                            String color = rankRes.getString("color");
+                            int months = rankRes.getInt("months");
+                            String boughtAt = rankRes.getString("boughtAt").substring(0,9);
+                            SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd");
+                            Date dateBought = parser.parse(boughtAt);
+                            Date currentDate = new Date();
+                            int timeSincePurchase = dateBought.getDay() - currentDate.getDay();
+
+                            BPBungee.luckPerms.getUserManager().modifyUser(UUID.fromString(content), user -> {
+                                // change tag
+                                user.data().add(PrefixNode.builder("§"+color+"["+tag+"] ", 25).expiry(months * 30L -timeSincePurchase , TimeUnit.DAYS).build());
+                            });
+                        } else {
+                            BPBungee.instance.getLogger().severe("Did not find a rank for uuid="+content);
+                        }
+                    }
                 }
             }
             // remove all of it
             try(PreparedStatement deleteStatement = BPBungee.connection.prepareStatement("DELETE FROM commandQueue WHERE target='proxy';")) {
                 deleteStatement.executeUpdate();
             }
-        } catch (SQLException exception) {
+        } catch (SQLException | ParseException exception) {
             exception.printStackTrace();
         }
     }
