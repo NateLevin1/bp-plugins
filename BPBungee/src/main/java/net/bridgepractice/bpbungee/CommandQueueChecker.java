@@ -69,15 +69,13 @@ public class CommandQueueChecker {
                             String tag = rankRes.getString("tag");
                             String color = rankRes.getString("color");
                             int months = rankRes.getInt("months");
-                            String boughtAt = rankRes.getString("boughtAt").substring(0,9);
-                            SimpleDateFormat parser = new SimpleDateFormat("yyyy-MM-dd");
-                            Date dateBought = parser.parse(boughtAt);
+                            Date dateBought = rankRes.getDate("boughtAt");
                             Date currentDate = new Date();
                             int timeSincePurchase = dateBought.getDay() - currentDate.getDay();
 
                             BPBungee.luckPerms.getUserManager().modifyUser(UUID.fromString(content), user -> {
                                 // change tag
-                                user.data().add(PrefixNode.builder("§"+color+"["+tag+"] ", 25).expiry(months * 30L -timeSincePurchase , TimeUnit.DAYS).build());
+                                user.data().add(PrefixNode.builder("§"+color+"["+tag+"] ", 25).expiry(months * 30L - timeSincePurchase, TimeUnit.DAYS).build());
                             });
                         } else {
                             BPBungee.instance.getLogger().severe("Did not find a rank for uuid="+content);
@@ -89,7 +87,7 @@ public class CommandQueueChecker {
             try(PreparedStatement deleteStatement = BPBungee.connection.prepareStatement("DELETE FROM commandQueue WHERE target='proxy';")) {
                 deleteStatement.executeUpdate();
             }
-        } catch (SQLException | ParseException exception) {
+        } catch (SQLException exception) {
             exception.printStackTrace();
         }
     }
