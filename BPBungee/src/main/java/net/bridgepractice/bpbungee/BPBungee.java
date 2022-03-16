@@ -321,7 +321,7 @@ public class BPBungee extends Plugin implements Listener {
 
 
         String chatChannel = playerChatChannels.get(player.getUniqueId());
-        if (chatChannel != null && chatChannel.equals("staff")) {
+        if (chatChannel != null && chatChannel.equals("staff") && !event.isCommand()) {
             event.setCancelled(true);
             String text = event.getMessage();
             StaffChat.sendToStaffChat(player.getDisplayName(), text);
