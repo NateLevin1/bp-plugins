@@ -300,8 +300,8 @@ public class Utils {
         }
         return "Unknown Mode";
     }
-    public static void sendDebugErrorWebhook(Exception e) {
-        sendDebugErrorWebhook(ExceptionUtils.getStackTrace(e));
+    public static void sendDebugErrorWebhook(String startMsg, Exception e) {
+        sendDebugErrorWebhook(startMsg+"\n"+ExceptionUtils.getStackTrace(e));
     }
 
     public static void sendDebugErrorWebhook(String s) {
@@ -332,5 +332,20 @@ public class Utils {
                 Utils.sendWebhookSync(webhook);
             }
         }).runTaskAsynchronously(BPBridge.instance);
+    }
+
+    public static String getGameDebugInfo(String worldName) {
+        Game game = BPBridge.instance.gamesByWorld.get(worldName);
+        if(game == null) {
+            return "\nNo game with that world name exists!";
+        }
+        World world = game.world;
+        String curPlayers;
+        if(world != null) {
+            curPlayers = world.getPlayers().toString();
+        } else {
+            curPlayers = "world is null";
+        }
+        return "\nGame Info:\n**State**: "+game.state+"\n**All Players**: "+game.allPlayers+"\n**Cur Players**: "+curPlayers;
     }
 }

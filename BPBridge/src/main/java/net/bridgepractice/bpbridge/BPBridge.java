@@ -159,7 +159,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                     plugin.generateWorld(world);
                 } catch (UnknownWorldException | IOException | CorruptedWorldException | NewerFormatException | WorldInUseException | NoSuchFieldException | IllegalAccessException e) {
                     e.printStackTrace();
-                    Utils.sendDebugErrorWebhook(e);
+                    Utils.sendDebugErrorWebhook("Error loading world:\n"+e);
                 }
             }
         }).runTaskAsynchronously(this);
@@ -185,10 +185,8 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                     Utils.sendDebugErrorWebhook("Could not unload world `" + worldName + "`!" +
                             (world == null
                                     ? "\nNo world with that name exists!"
-                                    : "\ncurplayers="+world.getPlayers().stream().map(HumanEntity::getName)) +
-                            "\ngamesByWorld=" + gamesByWorld +
-                            "\nworldCallbackByWorldName=" + worldCallbackByWorldName +
-                            "\nworlds=" + getServer().getWorlds());
+                                    : "\ncurplayers="+world.getPlayers()) +
+                            Utils.getGameDebugInfo(worldName));
                 }
             }
         }).runTaskLater(this, 3*20);
@@ -382,6 +380,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                     if(player.getHealth() - event.getFinalDamage() < 0) {
                         // just in case
                         event.setCancelled(true);
+                        Utils.sendDebugErrorWebhook("Player "+player.getName()+" died to the void while playing a game!"+Utils.getGameDebugInfo(player.getWorld().getName()));
                         player.sendMessage("§c§lUh oh! §cSomething went wrong in that server. If this continues, please open a ticket on the Discord!");
                         connectPlayerToLobby(player);
                     }
@@ -451,7 +450,10 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
         event.setDeathMessage("");
-        Utils.sendDebugErrorWebhook("Player "+event.getEntity().getName()+" died while playing a game!");
+        Player player = event.getEntity();
+        Utils.sendDebugErrorWebhook("Player "+player.getName()+" died while playing a game!"+Utils.getGameDebugInfo(player.getWorld().getName()));
+        player.sendMessage("§cError: You died while in a multiplayer game!\n§eThis issue has been automatically reported, and you can ignore this message.");
+        connectPlayerToLobby(player);
     }
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {

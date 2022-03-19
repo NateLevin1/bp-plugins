@@ -297,7 +297,7 @@ public class BridgeBase extends Game {
                             onWin("blue", "9");
                         }
                     } catch(Exception e) {
-                        Utils.sendDebugErrorWebhook(e);
+                        Utils.sendDebugErrorWebhook("Error in timeUpdate runnable calling onWin!", e);
                     }
                 }
             }
