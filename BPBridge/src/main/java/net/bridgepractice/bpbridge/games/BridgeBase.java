@@ -874,10 +874,9 @@ public class BridgeBase extends Game {
                         endGame();
                         return;
                     }
-                    if(BPBridge.instance.getServer().getOnlinePlayers().size() > 1) { // we need to ensure that there are players online so we can send a message to bungeecord
-                        BPBridge.instance.removeFromQueueable(world.getName(), gameType);
-                        endGame();
-                    }
+
+                    BPBridge.instance.removeFromQueueable(world.getName(), gameType);
+                    endGame();
                 }
             }
         }

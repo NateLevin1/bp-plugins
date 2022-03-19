@@ -51,9 +51,7 @@ import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class BPBridge extends JavaPlugin implements Listener, PluginMessageListener {
@@ -293,6 +291,19 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         }
         player.setGameMode(GameMode.ADVENTURE);
 
+        // try to send the plugin messages that we weren't able to send because nobody was online
+        // we can't do it immediately so we put it in this runnable
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                // it is possible that they logged off since joining, lets make sure they haven't
+                if(player.isOnline()) {
+                    while(!pluginMessagesToSend.isEmpty()) {
+                        player.sendPluginMessage(instance, "BungeeCord", pluginMessagesToSend.remove());
+                    }
+                }
+            }
+        }).runTaskLater(this, 10);
 
         JoiningPlayer joiningPlayer = joiningPlayers.get(player.getName());
         if(joiningPlayer != null) {
@@ -616,13 +627,22 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         out.writeUTF(world.getName());
         player.sendPluginMessage(instance, "BungeeCord", out.toByteArray());
     }
+    Queue<byte[]> pluginMessagesToSend = new PriorityQueue<>();
     public void removeFromQueueable(String worldName, String gameMode) {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("RemoveGameQueueing");
         out.writeUTF(gameMode);
         out.writeUTF(worldName);
-        Player sender = Objects.requireNonNull(Iterables.getFirst(getServer().getOnlinePlayers(), null));
-        sender.sendPluginMessage(this, "BungeeCord", out.toByteArray());
+        byte[] bytes = out.toByteArray();
+        // if at least 1 player is online
+        if(getServer().getOnlinePlayers().size() > 1) {
+            // we can send the plugin message now
+            Player sender = Objects.requireNonNull(Iterables.getFirst(getServer().getOnlinePlayers(), null));
+            sender.sendPluginMessage(this, "BungeeCord", bytes);
+        } else {
+            // otherwise we have to add to queue, and we will send when any player logs on
+            pluginMessagesToSend.add(bytes);
+        }
     }
 
     @Override
