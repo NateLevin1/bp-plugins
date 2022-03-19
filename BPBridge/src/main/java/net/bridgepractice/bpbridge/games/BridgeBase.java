@@ -870,12 +870,23 @@ public class BridgeBase extends Game {
                     }
                     BPBridge.instance.sendCreateQueuePluginMessage(allPlayers.get(0), gameType); // we don't use `.createQueue` because that will change the game info
                 } else {
+                    // when the game hasn't queued and nobody is left
                     if(!shouldCountAsStats) {
                         endGame();
                         return;
                     }
 
-                    BPBridge.instance.removeFromQueueable(world.getName(), gameType);
+                    // for some reason, players that are leaving are counted as being online in Bukkit.getOnlinePlayers();
+                    // since we can't send a plugin message through a player who is soon going to be offline,
+                    // we have to delay a little in removing this game from the proxy's queueable games.
+                    // Note: if somebody tries to queue this game during this short time period, they will see an error
+                    //       message that says that they tried to queue a non-existent game. This is acceptable behavior.
+                    (new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            BPBridge.instance.removeFromQueueable(world.getName(), gameType);
+                        }
+                    }).runTaskLater(BPBridge.instance, 5);
                     endGame();
                 }
             }

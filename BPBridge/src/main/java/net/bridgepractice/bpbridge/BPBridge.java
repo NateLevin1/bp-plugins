@@ -635,7 +635,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         out.writeUTF(worldName);
         byte[] bytes = out.toByteArray();
         // if at least 1 player is online
-        if(getServer().getOnlinePlayers().size() > 1) {
+        if(getServer().getOnlinePlayers().size() >= 1) {
             // we can send the plugin message now
             Player sender = Objects.requireNonNull(Iterables.getFirst(getServer().getOnlinePlayers(), null));
             sender.sendPluginMessage(this, "BungeeCord", bytes);
