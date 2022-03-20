@@ -12,3 +12,7 @@ commands:
     description: Unload a world
     usage: /unloadworld <worldname>
     permission: group.admin
+  getgameinfo:
+    description: Get a game's info
+    usage: /getgameinfo (player|worldName) <value>
+    permission: group.admin

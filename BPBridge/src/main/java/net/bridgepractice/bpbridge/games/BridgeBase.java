@@ -1000,4 +1000,26 @@ public class BridgeBase extends Game {
     public Location getRedSpawnLoc() {
         return redSpawnLoc;
     }
+
+    public String toString() {
+        String res = bridgeModifier.getPrettyGameType()+" {\n";
+        res += " players: {\n";
+        res += "  redTeamPlayers: "+redTeamPlayers+"\n";
+        res += "  blueTeamPlayers: "+blueTeamPlayers+"\n";
+        res += "  allPlayers: "+allPlayers+"\n";
+        res += " }\n";
+        res += " goals: {\n";
+        res += "  redGoals: "+redGoals+"\n";
+        res += "  blueGoals: "+blueGoals+"\n";
+        res += " }\n";
+        res += " bridgeModifier: {\n";
+        res += "  getGameType: "+bridgeModifier.getGameType()+"\n";
+        res += "  getNameForScore: "+bridgeModifier.getNameForScore()+"\n";
+        res += " }\n";
+        res += " state: "+state+"\n";
+        res += " secsSinceStart: "+((System.currentTimeMillis()-(isQueueing() ? System.currentTimeMillis() : startTime)) / 1000)+"\n";
+        res += " worldName: "+world.getName()+"\n";
+        res += "}";
+        return res;
+    }
 }

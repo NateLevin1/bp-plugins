@@ -100,6 +100,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
 
         getCommand("map").setExecutor(new MapCommand());
         getCommand("unloadworld").setExecutor(new UnloadWorld());
+        getCommand("getgameinfo").setExecutor(new GetGameInfo());
 
         Utils.loadCages();
 
