@@ -99,6 +99,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         slimeProperties.setString(SlimeProperties.DIFFICULTY, "peaceful");
 
         getCommand("map").setExecutor(new MapCommand());
+        getCommand("unloadworld").setExecutor(new UnloadWorld());
 
         Utils.loadCages();
 
@@ -177,17 +178,21 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         (new BukkitRunnable() {
             @Override
             public void run() {
-                boolean unloaded = getServer().unloadWorld(worldName, false);
-                if(!unloaded) {
-                    World world = getServer().getWorld(worldName);
-                    Utils.sendDebugErrorWebhook("Could not unload world `" + worldName + "`!" +
-                            (world == null
-                                    ? "\nNo world with that name exists!"
-                                    : "\ncurplayers="+world.getPlayers()) +
-                            Utils.getGameDebugInfo(worldName));
-                }
+                internalUnloadWorld(worldName);
             }
         }).runTaskLater(this, 3*20);
+    }
+    public boolean internalUnloadWorld(String worldName) {
+        boolean unloaded = getServer().unloadWorld(worldName, false);
+        if(!unloaded) {
+            World world = getServer().getWorld(worldName);
+            Utils.sendDebugErrorWebhook("Could not unload world `" + worldName + "`!" +
+                    (world == null
+                            ? "\nNo world with that name exists!"
+                            : "\ncurplayers="+world.getPlayers()) +
+                    Utils.getGameDebugInfo(worldName));
+        }
+        return unloaded;
     }
 
     private void handlePlayerJoiningGame(Player player, JoiningPlayer joiningPlayer) {

@@ -8,3 +8,7 @@ commands:
   map:
     description: Get the map you are currently playing
     usage: /map
+  unloadworld:
+    description: Unload a world
+    usage: /unloadworld <worldname>
+    permission: group.admin
