@@ -474,7 +474,8 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
     public void onPlayerDeath(PlayerDeathEvent event) {
         event.setDeathMessage("");
         Player player = event.getEntity();
-        Utils.sendDebugErrorWebhook("Player "+player.getName()+" died while playing a game!"+Utils.getGameDebugInfo(player.getWorld().getName()));
+
+        Utils.sendDebugErrorWebhook("Player "+player.getName()+" died while playing a game!\nDeath message: '"+event.getDeathMessage()+"'"+Utils.getGameDebugInfo(player.getWorld().getName()));
         player.sendMessage("§cError: You died while in a multiplayer game!\n§eThis issue has been automatically reported, and you can ignore this message.");
         connectPlayerToLobby(player);
     }
