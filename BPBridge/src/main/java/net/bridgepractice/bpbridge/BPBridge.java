@@ -404,6 +404,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                         event.setCancelled(true);
                         Utils.sendDebugErrorWebhook("Player "+player.getName()+" died to the void while playing a game!"+Utils.getGameDebugInfo(player.getWorld().getName()));
                         player.sendMessage("§c§lUh oh! §cSomething went wrong in that server. If this continues, please open a ticket on the Discord!");
+                        player.getLocation().setY(100);
                         connectPlayerToLobby(player);
                     }
                     break;
