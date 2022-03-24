@@ -184,9 +184,14 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         }).runTaskLater(this, 3*20);
     }
     public boolean internalUnloadWorld(String worldName) {
+        World world = getServer().getWorld(worldName);
+        if(world != null) {
+            for(Player player : world.getPlayers()) {
+                player.kickPlayer("§cThe world you were in was unloaded!");
+            }
+        }
         boolean unloaded = getServer().unloadWorld(worldName, false);
         if(!unloaded) {
-            World world = getServer().getWorld(worldName);
             Utils.sendDebugErrorWebhook("Could not unload world `" + worldName + "`!" +
                     (world == null
                             ? "\nNo world with that name exists!"
