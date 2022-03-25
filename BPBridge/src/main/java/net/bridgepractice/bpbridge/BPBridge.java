@@ -205,6 +205,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         World joiningPlayerWorld = joiningPlayer.getWorld();
         if(joiningPlayerWorld == null) {
             // force remove
+            teleportPlayerToMainWorld(player);
             removeFromQueueable(joiningPlayer.getWorldName(), "unranked");
             removeFromQueueable(joiningPlayer.getWorldName(), "pvp");
             (new BukkitRunnable() {
@@ -219,6 +220,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         Game game = gamesByWorld.get(joiningPlayerWorld.getName());
         if(game == null) {
             player.sendMessage("§c§lUh oh! §cSomething went wrong sending you to the server. If this continues, please open a ticket on the Discord!");
+            teleportPlayerToMainWorld(player);
             (new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -232,6 +234,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
     private void handlePlayerJoiningPrivateGame(Player player, JoiningPlayer joiningPlayer) {
         World joiningPlayerWorld = joiningPlayer.getWorld();
         if(joiningPlayerWorld == null) {
+            teleportPlayerToMainWorld(player);
             (new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -256,6 +259,9 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         out.writeUTF("Connect");
         out.writeUTF("lobby");
         player.sendPluginMessage(instance, "BungeeCord", out.toByteArray());
+    }
+    public void teleportPlayerToMainWorld(Player player) {
+        player.teleport(new Location(getServer().getWorld("world2"), 0.5, 99, 0.5));
     }
 
     public Game gameOfPlayer(Player player) {
@@ -329,7 +335,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             joiningPlayers.remove(player.getName());
         } else {
             // loading
-            player.teleport(new Location(getServer().getWorld("world2"), 0.5, 99, 0.5));
+            teleportPlayerToMainWorld(player);
             player.sendMessage("§cLoading your game...");
 
             // check if something is wrong
