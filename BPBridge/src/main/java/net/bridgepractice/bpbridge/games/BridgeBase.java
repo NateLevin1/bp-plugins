@@ -115,6 +115,15 @@ public class BridgeBase extends Game {
             BPBridge.instance.removeFromQueueable(world.getName(), gameType);
             player.sendMessage("§c§lUh Oh!§c Something went wrong sending you to that server! (Queued a game that had already started)");
             BPBridge.connectPlayerToLobby(player);
+            (new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if(player.isOnline()) {
+                        player.kickPlayer("§cYou were stuck in a bugged server!\nPlease report this to the discord:\n§bhttps://bridgepractice.net/discord");
+                    }
+                }
+            }).runTaskLater(BPBridge.instance, 2*20);
+            return;
         }
         player.getInventory().clear();
         ItemStack empty = new ItemStack(Material.AIR);
