@@ -53,6 +53,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 
 public class BPBridge extends JavaPlugin implements Listener, PluginMessageListener {
     public static BPBridge instance;
@@ -107,6 +109,26 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         // Right now, we don't do much with the LC API. In the future, we should
         // add a level head implementation for ranked players!
         lunarClientAPI = LunarClientAPI.getInstance();
+
+        getLogger().addHandler(new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                if(record.getThrown() instanceof Exception) {
+                    Utils.sendDebugErrorWebhook("Logger caught error: " + record.getMessage()
+                            + " (thread="+record.getThreadID()
+                            + ", sec="+(record.getMillis()/1000)+" )",
+                            ((Exception) record.getThrown()));
+                }
+            }
+            @Override
+            public void flush() {
+                // do nothing
+            }
+            @Override
+            public void close() throws SecurityException {
+                // do nothing
+            }
+        });
     }
     @Override
     public void onDisable() {
