@@ -337,7 +337,7 @@ public class Utils {
     public static String getGameDebugInfo(String worldName) {
         Game game = BPBridge.instance.gamesByWorld.get(worldName);
         if(game == null) {
-            return "\nNo game with th world name "+worldName+" exists!";
+            return "\nNo game with the world name "+worldName+" exists!";
         }
         World world = game.world;
         String curPlayers;
