@@ -48,7 +48,17 @@ public class Unban extends Command {
                 removeFromBannedIps.setString(1, playerUuid); // uuid, set to player uuid
                 removeFromBannedIps.executeUpdate();
             }
-        } catch (SQLException throwables) {
+
+            // send a webhook
+            String bannerName;
+            if(sender != null) {
+                bannerName = sender.getName();
+            } else {
+                bannerName = "[Automatic]";
+            }
+
+            Utils.sendPunishmentWebhook(false, "unbanned", "[Unban of above uuid]", -1, bannerName, "c06f8906-4c8a-4911-9c29-ea1dbd1aab82", playerUuid, sender);
+        } catch (Exception throwables) {
             throwables.printStackTrace();
             if(sender != null) {
                 sender.sendMessage(new ComponentBuilder("SQL error thrown: " + throwables.getMessage()).color(ChatColor.RED).create());
