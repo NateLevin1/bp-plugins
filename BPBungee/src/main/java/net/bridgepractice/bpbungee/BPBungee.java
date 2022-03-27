@@ -144,7 +144,7 @@ public class BPBungee extends Plugin implements Listener {
                         event.setCancelled(true);
                         return;
                     } else {
-                        Unban.applyUnban(uuid.toString(), null);
+                        Unban.applyUnban(res.getString("uuid"), null);
                     }
                 }
             }
