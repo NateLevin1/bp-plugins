@@ -669,7 +669,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         out.writeUTF(world.getName());
         player.sendPluginMessage(instance, "BungeeCord", out.toByteArray());
     }
-    Queue<byte[]> pluginMessagesToSend = new PriorityQueue<>();
+    Queue<byte[]> pluginMessagesToSend = new ArrayDeque<>();
     public void removeFromQueueable(String worldName, String gameMode) {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("RemoveGameQueueing");
