@@ -281,6 +281,14 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         out.writeUTF("Connect");
         out.writeUTF("lobby");
         player.sendPluginMessage(instance, "BungeeCord", out.toByteArray());
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                if(player.isOnline()) {
+                    player.kickPlayer("§cYou were stuck in a bugged server!\nPlease report this to the discord:\n§bhttps://bridgepractice.net/discord");
+                }
+            }
+        }).runTaskLater(BPBridge.instance, 15);
     }
     public void teleportPlayerToMainWorld(Player player) {
         player.teleport(new Location(getServer().getWorld("world2"), 0.5, 99, 0.5));
