@@ -793,7 +793,7 @@ public class BridgeBase extends Game {
                 embed.add("thumbnail", thumbnail);
 
                 JsonObject footer = new JsonObject();
-                footer.addProperty("text", losingPlayer.getName() + " lost their ws to " + winningPlayer.getName() + " [" + losingPlayerWs + "]");
+                footer.addProperty("text", losingPlayer.getName() + " lost their ws to " + winningPlayer.getName() + " [" + losingPlayerWs + "]\nWorld: " + world.getName());
                 embed.add("footer", footer);
 
                 embed.addProperty("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
