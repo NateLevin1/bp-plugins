@@ -83,111 +83,117 @@ public class BridgeBase extends Game {
     }
 
     public void onPlayerJoinImpl(Player player) {
-        player.teleport(redSpawnLoc);
-        player.getInventory().setHeldItemSlot(0);
-        loadPlayerSidebar(player);
-        if(redTeamPlayers.size() < desiredPlayersPerTeam) {
-            if(redTeamPlayers.size() == 0 && bridgeModifier.shouldUseCages()) {
-                (new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        Cage playerCage = Utils.getCageSync(player);
-                        redCage = new Structure(Utils.cages[playerCage.ordinal()].getRed());
-                    }
-                }).runTaskAsynchronously(BPBridge.instance);
-            }
-            redTeamPlayers.add(player);
-            allRedPlayersPossiblyOnline.add(player);
-        } else if(blueTeamPlayers.size() < desiredPlayersPerTeam) {
-            if(blueTeamPlayers.size() == 0 && bridgeModifier.shouldUseCages()) {
-                (new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        Cage playerCage = Utils.getCageSync(player);
-                        blueCage = new Structure(Utils.cages[playerCage.ordinal()].getBlue());
-                    }
-                }).runTaskAsynchronously(BPBridge.instance);
-            }
-            blueTeamPlayers.add(player);
-            allBluePlayersPossiblyOnline.add(player);
-        } else {
-            // UH OH!
-            BPBridge.instance.removeFromQueueable(world.getName(), gameType);
-            player.sendMessage("§c§lUh Oh!§c Something went wrong sending you to that server! (Queued a game that had already started)");
-            BPBridge.connectPlayerToLobby(player);
-            return;
-        }
-        player.getInventory().clear();
-        ItemStack empty = new ItemStack(Material.AIR);
-        player.getInventory().setHelmet(empty);
-        player.getInventory().setChestplate(empty);
-        player.getInventory().setLeggings(empty);
-        player.getInventory().setBoots(empty);
-        player.setAllowFlight(false);
-        player.setGameMode(GameMode.ADVENTURE);
-        // clear potion effects
-        for(PotionEffect effect : player.getActivePotionEffects()) {
-            player.removePotionEffect(effect.getType());
-        }
-        player.getInventory().setItem(8, Utils.makeItem(Material.BED, "§c§lReturn to Lobby §7(Right Click)", "§7Right-click to leave to the lobby!"));
-        loadPlayerHotbar(player, redTeamPlayers.contains(player));
-        Scoreboard board = Utils.createScoreboard("§b§lBridge §c§lPractice", new String[]{
-                "%top%§7" + formattedDate + "% §8" + world.getName().substring(world.getName().indexOf("-") + 1).substring(0, 5),
-                "",
-                "§fMap: §a" + Maps.humanReadableMapName(map),
-                "%players%§fPlayers: ",
-                "",
-                "%timer%§fWaiting...",
-                "",
-                "§ebridgepractice.net"
-        });
-        Team hidden = board.registerNewTeam("hidden");
-        hidden.setPrefix("§7§k");
-        player.setScoreboard(board);
-        player.sendMessage("\n");
-        String joinMessage = "§7§k" + StringUtils.repeat("x", player.getName().length()) + "§e has joined (§b" + allPlayers.size() + "§e/§b" + (desiredPlayersPerTeam * 2) + "§e)!";
-        for(Player p : allPlayers) {
-            hidden.addEntry(p.getName());
-            p.getScoreboard().getTeam("hidden").addEntry(player.getName());
-            p.sendMessage(joinMessage);
-            // if we dont hide then show the player then players randomly turn invisible. still don't know why
-            p.hidePlayer(player);
-            p.showPlayer(player);
-        }
-        for(Player p : allPlayers) {
-            p.getScoreboard().getTeam("players").setSuffix("§a" + allPlayers.size() + "/" + (desiredPlayersPerTeam * 2));
-        }
-        if(redTeamPlayers.size() == desiredPlayersPerTeam && blueTeamPlayers.size() == desiredPlayersPerTeam) {
-            // teams are full, lets remove from queuing games and get it started!
-            BPBridge.instance.removeFromQueueable(world.getName(), gameType);
-
-            startTimer = (new BukkitRunnable() {
-                private int times = 0;
-                @Override
-                public void run() {
-                    if(times > 4) {
-                        startTimer = null;
-                        start();
-                        this.cancel();
-                        return;
-                    }
-
-                    int secsLeft = 5 - times;
-
-                    for(Player p : allPlayers) {
-                        Team timerTeam = p.getScoreboard().getTeam("timer");
-                        if(timerTeam != null) {
-                            timerTeam.setPrefix("§fStarting in ");
-                            timerTeam.setSuffix("§a" + secsLeft + "s");
+        // FIXME: remove this try/catch
+        try {
+            player.teleport(redSpawnLoc);
+            player.getInventory().setHeldItemSlot(0);
+            loadPlayerSidebar(player);
+            if(redTeamPlayers.size() < desiredPlayersPerTeam) {
+                if(redTeamPlayers.size() == 0 && bridgeModifier.shouldUseCages()) {
+                    (new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            Cage playerCage = Utils.getCageSync(player);
+                            redCage = new Structure(Utils.cages[playerCage.ordinal()].getRed());
                         }
-                        p.sendMessage("§eThe game starts in §c" + secsLeft + " §esecond" + (secsLeft == 1 ? "" : "s") + "!");
-                        p.playSound(p.getLocation(), Sound.NOTE_STICKS, 1f, 1);
-                        Utils.sendTitle(p, "§" + (secsLeft > 3 ? "e" : "c") + secsLeft, "", 0, 0, 25);
-                    }
-
-                    times++;
+                    }).runTaskAsynchronously(BPBridge.instance);
                 }
-            }).runTaskTimer(BPBridge.instance, 0, 20);
+                redTeamPlayers.add(player);
+                allRedPlayersPossiblyOnline.add(player);
+            } else if(blueTeamPlayers.size() < desiredPlayersPerTeam) {
+                if(blueTeamPlayers.size() == 0 && bridgeModifier.shouldUseCages()) {
+                    (new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            Cage playerCage = Utils.getCageSync(player);
+                            blueCage = new Structure(Utils.cages[playerCage.ordinal()].getBlue());
+                        }
+                    }).runTaskAsynchronously(BPBridge.instance);
+                }
+                blueTeamPlayers.add(player);
+                allBluePlayersPossiblyOnline.add(player);
+            } else {
+                // UH OH!
+                BPBridge.instance.removeFromQueueable(world.getName(), gameType);
+                player.sendMessage("§c§lUh Oh!§c Something went wrong sending you to that server! (Queued a game that had already started)");
+                BPBridge.connectPlayerToLobby(player);
+                return;
+            }
+            player.getInventory().clear();
+            ItemStack empty = new ItemStack(Material.AIR);
+            player.getInventory().setHelmet(empty);
+            player.getInventory().setChestplate(empty);
+            player.getInventory().setLeggings(empty);
+            player.getInventory().setBoots(empty);
+            player.setAllowFlight(false);
+            player.setGameMode(GameMode.ADVENTURE);
+            // clear potion effects
+            for(PotionEffect effect : player.getActivePotionEffects()) {
+                player.removePotionEffect(effect.getType());
+            }
+            player.getInventory().setItem(8, Utils.makeItem(Material.BED, "§c§lReturn to Lobby §7(Right Click)", "§7Right-click to leave to the lobby!"));
+            loadPlayerHotbar(player, redTeamPlayers.contains(player));
+            Scoreboard board = Utils.createScoreboard("§b§lBridge §c§lPractice", new String[]{
+                    "%top%§7" + formattedDate + "% §8" + world.getName().substring(world.getName().indexOf("-") + 1).substring(0, 5),
+                    "",
+                    "§fMap: §a" + Maps.humanReadableMapName(map),
+                    "%players%§fPlayers: ",
+                    "",
+                    "%timer%§fWaiting...",
+                    "",
+                    "§ebridgepractice.net"
+            });
+            Team hidden = board.registerNewTeam("hidden");
+            hidden.setPrefix("§7§k");
+            player.setScoreboard(board);
+            player.sendMessage("\n");
+            String joinMessage = "§7§k" + StringUtils.repeat("x", player.getName().length()) + "§e has joined (§b" + allPlayers.size() + "§e/§b" + (desiredPlayersPerTeam * 2) + "§e)!";
+            for(Player p : allPlayers) {
+                hidden.addEntry(p.getName());
+                p.getScoreboard().getTeam("hidden").addEntry(player.getName());
+                p.sendMessage(joinMessage);
+                // if we dont hide then show the player then players randomly turn invisible. still don't know why
+                p.hidePlayer(player);
+                p.showPlayer(player);
+            }
+            for(Player p : allPlayers) {
+                p.getScoreboard().getTeam("players").setSuffix("§a" + allPlayers.size() + "/" + (desiredPlayersPerTeam * 2));
+            }
+            if(redTeamPlayers.size() == desiredPlayersPerTeam && blueTeamPlayers.size() == desiredPlayersPerTeam) {
+                // teams are full, lets remove from queuing games and get it started!
+                BPBridge.instance.removeFromQueueable(world.getName(), gameType);
+
+                startTimer = (new BukkitRunnable() {
+                    private int times = 0;
+                    @Override
+                    public void run() {
+                        if(times > 4) {
+                            startTimer = null;
+                            start();
+                            this.cancel();
+                            return;
+                        }
+
+                        int secsLeft = 5 - times;
+
+                        for(Player p : allPlayers) {
+                            Team timerTeam = p.getScoreboard().getTeam("timer");
+                            if(timerTeam != null) {
+                                timerTeam.setPrefix("§fStarting in ");
+                                timerTeam.setSuffix("§a" + secsLeft + "s");
+                            }
+                            p.sendMessage("§eThe game starts in §c" + secsLeft + " §esecond" + (secsLeft == 1 ? "" : "s") + "!");
+                            p.playSound(p.getLocation(), Sound.NOTE_STICKS, 1f, 1);
+                            Utils.sendTitle(p, "§" + (secsLeft > 3 ? "e" : "c") + secsLeft, "", 0, 0, 25);
+                        }
+
+                        times++;
+                    }
+                }).runTaskTimer(BPBridge.instance, 0, 20);
+            }
+        } catch(Exception e) {
+            Utils.sendDebugErrorWebhook("Exception in onPlayerJoinImpl: ", e);
+            throw e;
         }
     }
     public void startImpl() {
