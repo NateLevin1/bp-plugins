@@ -91,7 +91,12 @@ public abstract class Game {
     public final void start() {
         state = State.Playing;
         for(Player player : allPlayers) {
-            player.getInventory().setContents(inventories.get(player.getUniqueId()).getContents());
+            if(!player.isOnline()) {
+                Utils.sendDebugErrorWebhook("Starting game with the offline player '"+player.getName()+"'!"+Utils.getGameDebugInfo(world.getName()));
+            }
+            player.getInventory().setContents(
+                    inventories.get(player.getUniqueId()).getContents()
+            );
         }
         startImpl();
     }

@@ -20,9 +20,15 @@ import net.bridgepractice.bpbridge.bridgemodifiers.UnrankedModifier;
 import net.bridgepractice.bpbridge.games.BridgeBase;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
+import net.minecraft.server.v1_8_R3.ExceptionWorldConflict;
+import net.minecraft.server.v1_8_R3.IProgressUpdate;
+import net.minecraft.server.v1_8_R3.MinecraftServer;
+import net.minecraft.server.v1_8_R3.WorldServer;
 import org.apache.commons.lang.RandomStringUtils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -38,6 +44,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.event.world.WorldLoadEvent;
+import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -54,6 +61,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 public class BPBridge extends JavaPlugin implements Listener, PluginMessageListener {
@@ -213,14 +221,31 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             }
         }
         boolean unloaded = getServer().unloadWorld(worldName, false);
-        if(!unloaded) {
-            Utils.sendDebugErrorWebhook("Could not unload world `" + worldName + "`!" +
-                    (world == null
+        if(unloaded) {
+            Utils.sendDebugErrorWebhook("Could not unload world `" + worldName + "`!"
+                    + "\n" + whyWorldFailedToUnload(world)
+                    + (world == null
                             ? "\nNo world with that name exists!"
-                            : "\ncurplayers="+world.getPlayers()) +
-                    Utils.getGameDebugInfo(worldName));
+                            : "\ncurplayers="+world.getPlayers())
+                    + Utils.getGameDebugInfo(worldName));
         }
         return unloaded;
+    }
+    private String whyWorldFailedToUnload(World world) {
+        if (world == null) {
+            return "world is null";
+        } else {
+            WorldServer handle = ((CraftWorld)world).getHandle();
+            if (!MinecraftServer.getServer().worlds.contains(handle)) {
+                return "server.worlds does not contain the world";
+            } else if (handle.dimension <= 1) {
+                return "handle dimension <= 1";
+            } else if (handle.players.size() > 0) {
+                return "handle players size > 0";
+            } else {
+                return "unknown. canceled event?";
+            }
+        }
     }
 
     private void handlePlayerJoiningGame(Player player, JoiningPlayer joiningPlayer) {
