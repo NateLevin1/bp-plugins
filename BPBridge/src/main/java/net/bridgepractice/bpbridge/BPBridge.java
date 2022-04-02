@@ -221,7 +221,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             }
         }
         boolean unloaded = getServer().unloadWorld(worldName, false);
-        if(unloaded) {
+        if(!unloaded) {
             Utils.sendDebugErrorWebhook("Could not unload world `" + worldName + "`!"
                     + "\n" + whyWorldFailedToUnload(world)
                     + (world == null

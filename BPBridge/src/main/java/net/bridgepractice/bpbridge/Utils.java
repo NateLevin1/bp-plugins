@@ -346,6 +346,6 @@ public class Utils {
         } else {
             curPlayers = "world is null";
         }
-        return "\nGame Info:\n**State**: "+game.state+"\n**All Players**: "+game.allPlayers+"\n**Cur Players**: "+curPlayers;
+        return "\nGame Info for world "+worldName+":\n**State**: "+game.state+"\n**All Players**: "+game.allPlayers+"\n**Cur Players**: "+curPlayers;
     }
 }
