@@ -79,12 +79,22 @@ public abstract class Game {
     // Any subclass MUST implement the following events, or bad things will happen:
     protected abstract void onPlayerJoinImpl(Player player);
     public final void onPlayerJoin(Player player) { // formerly `addPlayer`
+        if(!player.isOnline()) {
+            // we tried to add a player to the game who is offline - that shouldn't be possible
+            Utils.sendDebugErrorWebhook("Tried to add player "+player.getName()+" to game but they were offline. "+Utils.getGameDebugInfo(world.getName()));
+            return;
+        }
         allPlayers.add(player);
         onPlayerJoinImpl(player);
     }
     protected abstract void onPlayerLeaveImpl(Player player);
     public final void onPlayerLeave(Player player) {
-        allPlayers.remove(player);
+        boolean wasSuccessful = allPlayers.remove(player);
+        if(!wasSuccessful) {
+            // player was not in the game but they left
+            Utils.sendDebugErrorWebhook("Player "+player.getName()+" was not in the game but onPlayerLeave was called. "+Utils.getGameDebugInfo(world.getName()));
+            return;
+        }
         onPlayerLeaveImpl(player);
     }
     protected abstract void startImpl();

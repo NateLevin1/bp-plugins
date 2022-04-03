@@ -149,8 +149,13 @@ public class BridgeBase extends Game {
             player.sendMessage("\n");
             String joinMessage = "§7§k" + StringUtils.repeat("x", player.getName().length()) + "§e has joined (§b" + allPlayers.size() + "§e/§b" + (desiredPlayersPerTeam * 2) + "§e)!";
             for(Player p : allPlayers) {
+                if(!p.isOnline()) {
+                    Utils.sendDebugErrorWebhook("P "+p.getName()+"was offline when looping through all players in onPlayerJoinImpl. "+Utils.getGameDebugInfo(world.getName()));
+                }
                 hidden.addEntry(p.getName());
-                p.getScoreboard().getTeam("hidden").addEntry(player.getName());
+                p.getScoreboard()
+                        .getTeam("hidden")
+                        .addEntry(player.getName());
                 p.sendMessage(joinMessage);
                 // if we dont hide then show the player then players randomly turn invisible. still don't know why
                 p.hidePlayer(player);
@@ -837,66 +842,72 @@ public class BridgeBase extends Game {
         playerInv.setItem(5, Utils.makeItem(Material.BED, "§c§lReturn to Lobby §7(Right Click)", "§7Right-click to go to the lobby!"));
     }
     public void onPlayerLeaveImpl(Player player) {
-        boolean wasOnRedTeam = redTeamPlayers.remove(player);
-        boolean wasOnBlueTeam = blueTeamPlayers.remove(player);
+        // FIXME: remove this try/catch
+        try {
+            boolean wasOnRedTeam = redTeamPlayers.remove(player);
+            boolean wasOnBlueTeam = blueTeamPlayers.remove(player);
 
-        if(isPlaying()) {
-            // here we tell players someone left and give the appropriate team the win
-            String leaveMessage = player.getCustomName() + "§7 left the game.";
-            for(Player p : allPlayers) {
-                p.sendMessage(leaveMessage);
-            }
-            if(wasOnRedTeam && redTeamPlayers.size() == 0) {
-                // blue wins since all the people on red left
-                onWin("blue", "9");
-            } else if(wasOnBlueTeam && blueTeamPlayers.size() == 0) {
-                // red wins since all the people on blue left
-                onWin("red", "c");
-            }
-        } else {
-            if(state != State.Finished) {
-                // this is the logic that handles re-queueing and stuff
-                allBluePlayersPossiblyOnline.remove(player);
-                allRedPlayersPossiblyOnline.remove(player);
-                if(allPlayers.size() > 0) {
-                    if(startTimer != null) {
-                        startTimer.cancel();
+            if(isPlaying()) {
+                // here we tell players someone left and give the appropriate team the win
+                String leaveMessage = player.getCustomName() + "§7 left the game.";
+                for(Player p : allPlayers) {
+                    p.sendMessage(leaveMessage);
+                }
+                if(wasOnRedTeam && redTeamPlayers.size() == 0) {
+                    // blue wins since all the people on red left
+                    onWin("blue", "9");
+                } else if(wasOnBlueTeam && blueTeamPlayers.size() == 0) {
+                    // red wins since all the people on blue left
+                    onWin("red", "c");
+                }
+            } else {
+                if(state != State.Finished) {
+                    // this is the logic that handles re-queueing and stuff
+                    allBluePlayersPossiblyOnline.remove(player);
+                    allRedPlayersPossiblyOnline.remove(player);
+                    if(allPlayers.size() > 0) {
+                        if(startTimer != null) {
+                            startTimer.cancel();
+                            for(Player p : allPlayers) {
+                                p.sendMessage("§cThere are not enough players! Start canceled.");
+                            }
+                        }
                         for(Player p : allPlayers) {
-                            p.sendMessage("§cThere are not enough players! Start canceled.");
+                            p.sendMessage("§7§k" + player.getName() + "§e has quit!");
+                            Utils.sendTitle(p, "§cCANCELLED", "", 0, 5, 3 * 20);
+                            p.playSound(p.getLocation(), Sound.CLICK, 1, 1);
+                            Scoreboard pScoreboard = p.getScoreboard();
+                            Team timerTeam = pScoreboard.getTeam("timer");
+                            timerTeam.setPrefix("§fWaiting...");
+                            timerTeam.setSuffix("");
+                            pScoreboard.getTeam("players").setSuffix("§a" + allPlayers.size() + "/" + (desiredPlayersPerTeam * 2));
                         }
-                    }
-                    for(Player p : allPlayers) {
-                        p.sendMessage("§7§k" + player.getName() + "§e has quit!");
-                        Utils.sendTitle(p, "§cCANCELLED", "", 0, 5, 3 * 20);
-                        p.playSound(p.getLocation(), Sound.CLICK, 1, 1);
-                        Scoreboard pScoreboard = p.getScoreboard();
-                        Team timerTeam = pScoreboard.getTeam("timer");
-                        timerTeam.setPrefix("§fWaiting...");
-                        timerTeam.setSuffix("");
-                        pScoreboard.getTeam("players").setSuffix("§a" + allPlayers.size() + "/" + (desiredPlayersPerTeam * 2));
-                    }
-                    BPBridge.instance.sendCreateQueuePluginMessage(allPlayers.get(0), gameType); // we don't use `.createQueue` because that will change the game info
-                } else {
-                    // when the game hasn't queued and nobody is left
-                    if(!shouldCountAsStats) {
-                        endGame();
-                        return;
-                    }
+                        BPBridge.instance.sendCreateQueuePluginMessage(allPlayers.get(0), gameType); // we don't use `.createQueue` because that will change the game info
+                    } else {
+                        // when the game hasn't queued and nobody is left
+                        if(!shouldCountAsStats) {
+                            endGame();
+                            return;
+                        }
 
-                    // for some reason, players that are leaving are counted as being online in Bukkit.getOnlinePlayers();
-                    // since we can't send a plugin message through a player who is soon going to be offline,
-                    // we have to delay a little in removing this game from the proxy's queueable games.
-                    // Note: if somebody tries to queue this game during this short time period, they will see an error
-                    //       message that says that they tried to queue a non-existent game. This is acceptable behavior.
-                    (new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            BPBridge.instance.removeFromQueueable(world.getName(), gameType);
-                        }
-                    }).runTaskLater(BPBridge.instance, 5);
-                    endGame();
+                        // for some reason, players that are leaving are counted as being online in Bukkit.getOnlinePlayers();
+                        // since we can't send a plugin message through a player who is soon going to be offline,
+                        // we have to delay a little in removing this game from the proxy's queueable games.
+                        // Note: if somebody tries to queue this game during this short time period, they will see an error
+                        //       message that says that they tried to queue a non-existent game. This is acceptable behavior.
+                        (new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                BPBridge.instance.removeFromQueueable(world.getName(), gameType);
+                            }
+                        }).runTaskLater(BPBridge.instance, 5);
+                        endGame();
+                    }
                 }
             }
+        } catch(Exception e) {
+            Utils.sendDebugErrorWebhook("Exception in onPlayerLeaveImpl: ", e);
+            throw e;
         }
     }
     public void onPlayerBowCharge(PlayerInteractEvent event, Player player) {
