@@ -174,7 +174,13 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
 
                         The point of this is to prevent naming conflicts.
                     */
+
                     String fullWorldName = world.getName() + "-" + RandomStringUtils.randomAlphanumeric(8);
+                    while(gamesByWorld.get(fullWorldName) != null) {
+                        Utils.sendDebugErrorWebhook("A world name was generated that is already in use! However, this issue has been recovered from. "+fullWorldName+" "+Utils.getGameDebugInfo(fullWorldName));
+                        fullWorldName = world.getName() + "-" + RandomStringUtils.randomAlphanumeric(8);
+                    }
+
                     Class<?> craftSlimeWorld = world.getClass();
                     Field name = craftSlimeWorld.getDeclaredField("name");
                     name.setAccessible(true);
@@ -753,19 +759,25 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                         } else {
                             // this is the case where there are players online so we can warp them in after the game
                             // was created
-                            ByteArrayDataOutput out = ByteStreams.newDataOutput();
-                            out.writeUTF("ConnectOther");
-                            out.writeUTF(playerName);
-                            out.writeUTF("multiplayer_1");
-                            someOnlinePlayer.sendPluginMessage(this, "BungeeCord", out.toByteArray());
+                            if(!getServer().getOnlinePlayers().isEmpty()) {
+                                ByteArrayDataOutput out = ByteStreams.newDataOutput();
+                                out.writeUTF("ConnectOther");
+                                out.writeUTF(playerName);
+                                out.writeUTF("multiplayer_1");
+                                getServer().getOnlinePlayers().iterator().next().sendPluginMessage(this, "BungeeCord", out.toByteArray());
 
-                            joiningPlayers.put(playerName, new JoiningPlayer(map, world, gameType));
-                            (new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    joiningPlayers.remove(playerName);
-                                }
-                            }).runTaskLaterAsynchronously(this, 5 * 20);
+                                joiningPlayers.put(playerName, new JoiningPlayer(map, world, gameType));
+                                (new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        joiningPlayers.remove(playerName);
+                                    }
+                                }).runTaskLaterAsynchronously(this, 5 * 20);
+                            } else {
+                                // if the player left already
+                                unloadWorld(world.getName());
+                                removeFromQueueable(world.getName(), gameType);
+                            }
                         }
                     });
                     break;
@@ -832,19 +844,24 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                             } else {
                                 // this is the case where there are players online so we can warp them in after the game
                                 // was created
-                                ByteArrayDataOutput out = ByteStreams.newDataOutput();
-                                out.writeUTF("ConnectOther");
-                                out.writeUTF(playerName);
-                                out.writeUTF("multiplayer_1");
-                                someOnlinePlayer.sendPluginMessage(this, "BungeeCord", out.toByteArray());
+                                if(!getServer().getOnlinePlayers().isEmpty()) {
+                                    ByteArrayDataOutput out = ByteStreams.newDataOutput();
+                                    out.writeUTF("ConnectOther");
+                                    out.writeUTF(playerName);
+                                    out.writeUTF("multiplayer_1");
+                                    getServer().getOnlinePlayers().iterator().next().sendPluginMessage(this, "BungeeCord", out.toByteArray());
 
-                                joiningPlayers.put(playerName, JoiningPlayer.newWithPrivate(map, world, gameType));
-                                (new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
-                                        joiningPlayers.remove(playerName);
-                                    }
-                                }).runTaskLaterAsynchronously(this, 5 * 20);
+                                    joiningPlayers.put(playerName, JoiningPlayer.newWithPrivate(map, world, gameType));
+                                    (new BukkitRunnable() {
+                                        @Override
+                                        public void run() {
+                                            joiningPlayers.remove(playerName);
+                                        }
+                                    }).runTaskLaterAsynchronously(this, 5 * 20);
+                                } else {
+                                    // if the player left already
+                                    unloadWorld(world.getName());
+                                }
                             }
                         }
 
