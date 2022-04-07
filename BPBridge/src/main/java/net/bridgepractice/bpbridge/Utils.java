@@ -2,6 +2,7 @@ package net.bridgepractice.bpbridge;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import net.bridgepractice.bpbridge.games.BridgeBase;
 import net.luckperms.api.model.user.User;
 import net.minecraft.server.v1_8_R3.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -305,6 +306,7 @@ public class Utils {
     }
 
     public static void sendDebugErrorWebhook(String s) {
+        BPBridge.instance.getLogger().severe(s);
         (new BukkitRunnable() {
             @Override
             public void run() {

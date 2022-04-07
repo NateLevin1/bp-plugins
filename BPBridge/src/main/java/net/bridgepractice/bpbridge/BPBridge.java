@@ -220,20 +220,25 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         }).runTaskLater(this, 3*20);
     }
     public boolean internalUnloadWorld(String worldName) {
+        long start = System.currentTimeMillis();
         World world = getServer().getWorld(worldName);
         if(world != null) {
             for(Player player : world.getPlayers()) {
                 player.kickPlayer("§cThe world you were in was unloaded!");
             }
+        } else {
+            // world is null, report and then move on (we can't unload a null world!)
+            Utils.sendDebugErrorWebhook("Tried to unload the null world '"+worldName+"'!", new RuntimeException("Tried to unload null world"));
+            return false;
         }
         boolean unloaded = getServer().unloadWorld(worldName, false);
         if(!unloaded) {
             Utils.sendDebugErrorWebhook("Could not unload world `" + worldName + "`!"
                     + "\n" + whyWorldFailedToUnload(world)
-                    + (world == null
-                            ? "\nNo world with that name exists!"
-                            : "\ncurplayers="+world.getPlayers())
+                    + "\ncurplayers="+world.getPlayers()
                     + Utils.getGameDebugInfo(worldName));
+        } else {
+            getLogger().info("World "+worldName+" *un*loaded in "+(System.currentTimeMillis() - start)+"ms");
         }
         return unloaded;
     }
@@ -684,6 +689,13 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             @Override
             public void run() {
                 World world = player.getWorld();
+                if(!player.isOnline()) {
+                    // since we delay 3, we need to make sure they are still online
+                    // if they are offline, all we have to do is unload the world
+                    // because the game hasn't been created yet.
+                    unloadWorld(world.getName());
+                    return;
+                }
                 sendCreateQueuePluginMessage(player, gameType);
                 // TODO: We only ever create a BridgeBase but we should be creating other Game types
                 gamesByWorld.put(world.getName(), new BridgeBase(world, map, true, player, getModifier(gameType)));
