@@ -15,7 +15,6 @@ import com.grinderwolf.swm.api.world.properties.SlimeProperties;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
 import com.lunarclient.bukkitapi.LunarClientAPI;
 import net.bridgepractice.bpbridge.bridgemodifiers.BridgeModifier;
-import net.bridgepractice.bpbridge.bridgemodifiers.NoBridgeModifier;
 import net.bridgepractice.bpbridge.bridgemodifiers.PvpModifier;
 import net.bridgepractice.bpbridge.bridgemodifiers.UnrankedModifier;
 import net.bridgepractice.bpbridge.games.BridgeBase;
@@ -709,8 +708,6 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             modifier = new UnrankedModifier();
         } else if(gameType.equals("pvp")) {
             modifier = new PvpModifier();
-        } else if(gameType.equals("nobridge")) {
-            modifier = new NoBridgeModifier();
         }
         assert modifier != null;
         return modifier;
@@ -755,8 +752,6 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                         map = getRandomUnrankedMap();
                     } else if(gameType.equals("pvp")) {
                         map = getRandomPvpMap();
-                    } else if(gameType.equals("nobridge")){
-                        map = getRandomUnrankedMap();
                     } else {
                         map = "urban";
                     }
@@ -834,8 +829,6 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                         map = getRandomUnrankedMap();
                     } else if(gameType.equals("pvp")) {
                         map = getRandomPvpMap();
-                    } else if(gameType.equals("nobridge")) {
-                        map = getRandomUnrankedMap();
                     } else {
                         map = "urban";
                     }
