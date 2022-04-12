@@ -84,6 +84,7 @@ public class BPBungee extends Plugin implements Listener {
 
         queueingGames.put(MultiplayerMode.unranked, new ArrayList<>());
         queueingGames.put(MultiplayerMode.pvp, new ArrayList<>());
+        queueingGames.put(MultiplayerMode.nobridge, new ArrayList<>());
     }
 
     HashMap<UUID, Integer> mutedPlayers = new HashMap<>();
