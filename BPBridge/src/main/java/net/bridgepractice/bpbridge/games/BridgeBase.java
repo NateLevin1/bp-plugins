@@ -83,6 +83,29 @@ public class BridgeBase extends Game {
     }
 
     public void onPlayerJoinImpl(Player player) {
+
+        // NoBridge Stuff Here, (Badly-coded)
+        // When player joins, remove the bridge
+        if (gameType.equals("nobridge")) {
+            // double x = 0;
+            double y = 92;
+            double z = 0; // z-axis is useless
+
+            while (y >= 84) {
+                // Positive
+                for (double x = 0; x <= 20; x++) {
+                    Location checker = new Location(player.getWorld(), x, y, z);
+                    if (checker.getBlock().getType() == Material.STAINED_CLAY) checker.getBlock().setType(Material.AIR);
+                }
+                // Negative
+                for (double x = 0; x >= -20; x--) {
+                    Location checker = new Location(player.getWorld(), x, y, z);
+                    if (checker.getBlock().getType() == Material.STAINED_CLAY) checker.getBlock().setType(Material.AIR);
+                }
+                y--;
+            }
+        }
+
         // FIXME: remove this try/catch
         try {
             player.teleport(redSpawnLoc);
@@ -254,8 +277,8 @@ public class BridgeBase extends Game {
                     bridgeModifier.getCustomStatistic(),
                     "",
                     "§fMode: §a" + bridgeModifier.getPrettyGameType(),
-                    "%cws%§fWinstreak: %§a" + currentWinstreaks.getOrDefault(player.getUniqueId(), 0),
-                    "%bws%§fBest Winstreak%§f: §a" + allTimeWinstreaks.getOrDefault(player.getUniqueId(), 0),
+                    (gameType.equals("nobridge")) ? "%cws%§fWinstreak: %§aNull" : "%cws%§fWinstreak: %§a" + currentWinstreaks.getOrDefault(player.getUniqueId(), 0),
+                    (gameType.equals("nobridge")) ? "%bws%§fBest Winstreak%§f: §aNull" : "%bws%§fBest Winstreak%§f:" + allTimeWinstreaks.getOrDefault(player.getUniqueId(), 0),
                     "",
                     "§ebridgepractice.net"
             });
@@ -363,6 +386,7 @@ public class BridgeBase extends Game {
         BPBridge.instance.getLogger().info("placed cages; took " + (System.currentTimeMillis() - startTime) + "ms");
     }
     private void loadPlayerSidebar(Player player) {
+        if (gameType.equals("nobridge")) return;
         (new BukkitRunnable() {
             @Override
             public void run() {
