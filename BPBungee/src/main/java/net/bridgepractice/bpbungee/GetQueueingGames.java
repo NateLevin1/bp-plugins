@@ -19,7 +19,6 @@ public class GetQueueingGames extends Command {
             if(arg.equals("clear")) {
                 BPBungee.queueingGames.put(MultiplayerMode.unranked, new ArrayList<>());
                 BPBungee.queueingGames.put(MultiplayerMode.pvp, new ArrayList<>());
-                BPBungee.queueingGames.put(MultiplayerMode.nobridge, new ArrayList<>());
                 sender.sendMessage(new ComponentBuilder("Cleared queueing games.").color(ChatColor.GREEN).create());
             } else {
                 sender.sendMessage(new ComponentBuilder("Unknown option '"+arg+"'\nOnly 'clear' is valid").color(ChatColor.RED).create());
