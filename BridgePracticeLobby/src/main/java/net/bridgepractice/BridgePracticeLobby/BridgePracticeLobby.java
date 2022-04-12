@@ -186,6 +186,12 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                         player.sendPluginMessage(instance, "BungeeCord", out.toByteArray());
                                         break;
                                     }
+                                    case NoBridge: {
+                                        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+                                        out.writeUTF("RequestGame");
+                                        out.writeUTF("nobridge");
+                                        player.sendPluginMessage(instance, "BungeeCord", out.toByteArray());
+                                    }
                                     default:
                                         break;
                                 }
@@ -205,6 +211,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
 
         ItemStack unranked = Utils.makeItem(Material.IRON_SWORD, "§aBridge Duel", "§8Multiplayer", "", "§7Defeat your opponent in a", "§7classic game of The Bridge.", "", "§eClick to Play!");
         ItemStack pvp = Utils.makeItem(Material.IRON_BOOTS, "§aBridge PvP 1v1", "§8Multiplayer", "", "§7Kill your opponent 5 times", "§7on a developed bridge", "", "§eClick to Play!");
+        ItemStack noBridge = Utils.makeItem(Material.STAINED_CLAY, "§aThe §c§m Bridge ", "§8Multiplayer", "", "§7The Bridge But Without", "§7The Bridge...", "", "§7Is this The Bridge?", "§7This is so wrong...", "", "§eClick to Play!", "§8(Stats don't count in this gamemode.)");
 
        gameMenu = new Menu("Game Menu", 5, false,
                 new MenuItem(1, 1, Utils.makeItem(Material.BOOKSHELF, "§aMain Lobby", "§7Return to the Main Lobby.", "", "§eClick to Go"), (p, m) -> sendPlayerToServer(p, "lobby")),
@@ -231,8 +238,9 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         );
 
         multiplayerGamesMenu = new Menu("Multiplayer Games", 3, false,
-                new MenuItem(1, 3, unranked, (p, m) -> requestGame(p, "unranked")),
-                new MenuItem(1, 5, pvp, (p, m) -> requestGame(p, "pvp"))
+                new MenuItem(1, 2, unranked, (p, m) -> requestGame(p, "unranked")),
+                new MenuItem(1, 4, pvp, (p, m) -> requestGame(p, "pvp")),
+                new MenuItem(1, 6, noBridge, (p, m) -> requestGame(p, "nobridge"))
         );
 
         World world = getServer().getWorld("world");
@@ -480,7 +488,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         Singleplayer,
         Multiplayer,
         Unranked,
-        PvP
+        PvP,
+        NoBridge
     }
 
     private final HashMap<Integer, GameType> entityGameTypes = new HashMap<>();
@@ -1235,15 +1244,20 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             if(type == Material.IRON_SWORD || type == Material.GOLD_SWORD || type == Material.DIAMOND_SWORD) {
                 // duel
                 Menu duelMenu = new Menu("Duel " + damaged.getName(), 4, true,
-                        new MenuItem(1, 3, Utils.makeDyed(Material.STAINED_CLAY, DyeColor.BLUE, "§aBridge 1v1", "§7Invite §a" + damaged.getName() + "§7 to", "§7a 1v1 duel.", "", "§eCLICK TO DUEL"), (p, m) -> {
+                        new MenuItem(1, 2, Utils.makeDyed(Material.STAINED_CLAY, DyeColor.BLUE, "§aBridge 1v1", "§7Invite §a" + damaged.getName() + "§7 to", "§7a 1v1 duel.", "", "§eCLICK TO DUEL"), (p, m) -> {
                             m.allowForGarbageCollection();
                             p.closeInventory();
                             Utils.sendDuelRequest(p, damaged, "bridge");
                         }),
-                        new MenuItem(1, 5, Utils.makeItem(Material.IRON_BOOTS, "§aBridge PvP Duel", "§7Invite §a" + damaged.getName() + "§7 to", "§7a Bridge PvP duel.", "", "§eCLICK TO DUEL"), (p, m) -> {
+                        new MenuItem(1, 4, Utils.makeItem(Material.IRON_BOOTS, "§aBridge PvP Duel", "§7Invite §a" + damaged.getName() + "§7 to", "§7a Bridge PvP duel.", "", "§eCLICK TO DUEL"), (p, m) -> {
                             m.allowForGarbageCollection();
                             p.closeInventory();
                             Utils.sendDuelRequest(p, damaged, "pvp");
+                        }),
+                        new MenuItem(1, 6, Utils.makeItem(Material.STAINED_CLAY, "§aThe §c§m Bridge §r§a Duel", "§7Invite §a" + damaged.getName() + "§7 to", "§7a The §m Bridge §r§7 Duel.", "", "§eCLICK TO DUEL"), (p, m) -> {
+                            m.allowForGarbageCollection();
+                            p.closeInventory();
+                            Utils.sendDuelRequest(p, damaged, "nobridge");
                         }),
                         MenuItem.close(3, 4)
                 );
