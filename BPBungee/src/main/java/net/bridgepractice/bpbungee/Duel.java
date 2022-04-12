@@ -34,7 +34,12 @@ public class Duel extends Command {
         if(args.length == 0) {
             sender.sendMessage(new ComponentBuilder("You must provide a player and game for this command!").color(ChatColor.RED).create());
         } else if(args.length == 1) {
-            sender.sendMessage(new ComponentBuilder("You must provide a game for this command!").bold(true).color(ChatColor.RED).append(new ComponentBuilder("\nAvailable Games:").color(ChatColor.AQUA).bold(false).create()).append(new ComponentBuilder("\n - Bridge").color(ChatColor.YELLOW).bold(false).create()).append(new ComponentBuilder("\n - PvP_Duel").color(ChatColor.YELLOW).bold(false).create()).create());
+            sender.sendMessage(new ComponentBuilder("You must provide a game for this command!").bold(true).color(ChatColor.RED)
+                    .append(new ComponentBuilder("\nAvailable Games:").color(ChatColor.AQUA).bold(false).create())
+                    .append(new ComponentBuilder("\n - Bridge").color(ChatColor.YELLOW).bold(false).create())
+                    .append(new ComponentBuilder("\n - PvP_Duel").color(ChatColor.YELLOW).bold(false).create())
+                    .append(new ComponentBuilder("\n - NoBridge").color(ChatColor.YELLOW).bold(false).create())
+                    .create());
         } else {
             if(args[0].equals("accept")) {
                 ArrayList<DuelRequest> requests = duelRequests.get(sender.getName());
@@ -66,7 +71,12 @@ public class Duel extends Command {
                 sender.sendMessage(new ComponentBuilder().append(beforeDivider).append(new ComponentBuilder("\nYou haven't been invited to a Duel, or the invitation has expired!").color(ChatColor.RED).create()).append(afterDivider).create());
             } else if(args[0].equals("cycle")) {//TODO: Disallow cycling if map is set
                 if(args.length <= 2) {
-                    sender.sendMessage(new ComponentBuilder("You must provide a game type for this command!").bold(true).color(ChatColor.RED).append(new ComponentBuilder("\nAvailable Games:").color(ChatColor.AQUA).bold(false).create()).append(new ComponentBuilder("\n - Bridge").color(ChatColor.YELLOW).bold(false).create()).append(new ComponentBuilder("\n - PvP_Duel").color(ChatColor.YELLOW).bold(false).create()).create());
+                    sender.sendMessage(new ComponentBuilder("You must provide a game type for this command!").bold(true).color(ChatColor.RED)
+                            .append(new ComponentBuilder("\nAvailable Games:").color(ChatColor.AQUA).bold(false).create())
+                            .append(new ComponentBuilder("\n - Bridge").color(ChatColor.YELLOW).bold(false).create())
+                            .append(new ComponentBuilder("\n - PvP_Duel").color(ChatColor.YELLOW).bold(false).create())
+                            .append(new ComponentBuilder("\n - NoBridge").color(ChatColor.YELLOW).bold(false).create())
+                            .create());
                     return;
                 }
                 DuelRequest request = null;
@@ -152,8 +162,19 @@ public class Duel extends Command {
                 requestDuelOfPlayer(((ProxiedPlayer) sender), playerToDuel, "pvp", "PvP Duel", mapName);
                 break;
             }
+            // TODO: ADD MORE ALIAS
+            case "bridgeless":
+            case "nobridge": {
+                requestDuelOfPlayer(((ProxiedPlayer) sender), playerToDuel, "nobridge", "The §m Bridge §r ", mapName);
+                break;
+            }
             default:
-                sender.sendMessage(new ComponentBuilder("Unknown game \"" + gameType + "\"").color(ChatColor.RED).bold(true).append(new ComponentBuilder("\nAvailable Games:").color(ChatColor.AQUA).bold(false).create()).append(new ComponentBuilder("\n - Bridge").color(ChatColor.YELLOW).bold(false).create()).append(new ComponentBuilder("\n - PvP_Duel").color(ChatColor.YELLOW).bold(false).create()).create());
+                sender.sendMessage(new ComponentBuilder("Unknown game \"" + gameType + "\"").color(ChatColor.RED).bold(true)
+                        .append(new ComponentBuilder("\nAvailable Games:").color(ChatColor.AQUA).bold(false).create())
+                        .append(new ComponentBuilder("\n - Bridge").color(ChatColor.YELLOW).bold(false).create())
+                        .append(new ComponentBuilder("\n - PvP_Duel").color(ChatColor.YELLOW).bold(false).create())
+                        .append(new ComponentBuilder("\n - NoBridge").color(ChatColor.YELLOW).bold(false).create())
+                        .create());
                 break;
         }
     }
