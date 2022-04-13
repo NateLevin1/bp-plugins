@@ -83,29 +83,6 @@ public class BridgeBase extends Game {
     }
 
     public void onPlayerJoinImpl(Player player) {
-
-        // NoBridge Stuff Here, (Badly-coded)
-        // When player joins, remove the bridge
-        if (gameType.equals("nobridge")) {
-            // double x = 0;
-            double y = 92;
-            double z = 0; // z-axis is useless
-
-            while (y >= 84) {
-                // Positive
-                for (double x = 0; x <= 20; x++) {
-                    Location checker = new Location(player.getWorld(), x, y, z);
-                    if (checker.getBlock().getType() == Material.STAINED_CLAY) checker.getBlock().setType(Material.AIR);
-                }
-                // Negative
-                for (double x = 0; x >= -20; x--) {
-                    Location checker = new Location(player.getWorld(), x, y, z);
-                    if (checker.getBlock().getType() == Material.STAINED_CLAY) checker.getBlock().setType(Material.AIR);
-                }
-                y--;
-            }
-        }
-
         // FIXME: remove this try/catch
         try {
             player.teleport(redSpawnLoc);
@@ -777,7 +754,7 @@ public class BridgeBase extends Game {
         }).runTaskLater(BPBridge.instance, 10 * 20);
     }
     private void givePlayerWin(OfflinePlayer player) {
-        if(!shouldCountAsStats) return;
+        if(!shouldCountAsStats || gameType.equals("nobridge")) return;
         (new BukkitRunnable() {
             @Override
             public void run() {
@@ -795,7 +772,7 @@ public class BridgeBase extends Game {
         }).runTaskAsynchronously(BPBridge.instance);
     }
     private void givePlayerLoss(OfflinePlayer player) {
-        if(!shouldCountAsStats) return;
+        if(!shouldCountAsStats || gameType.equals("nobridge")) return;
         (new BukkitRunnable() {
             @Override
             public void run() {
