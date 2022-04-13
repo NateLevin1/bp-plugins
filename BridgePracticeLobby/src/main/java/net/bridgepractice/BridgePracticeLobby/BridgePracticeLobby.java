@@ -211,7 +211,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
 
         ItemStack unranked = Utils.makeItem(Material.IRON_SWORD, "§aBridge Duel", "§8Multiplayer", "", "§7Defeat your opponent in a", "§7classic game of The Bridge.", "", "§eClick to Play!");
         ItemStack pvp = Utils.makeItem(Material.IRON_BOOTS, "§aBridge PvP 1v1", "§8Multiplayer", "", "§7Kill your opponent 5 times", "§7on a developed bridge", "", "§eClick to Play!");
-        ItemStack noBridge = Utils.makeItem(Material.STAINED_CLAY, "§aThe §c§m Bridge ", "§8Multiplayer", "", "§7The Bridge But Without", "§7The Bridge...", "", "§7Is this The Bridge?", "§7This is so wrong...", "", "§eClick to Play!", "§8(Stats don't count in this gamemode.)");
+        ItemStack noBridge = Utils.makeItem(Material.BARRIER, "§aThe §c§m Bridge ", "§8Multiplayer", "", "§7The Bridge But Without", "§7The Bridge...", "", "§7Is this The Bridge?", "§7This is so wrong...", "", "§eClick to Play!", "§8(Stats don't count in this gamemode.)");
 
        gameMenu = new Menu("Game Menu", 5, false,
                 new MenuItem(1, 1, Utils.makeItem(Material.BOOKSHELF, "§aMain Lobby", "§7Return to the Main Lobby.", "", "§eClick to Go"), (p, m) -> sendPlayerToServer(p, "lobby")),
@@ -230,7 +230,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 new MenuItem(3, 4, Utils.makeItem(Material.ARROW, "§aPrebow Practice", "§8Singleplayer", "", "§7Practice your prebows", "§7to hit them every time.", "", "§eClick to Play!"), (p, m) -> playSingleplayerGame(p, "prebow")),
 
                 new MenuItem(1, 6, multiplayer, (p, m) -> showMultiplayerGames(p)),
-                new MenuItem(1, 7, multiplayer, (p, m) -> showMultiplayerGames(p)),
+                new MenuItem(1, 7, noBridge, (p, m) -> requestGame(p, "nobridge")),
                 new MenuItem(2, 6, unranked, (p, m) -> requestGame(p, "unranked")),
                 new MenuItem(2, 7, pvp, (p, m) -> requestGame(p, "pvp")),
                 new MenuItem(3, 6, multiplayer, (p, m) -> showMultiplayerGames(p)),
@@ -1254,7 +1254,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                             p.closeInventory();
                             Utils.sendDuelRequest(p, damaged, "pvp");
                         }),
-                        new MenuItem(1, 6, Utils.makeItem(Material.STAINED_CLAY, "§aThe §c§m Bridge §r§a Duel", "§7Invite §a" + damaged.getName() + "§7 to", "§7a The §m Bridge §r§7 Duel.", "", "§eCLICK TO DUEL"), (p, m) -> {
+                        new MenuItem(1, 6, Utils.makeItem(Material.BARRIER, "§aThe §c§m Bridge §r§a Duel", "§7Invite §a" + damaged.getName() + "§7 to", "§7a The §m Bridge §r§7 Duel.", "", "§eCLICK TO DUEL"), (p, m) -> {
                             m.allowForGarbageCollection();
                             p.closeInventory();
                             Utils.sendDuelRequest(p, damaged, "nobridge");
