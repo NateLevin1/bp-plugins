@@ -35,6 +35,7 @@ public class BPBungee extends Plugin implements Listener {
     public static LuckPerms luckPerms;
     public static HashMap<MultiplayerMode, ArrayList<String>> queueingGames = new HashMap<>();
     public static HashMap<UUID, String> playerChatChannels = new HashMap<>();
+    public static HashMap<UUID, UUID> playerMessageChannel = new HashMap<>();
     public static boolean multiplayerEnabled = true;
     public static boolean chatEnabled = true;
     public static String punishmentWebhook = "https://discord.com/api/webhooks/888106865697894410/bPuDlfi_RXBdY7ulqS_U9JT62rWbsSF_C45SQVM24rb2p4db3mhRWCIwj7peG6a-9zEs";
@@ -61,6 +62,7 @@ public class BPBungee extends Plugin implements Listener {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Play());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Duel());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new StaffChat());
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new RankChat());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new AllChat());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Ping());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Ban());
@@ -327,6 +329,22 @@ public class BPBungee extends Plugin implements Listener {
             event.setCancelled(true);
             String text = event.getMessage();
             StaffChat.sendToStaffChat(player.getDisplayName(), text);
+            return;
+        }
+        if (chatChannel != null && chatChannel.equals("rank") && !event.isCommand()) {
+            event.setCancelled(true);
+            String text = event.getMessage();
+            RankChat.sendToRankChat(player.getDisplayName(), text);
+            return;
+        }
+        if (chatChannel != null && chatChannel.equals("message") && !event.isCommand()) {
+            event.setCancelled(true);
+            ProxiedPlayer playerToSendMessage = BPBungee.instance.getProxy().getPlayer(BPBungee.playerMessageChannel.get(player.getUniqueId()));
+            String text = event.getMessage();
+            player.sendMessage(new ComponentBuilder("§dTo "+playerToSendMessage.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
+            playerToSendMessage.sendMessage(new ComponentBuilder("§dFrom "+player.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
+            BPBungee.instance.playerReplyTo.put(playerToSendMessage.getUniqueId(), new BPBungee.NamedPlayer(player.getName(), player.getDisplayName()));
+            Utils.log(new ComponentBuilder("SocialSpy: ").color(ChatColor.AQUA).append("From "+player.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(" To "+playerToSendMessage.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(": "+text).color(ChatColor.GRAY).create(), "bridgepractice.moderation.socialspy");
             return;
         }
 
