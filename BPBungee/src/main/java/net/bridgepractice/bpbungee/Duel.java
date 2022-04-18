@@ -162,10 +162,9 @@ public class Duel extends Command {
                 requestDuelOfPlayer(((ProxiedPlayer) sender), playerToDuel, "pvp", "PvP Duel", mapName);
                 break;
             }
-            // TODO: ADD MORE ALIAS
             case "bridgeless":
             case "nobridge": {
-                requestDuelOfPlayer(((ProxiedPlayer) sender), playerToDuel, "nobridge", "The §m Bridge §r ", mapName);
+                requestDuelOfPlayer(((ProxiedPlayer) sender), playerToDuel, "nobridge", "NoBridge Duel", mapName);
                 break;
             }
             default:

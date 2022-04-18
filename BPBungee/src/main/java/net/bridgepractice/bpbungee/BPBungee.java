@@ -230,9 +230,25 @@ public class BPBungee extends Plugin implements Listener {
         rankedName += player.getName();
         player.setDisplayName(rankedName);
         playerSessionLogOnTime.put(player.getUniqueId(), System.currentTimeMillis());
+
+        // Staff Join Message
+        if (player.hasPermission("group.helper") || player.hasPermission("group.youtube")) {
+            for (ProxiedPlayer players : BPBungee.instance.getProxy().getPlayers()) {
+                if ((players.hasPermission("group.mod")) && !players.toString().equals(player.toString())) {
+
+                    players.sendMessage(new ComponentBuilder("[STAFF]").color(ChatColor.AQUA) // [STAFF]
+                            .append(" ") // Space
+                            .append(player.getDisplayName()) // Rank + Name
+                            .append(" ") // Space
+                            .append("connected.").color(ChatColor.YELLOW)
+                            .create());
+                }
+            }
+        }
     }
     @EventHandler
     public void onPlayerDisconnect(PlayerDisconnectEvent event) {
+        ProxiedPlayer player = event.getPlayer();
         UUID uuid = event.getPlayer().getUniqueId();
         mutedPlayers.remove(uuid);
         playerReplyTo.remove(uuid);
@@ -249,6 +265,21 @@ public class BPBungee extends Plugin implements Listener {
                 throwables.printStackTrace();
             }
             playerSessionLogOnTime.remove(uuid);
+        }
+
+        // Staff Leave Message
+        if (player.hasPermission("group.helper") || player.hasPermission("group.youtube")) {
+            for (ProxiedPlayer players : BPBungee.instance.getProxy().getPlayers()) {
+                if ((players.hasPermission("group.mod")) && !players.toString().equals(player.toString())) {
+
+                    players.sendMessage(new ComponentBuilder("[STAFF]").color(ChatColor.AQUA) // [STAFF]
+                            .append(" ") // Space
+                            .append(player.getDisplayName()) // Rank + Name
+                            .append(" ") // Space
+                            .append("disconnected.").color(ChatColor.YELLOW)
+                            .create());
+                }
+            }
         }
     }
     List<String> blockedCommandsIfMuted = Arrays.asList("msg", "r", "w", "message", "reply", "rainbow");
