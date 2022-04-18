@@ -10,6 +10,7 @@ import org.bukkit.Sound;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -291,7 +292,7 @@ public class NPC {
                     Vector moveDir = new Vector(velocity.getX(), velocity.getY(), velocity.getZ()).normalize();
                     moveDir.subtract(direction);
 
-                    if(System.currentTimeMillis() - lastBlockBreak > 400 && bowDrawbackTime == -1 && (eyeToFoot < reach || eyeToEye < reach) && System.currentTimeMillis() - lastHit > 550 && isPlayerInSight(reach) && player.getFallDistance() < 2 && (eyeToEye < 2.7 || (player.isOnGround() && Math.random() > 0.6) || Math.random() > 0.95)) {
+                    if(System.currentTimeMillis() - lastBlockBreak > 400 && bowDrawbackTime == -1 && (eyeToFoot < reach || eyeToEye < reach) && System.currentTimeMillis() - lastHit > 550 && isPlayerInSight(reach) && player.getFallDistance() < 2 && (eyeToEye < 2.7 || (player.isOnGround() && Math.random() > 0.6) || Math.random() > 0.95) && player.hasLineOfSight(npc.getBukkitEntity())) {
                         // hit player
                         if(itemInHand.getType() != sword.getType()) {
                             setItemInHand(sword);
