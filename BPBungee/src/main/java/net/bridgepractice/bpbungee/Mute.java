@@ -32,6 +32,8 @@ public class Mute extends Command {
                 sender.sendMessage(new ComponentBuilder("Invalid number of days "+args[1]).color(ChatColor.RED).create());
                 return;
             }
+
+            ProxiedPlayer mutedPlayer = BPBungee.instance.getProxy().getPlayer(playerName);
             BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, ()->{
                 String playerUuid;
                 try {
@@ -62,7 +64,7 @@ public class Mute extends Command {
                     senderName = sender.getName();
                 }
 
-                BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n §c§l✕ §a" + playerName + "§c §cwas §d§lmuted§c by " + senderName + "§c!\n").create());
+                BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n §c§l✕ §a" + (mutedPlayer != null ? mutedPlayer.getDisplayName() : playerName) + "§c §cwas §d§lmuted§c by " + senderName + "§c!\n").create());
 
                 // if online, make them muted
                 ProxiedPlayer onlinePlayer = BPBungee.instance.getProxy().getPlayer(playerName);

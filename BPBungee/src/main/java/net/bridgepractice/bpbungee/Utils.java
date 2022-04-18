@@ -157,6 +157,8 @@ public class Utils {
                 return "Bridge PvP 1v1";
             case unranked:
                 return "Bridge Duel";
+            case nobridge:
+                return "NoBridge Duel";
             default:
                 return "Unknown";
         }

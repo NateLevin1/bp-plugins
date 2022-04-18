@@ -21,7 +21,12 @@ public class Play extends Command {
         }
         ProxiedPlayer player = ((ProxiedPlayer) sender);
         if(args.length == 0) {
-            sender.sendMessage(new ComponentBuilder("You did not provide a mode!").color(ChatColor.RED).bold(true).append(new ComponentBuilder("\nAvailable Modes:").color(ChatColor.AQUA).bold(false).create()).append(new ComponentBuilder("\n - Bridge").color(ChatColor.YELLOW).bold(false).create()).append(new ComponentBuilder("\n - PvP_Duel").color(ChatColor.YELLOW).bold(false).create()).create());
+            sender.sendMessage(new ComponentBuilder("You did not provide a mode!").color(ChatColor.RED).bold(true)
+                    .append(new ComponentBuilder("\nAvailable Modes:").color(ChatColor.AQUA).bold(false).create())
+                    .append(new ComponentBuilder("\n - Bridge").color(ChatColor.YELLOW).bold(false).create())
+                    .append(new ComponentBuilder("\n - PvP_Duel").color(ChatColor.YELLOW).bold(false).create())
+                    .append(new ComponentBuilder("\n - NoBridge").color(ChatColor.YELLOW).bold(false).create())
+                    .create());
             return;
         }
         switch(args[0].toLowerCase()) {
@@ -39,6 +44,11 @@ public class Play extends Command {
                 BPBungee.instance.requestGame("pvp", player);
                 break;
             }
+            case "bridgeless":
+            case "nobridge": {
+                BPBungee.instance.requestGame("nobridge", player);
+                break;
+            }
             case "ifavailable": {
                 if(args.length < 3) return;
                 String worldName = args[1];
@@ -51,7 +61,12 @@ public class Play extends Command {
                 break;
             }
             default:
-                sender.sendMessage(new ComponentBuilder("Unknown mode \""+args[0]+"\"").color(ChatColor.RED).bold(true).append(new ComponentBuilder("\nAvailable Modes:").color(ChatColor.AQUA).bold(false).create()).append(new ComponentBuilder("\n - Bridge").color(ChatColor.YELLOW).bold(false).create()).append(new ComponentBuilder("\n - PvP_Duel").color(ChatColor.YELLOW).bold(false).create()).create());
+                sender.sendMessage(new ComponentBuilder("Unknown mode \""+args[0]+"\"").color(ChatColor.RED).bold(true)
+                        .append(new ComponentBuilder("\nAvailable Modes:").color(ChatColor.AQUA).bold(false).create())
+                        .append(new ComponentBuilder("\n - Bridge").color(ChatColor.YELLOW).bold(false).create())
+                        .append(new ComponentBuilder("\n - PvP_Duel").color(ChatColor.YELLOW).bold(false).create())
+                        .append(new ComponentBuilder("\n - NoBridge").color(ChatColor.YELLOW).bold(false).create())
+                        .create());
                 break;
         }
     }
