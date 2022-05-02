@@ -264,6 +264,21 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         getCommand("stats").setExecutor(new StatsCommand());
       
         getCommand("telestick").setExecutor(new TelestickCommand());
+
+        // every 15 seconds, get the player count. it will be stored and shown to players!
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                if(getServer().getOnlinePlayers().size() == 0) return;
+
+                Player player = getServer().getOnlinePlayers().iterator().next();
+
+                ByteArrayDataOutput allCount = ByteStreams.newDataOutput();
+                allCount.writeUTF("PlayerCount");
+                allCount.writeUTF("ALL");
+                player.sendPluginMessage(instance, "BungeeCord", allCount.toByteArray());
+            }
+        }).runTaskTimerAsynchronously(instance, 5*20, 15*20);
     }
     @Override
     public void onDisable() {
@@ -724,25 +739,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 "   §ebridgepractice.net  "
         });
         player.setScoreboard(board);
-        (new BukkitRunnable() {
-            @Override
-            public void run() {
 
-                ByteArrayDataOutput allCount = ByteStreams.newDataOutput();
-                allCount.writeUTF("PlayerCount");
-                allCount.writeUTF("ALL");
-                player.sendPluginMessage(instance, "BungeeCord", allCount.toByteArray());
-
-                ByteArrayDataOutput lobbyCount = ByteStreams.newDataOutput();
-                lobbyCount.writeUTF("PlayerCount");
-                lobbyCount.writeUTF("lobby");
-                player.sendPluginMessage(instance, "BungeeCord", lobbyCount.toByteArray());
-
-                board.getTeam("xp").setSuffix("§a" + Utils.getPlayerXPSync(player) + "⫯");
-//                board.getTeam("level").setSuffix("§e2◉");
-//                board.getTeam("percentage").setSuffix("§7(58/100)");
-            }
-        }).runTaskAsynchronously(instance);
+        updatePlayerScoreboard(player);
 
         showPlayerNPCs(player);
 
@@ -826,8 +824,10 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             }
         }).runTaskAsynchronously(this);
     }
+
+    private int totalPlayersOnline = 0;
     @Override
-    public void onPluginMessageReceived(String channel, Player player, byte[] message) {
+    public void onPluginMessageReceived(String channel, Player someRandomPlayer, byte[] message) {
         if(!channel.equals("BungeeCord")) {
             return;
         }
@@ -836,13 +836,23 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         if(subchannel.equals("PlayerCount")) {
             String server = in.readUTF(); // Name of server, as given in the arguments
             int playerCount = in.readInt();
-            if(server.equals("ALL")) {
-                player.getScoreboard().getTeam("total").setSuffix("§a" + playerCount);
-            } else if(server.equals("lobby")) {
-                player.getScoreboard().getTeam("game").setSuffix("§a" + (Integer.parseInt(player.getScoreboard().getTeam("total").getSuffix().substring(2)) - playerCount));
+            if(server.equals("ALL")) { // just to be sure
+                totalPlayersOnline = playerCount;
+                updateAllScoreboards();
             }
         }
     }
+    private void updateAllScoreboards() {
+        for(Player player : getServer().getOnlinePlayers()) {
+            updatePlayerScoreboard(player);
+        }
+    }
+    private void updatePlayerScoreboard(Player player) {
+        player.getScoreboard().getTeam("total").setSuffix("§a" + totalPlayersOnline);
+        player.getScoreboard().getTeam("game").setSuffix("§a" + Math.max(totalPlayersOnline - getServer().getOnlinePlayers().size(), 0));
+    }
+
+
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
