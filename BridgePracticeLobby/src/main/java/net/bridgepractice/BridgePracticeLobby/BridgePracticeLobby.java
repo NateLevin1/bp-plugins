@@ -742,6 +742,14 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
 
         updatePlayerScoreboard(player);
 
+        // show xp
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                board.getTeam("xp").setSuffix("§a" + Utils.getPlayerXPSync(player) + "⫯");
+            }
+        }).runTaskAsynchronously(this);
+
         showPlayerNPCs(player);
 
         Team npcTeam = board.registerNewTeam("npcs");
