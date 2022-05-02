@@ -189,6 +189,10 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
                     player.playSound(player.getLocation(), Sound.ENDERDRAGON_GROWL, 1, 1);
                     player.playSound(player.getLocation(), Sound.BLAZE_BREATH, 1, 1f);
                     sendTitle(player, "§aServer restart in §a§l" + minutes + " minute" + (minutes.equals("1") ? "" : "s") + "§a.", "Check the Discord for update information", 5, 10 * 20, 5);
+                    PlayerInfo info = getPlayer(player.getUniqueId());
+                    if(info.location == PlayerLocation.BridgeBot) {
+                        player.sendMessage("§7Since you are in Bot 1v1, your current game will not be counted when the server restarts.");
+                    }
                 }
             } else {
                 sender.sendMessage("§cYou do not have permission to use this command");
@@ -320,9 +324,11 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         PlayerInfo.queues.put(PlayerLocation.Prebow, new ArrayList<>());
         PlayerInfo.queues.put(PlayerLocation.Wing, new ArrayList<>());
     }
+    public static boolean isDisabling = false;
     @Override
     public void onDisable() {
         // Fired when the server stops and disables all plugins
+        isDisabling = true;
         for(Player player : this.getServer().getOnlinePlayers()) {
             PlayerInfo info = getPlayer(player.getUniqueId());
             if(info.onLocationChange != null) {
