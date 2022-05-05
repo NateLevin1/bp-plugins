@@ -1,0 +1,25 @@
+name: SPBungee
+main: net.bridgepractice.skywarspractice.spbungee.SPBungee
+version: 1.0
+author: OffenisvelyKind
+api-version: 1.8
+commands:
+  reloadblockedcommands:
+    usage: /reloadblockedwords
+    description: Staff only
+    permission: group.helper
+  strike:
+    usage: /strike <add|remove|info> <player>
+    description: Staff only
+    permission: group.helper
+  whitelist:
+    usage: /staffwhitelist <enable|disable>
+    description: Admin only
+    permission: group.admin
+  lobby:
+    usage: /lobby
+    description: Go back to lobby!
+    aliases:
+      - l
+      - spawn
+      - hub
