@@ -276,8 +276,8 @@ public class BridgeBase extends Game {
                     bridgeModifier.getCustomStatistic(),
                     "",
                     "§fMode: §a" + bridgeModifier.getPrettyGameType(),
-                    (gameType.equals("nobridge")) ? "%cws%§fWinstreak: %§aNull" : "%cws%§fWinstreak: %§a" + currentWinstreaks.getOrDefault(player.getUniqueId(), 0),
-                    (gameType.equals("nobridge")) ? "%bws%§fBest Winstreak%§f: §aNull" : "%bws%§fBest Winstreak%§f:" + allTimeWinstreaks.getOrDefault(player.getUniqueId(), 0),
+                    (gameType.equals("nobridge")) ? "%cws%§fWinstreak: %§cNONE" : "%cws%§fWinstreak: %§a" + currentWinstreaks.getOrDefault(player.getUniqueId(), 0),
+                    (gameType.equals("nobridge")) ? "%bws%§fBest Winstreak%§f: §cNONE" : "%bws%§fBest Winstreak%§f: §a" + allTimeWinstreaks.getOrDefault(player.getUniqueId(), 0),
                     "",
                     "§ebridgepractice.net"
             });

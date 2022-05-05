@@ -298,6 +298,8 @@ public class Utils {
             return "Unranked";
         } else if(lowercaseGameType.equals("pvp")) {
             return "    PvP";
+        } else if (lowercaseGameType.equals("nobridge")) {
+            return "NoBridge";
         }
         return "Unknown Mode";
     }

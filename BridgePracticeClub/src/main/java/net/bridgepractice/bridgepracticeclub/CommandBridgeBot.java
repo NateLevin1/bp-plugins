@@ -225,7 +225,7 @@ public class CommandBridgeBot implements CommandExecutor {
                 // on location change
                 didLocationChange[0] = true;
                 if(System.currentTimeMillis() - startTime > 2000) {
-                    if(!wasWinHandled[0]) {
+                    if(!wasWinHandled[0] && !Bridge.isDisabling) {
                         sendWinLossMessage.call(true);
                     }
                 } else {
