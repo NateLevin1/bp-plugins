@@ -1,16 +1,16 @@
 package net.bridgepractice.bpbungee;
 
+import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
+import net.luckperms.api.node.NodeEqualityPredicate;
 import net.luckperms.api.node.NodeType;
 import net.luckperms.api.node.types.PrefixNode;
+import net.luckperms.api.node.types.WeightNode;
 
-import java.lang.reflect.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -72,6 +72,30 @@ public class CommandQueueChecker {
                             Date dateBought = rankRes.getDate("boughtAt");
                             Date currentDate = new Date();
                             long timeSincePurchase = (currentDate.getTime() - dateBought.getTime()) / 1000 / 60 / 60 / 24;
+
+                            // Delete old tags
+                            UUID uuid = UUID.fromString(content);
+                            if (!BPBungee.luckPerms.getUserManager().isLoaded(uuid)) {
+                                BPBungee.luckPerms.getUserManager().loadUser(uuid);
+                            }
+
+                            User lpUser = BPBungee.luckPerms.getUserManager().getUser(uuid);
+
+                            assert lpUser != null;
+                            Collection<PrefixNode> nodes = lpUser.getNodes(NodeType.PREFIX);
+
+                            for (PrefixNode node : nodes) {
+                                if (node.hasExpiry()) {
+                                    BPBungee.luckPerms.getUserManager().modifyUser(uuid, user -> {
+                                        // remove node
+                                        user.data().remove(node);
+                                        if (user.data().contains(node, NodeEqualityPredicate.EXACT).asBoolean()) {
+                                            // LuckPerms API bug - User still has prefix (try to remove again)
+                                            user.data().remove(node);
+                                        }
+                                    });
+                                }
+                            }
 
                             BPBungee.luckPerms.getUserManager().modifyUser(UUID.fromString(content), user -> {
                                 // change tag
