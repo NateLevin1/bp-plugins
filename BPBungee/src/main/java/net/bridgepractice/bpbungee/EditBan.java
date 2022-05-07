@@ -28,6 +28,15 @@ public class EditBan extends Command {
             sender.sendMessage(new ComponentBuilder("Invalid number of days "+args[1]).color(ChatColor.RED).create());
             return;
         }
+
+        boolean removeStats;
+        if(args[args.length - 1].equals("-n")) {
+            removeStats = false;
+            args = Arrays.copyOfRange(args, 0, args.length - 1);
+        } else {
+            removeStats = true;
+        }
+
         String reason = "Unfair Advantage";
         if(args.length >= 3) {
             reason = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
@@ -47,7 +56,7 @@ public class EditBan extends Command {
                 return;
             }
 
-            boolean shouldReturn = Ban.applyBan(playerName, days, finalReason, playerUuid, sender);
+            boolean shouldReturn = Ban.applyBan(playerName, days, finalReason, playerUuid, removeStats, sender);
             if(shouldReturn) return;
 
             sender.sendMessage(new ComponentBuilder("Successfully edited ban of player " + playerName + ".").color(ChatColor.GREEN).create());

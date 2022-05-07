@@ -318,7 +318,7 @@ public class BPBungee extends Plugin implements Listener {
             if(event.getMessage().replaceAll(/* remove jokes */"(?:1\\.){3}1|(?:(?:69|420)\\.){3}(?:69|420)|1[.,|!\\s]\\s*2[.,|!\\s]\\s*3[.,|!\\s]\\s*4|(?:1[.,|!\\s]\\s*){4}", "").matches(".*(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9])(\\s*[.,|]\\s*|$)){4}).*")) {
                 // INSTANTLY BAN IF SEND AN IP ADDRESS
                 BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
-                    Ban.applyBan(player.getName(), 30, "Doxxing/Attempt to dox", player.getUniqueId().toString(), null);
+                    Ban.applyBan(player.getName(), 30, "Doxxing/Attempt to dox", player.getUniqueId().toString(), false, null);
                     Utils.sendPunishmentWebhook(true, "automatically banned", "Doxxing/Attempt to dox\n> " + event.getMessage() + "", 30, "Server", "SERVER", player.getName(), null);
                 }, 0, TimeUnit.MILLISECONDS);
                 event.setCancelled(true);
@@ -326,7 +326,7 @@ public class BPBungee extends Plugin implements Listener {
             } else if(event.getMessage().matches(".* >[\\w\\d]{4,11}<")) {
                 // liquidbounce always follows this format
                 BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
-                    Ban.applyBan(player.getName(), 7, "Chat Abuse/Scam", player.getUniqueId().toString(), null);
+                    Ban.applyBan(player.getName(), 7, "Chat Abuse/Scam", player.getUniqueId().toString(), true, null);
                     Utils.sendPunishmentWebhook(true, "automatically banned", "Chat Abuse/Scam\n> " + event.getMessage() + "", 7, "Server", "SERVER", player.getName(), null);
                 }, 0, TimeUnit.MILLISECONDS);
                 event.setCancelled(true);
