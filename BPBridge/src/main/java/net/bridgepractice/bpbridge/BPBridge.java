@@ -712,7 +712,9 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         } else if(gameType.equals("nobridge")) {
             modifier = new NoBridgeModifier();
         }
-        assert modifier != null;
+        if(modifier == null) {
+            Utils.sendDebugErrorWebhook("Uh Oh!!! Could not find modifier \""+gameType+"\"");
+        }
         return modifier;
     }
     public void sendCreateQueuePluginMessage(Player player, String gameType) {
