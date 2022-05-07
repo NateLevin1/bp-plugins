@@ -278,6 +278,10 @@ public class BPBungee extends Plugin implements Listener {
         }
 
         boolean isMessageToOthers = !event.isCommand() || blockedCommandsIfMuted.contains(event.getMessage().split(" ")[0].substring(1));
+        if (event.getMessage().startsWith("/ac ")) {
+            isMessageToOthers = true;
+            event.setMessage(event.getMessage().replaceAll("/ac ", ""));
+        }
 
         if(isMessageToOthers) {
             if(event.getMessage().replaceAll(/* remove jokes */"(?:1\\.){3}1|(?:(?:69|420)\\.){3}(?:69|420)|1[.,|!\\s]\\s*2[.,|!\\s]\\s*3[.,|!\\s]\\s*4|(?:1[.,|!\\s]\\s*){4}", "").matches(".*(((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9])(\\s*[.,|]\\s*|$)){4}).*")) {
