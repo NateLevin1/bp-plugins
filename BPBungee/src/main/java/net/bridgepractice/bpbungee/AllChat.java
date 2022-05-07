@@ -17,10 +17,11 @@ public class AllChat extends Command {
             sender.sendMessage(new ComponentBuilder("You need to provide a message for this command!").color(ChatColor.RED).create());
             return;
         }
-        ProxiedPlayer player = ((ProxiedPlayer) sender);
         if(!(sender instanceof ProxiedPlayer)) {
             return;
         }
+
+        ProxiedPlayer player = ((ProxiedPlayer) sender);
         String text = String.join(" ", args);
         if (BPBungee.playerChatChannels.containsKey(player.getUniqueId())) {
             String channel = BPBungee.playerChatChannels.get(player.getUniqueId());
