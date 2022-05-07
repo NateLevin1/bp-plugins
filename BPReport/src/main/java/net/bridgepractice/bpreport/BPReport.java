@@ -241,21 +241,34 @@ public class BPReport extends JavaPlugin implements Listener, PluginMessageListe
         }
     }
     private String addEmojisToMessage(String msg) {
-        msg = StringUtils.replace(msg, "<3", "§c❤§f");
-        msg = StringUtils.replace(msg, ":eyes:", "⌊●_●⌋");
-        msg = StringUtils.replace(msg, ":snowman:", "§b☃§f");
-        msg = StringUtils.replace(msg, ":star:", "§e★§f");
-        msg = StringUtils.replace(msg, ":smile:", "§e☻§f");
-        msg = StringUtils.replace(msg, ":frown:", "§9☹§f");
-        msg = StringUtils.replace(msg, ":x:", "§c✕§f");
-        msg = StringUtils.replace(msg, ":cross:", "§c✕§f");
-        msg = StringUtils.replace(msg, ":y:", "§a✔§f");
-        msg = StringUtils.replace(msg, ":check:", "§a✔§f");
-        msg = StringUtils.replace(msg, ":tm:", "§b™§f");
-        msg = StringUtils.replace(msg, ":cry:", "§9（>﹏<）§f");
+        msg = msg.replace("<3", "§c❤§f");
+        msg = msg.replace(":eyes:", "⌊●_●⌋");
+        msg = msg.replace(":eyes2:", "⊙_⊙");
+        msg = msg.replace(":snowman:", "§b☃§f");
+        msg = msg.replace(":star:", "§e★§f");
+        msg = msg.replace(":smile:", "§e☻§f");
+        msg = msg.replace(":frown:", "§9☹§f");
+        msg = msg.replace(":x:", "§c✕§f");
+        msg = msg.replace(":cross:", "§c✕§f");
+        msg = msg.replace(":y:", "§a✔§f");
+        msg = msg.replace(":check:", "§a✔§f");
+        msg = msg.replace(":tm:", "§b™§f");
+        msg = msg.replace(":cry:", "§9（>﹏<）§f");
         msg = msg.replace(":why:", "§6(｢•-•)｢ why?§f");
         msg = msg.replace(":sunglasses:", "§68§e)§f");
         msg = msg.replace(":sunglasses2:", "§6B§e)§f");
+        msg = msg.replace(":fire:", "§c♨♨♨§f");
+        msg = msg.replace(":fire2:", "§cѰѰѰ§f");
+        msg = msg.replace(":+1:", "§6⬆§f");
+        msg = msg.replace(":thumbsup:", "§6(§eb§9^§7_§9^§6)§eb§f");
+        msg = msg.replace(":thumbsup2:", "§6⬈§f");
+        msg = msg.replace(":-1:", "§c⬇§f");
+        msg = msg.replace(":thumbsdown:", "§c⬊§f");
+        msg = msg.replace(":bruh:", "§c(P-_-)P§f");
+        msg = msg.replace(":bear:", "§6ʕ•ᴥ•ʔ§f");
+        msg = msg.replace(":shrug:", "¯\\_(°-°)_/¯");
+        msg = msg.replace(":cash:", "§2[§a$§2(§a$$$§2)§a$§2]§f");
+        msg = msg.replaceAll(":(\\d+)([$€£RP]):", "§2[§a$2§2(§a$1§2)§a$2§2]§f");
         return msg;
     }
     public void addMessageToPlayerMessages(Player player, String msg) {

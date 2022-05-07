@@ -350,6 +350,7 @@ public class BPBungee extends Plugin implements Listener {
     private String addEmojisToMessage(String msg) {
         msg = msg.replace("<3", "§c❤§f");
         msg = msg.replace(":eyes:", "⌊●_●⌋");
+        msg = msg.replace(":eyes2:", "⊙_⊙");
         msg = msg.replace(":snowman:", "§b☃§f");
         msg = msg.replace(":star:", "§e★§f");
         msg = msg.replace(":smile:", "§e☻§f");
@@ -363,6 +364,18 @@ public class BPBungee extends Plugin implements Listener {
         msg = msg.replace(":why:", "§6(｢•-•)｢ why?§f");
         msg = msg.replace(":sunglasses:", "§68§e)§f");
         msg = msg.replace(":sunglasses2:", "§6B§e)§f");
+        msg = msg.replace(":fire:", "§c♨♨♨§f");
+        msg = msg.replace(":fire2:", "§cѰѰѰ§f");
+        msg = msg.replace(":+1:", "§6⬆§f");
+        msg = msg.replace(":thumbsup:", "§6(§eb§9^§7_§9^§6)§eb§f");
+        msg = msg.replace(":thumbsup2:", "§6⬈§f");
+        msg = msg.replace(":-1:", "§c⬇§f");
+        msg = msg.replace(":thumbsdown:", "§c⬊§f");
+        msg = msg.replace(":bruh:", "§c(P-_-)P§f");
+        msg = msg.replace(":bear:", "§6ʕ•ᴥ•ʔ§f");
+        msg = msg.replace(":shrug:", "¯\\_(°-°)_/¯");
+        msg = msg.replace(":cash:", "§2[§a$§2(§a$$$§2)§a$§2]§f");
+        msg = msg.replaceAll(":(\\d+)([$€£RP]):", "§2[§a$2§2(§a$1§2)§a$2§2]§f");
         return msg;
     }
 
