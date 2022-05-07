@@ -103,29 +103,33 @@ public class Ban extends Command {
             JsonArray embeds = new JsonArray();
             JsonObject embed = new JsonObject();
             JsonObject author = new JsonObject();
-            JsonArray fields = new JsonArray();
             webhook.add("embeds", embeds);
             embeds.add(embed);
-
             embed.add("author", author);
-            author.addProperty("name", "Stats of player "+playerName+" before ban:");
+            embed.addProperty("color", 0x39c2ff);
             author.addProperty("icon_url", "https://crafatar.com/renders/head/" + playerUuid + "?overlay=true&size=64");
 
-            embed.addProperty("color", 0x39c2ff);
+            if(removeStats) {
+                JsonArray fields = new JsonArray();
 
-            embed.add("fields", fields);
+                author.addProperty("name", "Stats of player "+playerName+" before ban:");
 
-            int columns = res.getMetaData().getColumnCount();
-            for(int i = 1; i <= columns; i++) { // 1 indexed
-                Object value = res.getObject(i);
-                String columnName = res.getMetaData().getColumnName(i);
-                if(value != null && !columnName.startsWith("hotbar")) {
-                    JsonObject field = new JsonObject();
-                    field.addProperty("name", columnName);
-                    field.addProperty("value", value.toString());
-                    field.addProperty("inline", true);
-                    fields.add(field);
+                embed.add("fields", fields);
+
+                int columns = res.getMetaData().getColumnCount();
+                for(int i = 1; i <= columns; i++) { // 1 indexed
+                    Object value = res.getObject(i);
+                    String columnName = res.getMetaData().getColumnName(i);
+                    if(value != null && !columnName.startsWith("hotbar")) {
+                        JsonObject field = new JsonObject();
+                        field.addProperty("name", columnName);
+                        field.addProperty("value", value.toString());
+                        field.addProperty("inline", true);
+                        fields.add(field);
+                    }
                 }
+            } else {
+                author.addProperty("name", "Did not remove "+playerName+"'s stats ('-n' flag)");
             }
 
             embed.addProperty("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
