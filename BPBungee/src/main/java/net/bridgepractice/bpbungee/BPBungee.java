@@ -233,10 +233,9 @@ public class BPBungee extends Plugin implements Listener {
 
         // Staff Join Message
         if (player.hasPermission("group.helper") || player.hasPermission("group.youtube")) {
-            for (ProxiedPlayer players : BPBungee.instance.getProxy().getPlayers()) {
-                if ((players.hasPermission("group.mod")) && !players.toString().equals(player.toString())) {
-
-                    players.sendMessage(new ComponentBuilder("[STAFF]").color(ChatColor.AQUA) // [STAFF]
+            for (ProxiedPlayer p : BPBungee.instance.getProxy().getPlayers()) {
+                if ((p.hasPermission("group.mod")) && !p.equals(player)) {
+                    p.sendMessage(new ComponentBuilder("[STAFF]").color(ChatColor.AQUA) // [STAFF]
                             .append(" ") // Space
                             .append(player.getDisplayName()) // Rank + Name
                             .append(" ") // Space
@@ -269,10 +268,9 @@ public class BPBungee extends Plugin implements Listener {
 
         // Staff Leave Message
         if (player.hasPermission("group.helper") || player.hasPermission("group.youtube")) {
-            for (ProxiedPlayer players : BPBungee.instance.getProxy().getPlayers()) {
-                if ((players.hasPermission("group.mod")) && !players.toString().equals(player.toString())) {
-
-                    players.sendMessage(new ComponentBuilder("[STAFF]").color(ChatColor.AQUA) // [STAFF]
+            for (ProxiedPlayer p : BPBungee.instance.getProxy().getPlayers()) {
+                if ((p.hasPermission("group.mod")) && !p.equals(player)) {
+                    p.sendMessage(new ComponentBuilder("[STAFF]").color(ChatColor.AQUA) // [STAFF]
                             .append(" ") // Space
                             .append(player.getDisplayName()) // Rank + Name
                             .append(" ") // Space
