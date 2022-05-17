@@ -356,6 +356,22 @@ public class BPBungee extends Plugin implements Listener {
             }
         }
 
+        // if player is muted
+        boolean isMuted = mutedPlayers.containsKey(player.getUniqueId());
+        if(isMuted) {
+            // if is command and is not a command in the blocked list
+            if(event.isCommand() && !blockedCommandsIfMuted.contains(event.getMessage().split(" ")[0].substring(1))) {
+                return;
+            }
+            event.setCancelled(true);
+            player.sendMessage(new ComponentBuilder()
+                    .append(new ComponentBuilder("----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).create())
+                    .append(new ComponentBuilder("\nYou cannot chat because you are muted.").strikethrough(false).color(ChatColor.RED).create())
+                    .append(new ComponentBuilder("\nYour mute will expire in ").color(ChatColor.GRAY).append(new ComponentBuilder(mutedPlayers.get(player.getUniqueId()) + " days").color(ChatColor.RED).create()).create())
+                    .append(new ComponentBuilder("\n\nTo appeal your mute, ").color(ChatColor.GRAY).append(new ComponentBuilder("join the Discord (click)").color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "http://bridgepractice.net/discord")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§bClick to go to the Discord invite."))).create()).create())
+                    .append(new ComponentBuilder("\n----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).underlined(false).event(((ClickEvent) null)).event(((HoverEvent) null)).create())
+                    .create());
+        }
 
         String chatChannel = playerChatChannels.get(player.getUniqueId());
         if (chatChannel != null && chatChannel.equals("staff") && !event.isCommand()) {
@@ -379,23 +395,6 @@ public class BPBungee extends Plugin implements Listener {
             BPBungee.instance.playerReplyTo.put(playerToSendMessage.getUniqueId(), new BPBungee.NamedPlayer(player.getName(), player.getDisplayName()));
             Utils.log(new ComponentBuilder("SocialSpy: ").color(ChatColor.AQUA).append("From "+player.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(" To "+playerToSendMessage.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(": "+text).color(ChatColor.GRAY).create(), "bridgepractice.moderation.socialspy");
             return;
-        }
-
-        // if player is muted
-        boolean isMuted = mutedPlayers.containsKey(player.getUniqueId());
-        if(isMuted) {
-            // if is command and is not a command in the blocked list
-            if(event.isCommand() && !blockedCommandsIfMuted.contains(event.getMessage().split(" ")[0].substring(1))) {
-                return;
-            }
-            event.setCancelled(true);
-            player.sendMessage(new ComponentBuilder()
-                    .append(new ComponentBuilder("----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).create())
-                    .append(new ComponentBuilder("\nYou cannot chat because you are muted.").strikethrough(false).color(ChatColor.RED).create())
-                    .append(new ComponentBuilder("\nYour mute will expire in ").color(ChatColor.GRAY).append(new ComponentBuilder(mutedPlayers.get(player.getUniqueId()) + " days").color(ChatColor.RED).create()).create())
-                    .append(new ComponentBuilder("\n\nTo appeal your mute, ").color(ChatColor.GRAY).append(new ComponentBuilder("join the Discord (click)").color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "http://bridgepractice.net/discord")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§bClick to go to the Discord invite."))).create()).create())
-                    .append(new ComponentBuilder("\n----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).underlined(false).event(((ClickEvent) null)).event(((HoverEvent) null)).create())
-                    .create());
         }
     }
     private String addEmojisToMessage(String msg) {
