@@ -89,7 +89,7 @@ public class BPBungee extends Plugin implements Listener {
         queueingGames.put(MultiplayerMode.nobridge, new ArrayList<>());
     }
 
-    HashMap<UUID, Integer> mutedPlayers = new HashMap<>();
+    public static HashMap<UUID, Integer> mutedPlayers = new HashMap<>();
     public final HashMap<UUID, NamedPlayer> playerReplyTo = new HashMap<>();
     public final HashMap<UUID, Long> gameRequests = new HashMap<>();
     public static final String frozenMessage = "§c§lYou have been frozen by our mod team.\n\n§fTo continue playing, you must join the Discord and open a ticket.\nInclude your IGN and any info you think we need in the ticket.\n\n\n§6Join the Discord by going to §b§nbridgepractice.net/discord\n§6Then accept the rules, go to #support, and click the \"Support\" button.";
@@ -311,7 +311,9 @@ public class BPBungee extends Plugin implements Listener {
         boolean isMessageToOthers = !event.isCommand() || blockedCommandsIfMuted.contains(event.getMessage().split(" ")[0].substring(1));
         if (event.getMessage().startsWith("/ac ")) {
             isMessageToOthers = true;
-            event.setMessage(event.getMessage().replaceAll("/ac ", ""));
+        }
+        if (event.getMessage().startsWith("/rc ")) {
+            isMessageToOthers = true;
         }
 
         if(isMessageToOthers) {
@@ -360,7 +362,7 @@ public class BPBungee extends Plugin implements Listener {
         boolean isMuted = mutedPlayers.containsKey(player.getUniqueId());
         if(isMuted) {
             // if is command and is not a command in the blocked list
-            if(event.isCommand() && !blockedCommandsIfMuted.contains(event.getMessage().split(" ")[0].substring(1))) {
+            if(event.isCommand() && !blockedCommandsIfMuted.contains(event.getMessage().split(" ")[0].substring(1)) && !event.getMessage().startsWith("/rc")) {
                 return;
             }
             event.setCancelled(true);
@@ -371,6 +373,7 @@ public class BPBungee extends Plugin implements Listener {
                     .append(new ComponentBuilder("\n\nTo appeal your mute, ").color(ChatColor.GRAY).append(new ComponentBuilder("join the Discord (click)").color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "http://bridgepractice.net/discord")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§bClick to go to the Discord invite."))).create()).create())
                     .append(new ComponentBuilder("\n----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).underlined(false).event(((ClickEvent) null)).event(((HoverEvent) null)).create())
                     .create());
+            return;
         }
 
         String chatChannel = playerChatChannels.get(player.getUniqueId());
@@ -395,6 +398,10 @@ public class BPBungee extends Plugin implements Listener {
             BPBungee.instance.playerReplyTo.put(playerToSendMessage.getUniqueId(), new BPBungee.NamedPlayer(player.getName(), player.getDisplayName()));
             Utils.log(new ComponentBuilder("SocialSpy: ").color(ChatColor.AQUA).append("From "+player.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(" To "+playerToSendMessage.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(": "+text).color(ChatColor.GRAY).create(), "bridgepractice.moderation.socialspy");
             return;
+        }
+
+        if (event.getMessage().startsWith("/rc ")) {
+            RankChat.sendToRankChat(player.getDisplayName(), event.getMessage().replaceAll("/rc ", ""));
         }
     }
     private String addEmojisToMessage(String msg) {

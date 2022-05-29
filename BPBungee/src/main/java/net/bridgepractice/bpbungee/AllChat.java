@@ -2,9 +2,11 @@ package net.bridgepractice.bpbungee;
 
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.event.ChatEvent;
 import net.md_5.bungee.api.plugin.Command;
 
 public class AllChat extends Command {
@@ -22,6 +24,16 @@ public class AllChat extends Command {
         }
 
         ProxiedPlayer player = ((ProxiedPlayer) sender);
+        if (BPBungee.mutedPlayers.containsKey(player.getUniqueId())) {
+            player.sendMessage(new ComponentBuilder()
+                    .append(new ComponentBuilder("----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).create())
+                    .append(new ComponentBuilder("\nYou cannot chat because you are muted.").strikethrough(false).color(ChatColor.RED).create())
+                    .append(new ComponentBuilder("\nYour mute will expire in ").color(ChatColor.GRAY).append(new ComponentBuilder(BPBungee.mutedPlayers.get(player.getUniqueId()) + " days").color(ChatColor.RED).create()).create())
+                    .append(new ComponentBuilder("\n\nTo appeal your mute, ").color(ChatColor.GRAY).append(new ComponentBuilder("join the Discord (click)").color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "http://bridgepractice.net/discord")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§bClick to go to the Discord invite."))).create()).create())
+                    .append(new ComponentBuilder("\n----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).underlined(false).event(((ClickEvent) null)).event(((HoverEvent) null)).create())
+                    .create());
+            return;
+        }
         String text = String.join(" ", args);
         if (BPBungee.playerChatChannels.containsKey(player.getUniqueId())) {
             String channel = BPBungee.playerChatChannels.get(player.getUniqueId());

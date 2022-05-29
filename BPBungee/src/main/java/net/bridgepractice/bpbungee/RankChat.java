@@ -16,15 +16,6 @@ public class RankChat extends Command {
             sender.sendMessage(new ComponentBuilder("You need to provide a message for this command!").color(ChatColor.RED).create());
             return;
         }
-        String senderName;
-        if(sender instanceof ProxiedPlayer) {
-            ProxiedPlayer player = ((ProxiedPlayer) sender);
-            senderName = player.getDisplayName();
-        } else {
-            senderName = sender.getName();
-        }
-        String text = String.join(" ", args);
-        sendToRankChat(senderName, text);
     }
 
     public static void sendToRankChat(String senderName, String text) {
