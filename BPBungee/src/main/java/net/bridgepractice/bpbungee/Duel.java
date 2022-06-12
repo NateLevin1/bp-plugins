@@ -50,6 +50,11 @@ public class Duel extends Command {
                                 sender.sendMessage(new ComponentBuilder().append(beforeDivider).append(new ComponentBuilder("\nThe player that sent this Duel request is no longer online!").color(ChatColor.RED).create()).append(afterDivider).create());
                                 return;
                             }
+                            if(request.isTooFast()) {
+                                sender.sendMessage(new ComponentBuilder().append(new ComponentBuilder("Slow down! You are clicking too fast.").color(ChatColor.RED).create()).create());
+                                return;
+                            }
+                            request.takeAction();
                             // accept
                             removeFromRequestsIfCan(request);
 
@@ -107,6 +112,11 @@ public class Duel extends Command {
                     sender.sendMessage(new ComponentBuilder().append(beforeDivider).append(new ComponentBuilder("\nThe player that sent this Duel request is no longer online!").color(ChatColor.RED).create()).append(afterDivider).create());
                     return;
                 }
+                if(request.isTooFast()) {
+                    sender.sendMessage(new ComponentBuilder().append(new ComponentBuilder("Slow down! You are cycling too fast.").color(ChatColor.RED).create()).create());
+                    return;
+                }
+                request.takeAction();
 
                 if(request.cycle()) {
                     removeFromRequestsIfCan(request);
@@ -187,6 +197,7 @@ public class Duel extends Command {
         private int cycles = 5;
         boolean accepted = false;
         String map;
+        private long lastAction = 0;
         public DuelRequest(ProxiedPlayer requester, ProxiedPlayer playerToDuel, String gameMode) {
             this.requester = requester;
             this.playerToDuel = playerToDuel;
@@ -195,6 +206,12 @@ public class Duel extends Command {
         public boolean cycle() {
             cycles--;
             return cycles >= 0;
+        }
+        public void takeAction() {
+            lastAction = System.currentTimeMillis();
+        }
+        public boolean isTooFast() {
+            return System.currentTimeMillis() - lastAction < 1000;
         }
     }
 

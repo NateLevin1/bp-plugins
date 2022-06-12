@@ -220,7 +220,12 @@ public abstract class Game {
                 float timeSince = (System.currentTimeMillis() - startTime) / 1000f;
                 if(timeSince > regenTime) {
                     if(state == State.Playing) {
-                        player.getInventory().setItem(arrowLocations.get(player.getUniqueId()), Utils.getArrow());
+                        player
+                                .getInventory()
+                                .setItem(
+                                        arrowLocations.get(player.getUniqueId()),
+                                        Utils.getArrow()
+                                );
                     }
                     this.cancel();
                     arrowRecharges.remove(player.getUniqueId());

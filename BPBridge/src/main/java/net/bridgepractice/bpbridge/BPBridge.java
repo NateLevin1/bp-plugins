@@ -743,6 +743,8 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         }
     }
 
+    private final HashMap<String, UUID> currentlyLoadingGames = new HashMap<>();
+
     @Override
     public void onPluginMessageReceived(String channel, Player someOnlinePlayer, byte[] message) {
         if(channel.equals("bp:messages")) {
@@ -841,7 +843,17 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                     } else {
                         map = "urban";
                     }
+                    UUID loadingUuid = UUID.randomUUID();
+                    String playerNamesAsString = Arrays.toString(playerNames);
+                    currentlyLoadingGames.put(playerNamesAsString, loadingUuid);
                     loadWorld(map, (world) -> {
+                        if(currentlyLoadingGames.get(playerNamesAsString) != loadingUuid || gamesByWorld.containsKey(world.getName())) {
+                            // a new game was loaded for these players since we started loading
+                            // unload this world, don't start the game
+                            unloadWorld(world.getName());
+                            return;
+                        }
+                        currentlyLoadingGames.remove(playerNamesAsString);
                         Location loc = Maps.getRedSpawnLoc(map, world);
                         boolean hasCreatedGame = false;
                         for(String playerName : playerNames) {

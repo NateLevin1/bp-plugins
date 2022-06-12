@@ -153,9 +153,12 @@ public class BridgeBase extends Game {
                     Utils.sendDebugErrorWebhook("P "+p.getName()+"was offline when looping through all players in onPlayerJoinImpl. "+Utils.getGameDebugInfo(world.getName()));
                 }
                 hidden.addEntry(p.getName());
-                p.getScoreboard()
-                        .getTeam("hidden")
-                        .addEntry(player.getName());
+                Team hiddenTeam = p.getScoreboard()
+                        .getTeam("hidden");
+                if(hiddenTeam == null) {
+                    Utils.sendDebugErrorWebhook("Hidden team is null for "+player.getName()+" scoreboard="+p.getScoreboard().getTeams()+Utils.getGameDebugInfo(world.getName()));
+                }
+                hiddenTeam.addEntry(player.getName());
                 p.sendMessage(joinMessage);
                 // if we dont hide then show the player then players randomly turn invisible. still don't know why
                 p.hidePlayer(player);
@@ -907,6 +910,9 @@ public class BridgeBase extends Game {
                         }
                         BPBridge.instance.sendCreateQueuePluginMessage(allPlayers.get(0), gameType); // we don't use `.createQueue` because that will change the game info
                     } else {
+                        if(timeUpdater != null) {
+                            timeUpdater.cancel();
+                        }
                         // when the game hasn't queued and nobody is left
                         if(!shouldCountAsStats) {
                             endGame();
