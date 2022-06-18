@@ -399,10 +399,6 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
                 String skin = reply.substring(indexOfValue + 10, reply.indexOf("\"", indexOfValue + 10));
                 String signature = reply.substring(indexOfSignature + 14, reply.indexOf("\"", indexOfSignature + 14));
 
-                System.out.println(skinUsername);
-                System.out.println("skin = " + skin);
-                System.out.println("signature = " + signature);
-
                 return new Property("textures", skin, signature);
             } else {
                 getLogger().severe("Error getting skin for "+skinUsername+":");

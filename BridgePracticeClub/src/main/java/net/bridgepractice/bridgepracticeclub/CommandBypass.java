@@ -326,8 +326,15 @@ public class CommandBypass implements CommandExecutor {
 
             PlayerInfo info = Bridge.instance.getPlayer(player.getUniqueId());
             player.setGameMode(GameMode.SURVIVAL);
-            player.teleport(info.respawnLocation);
             Bridge.setBridgeInventory(player, true);
+
+            // without this raven throws a gets a very, very strange exception
+            (new BukkitRunnable() {
+                @Override
+                public void run() {
+                    player.teleport(info.respawnLocation);
+                }
+            }).runTaskLater(Bridge.instance, 5);
 
             // create the leaderboard
             leaderboard[0] = new Leaderboard("§bLeaderboard", player, info.winBox.relXZ[0] + 4.5, 93.6, info.winBox.relXZ[1] + 1.25, Leaderboard.Direction.Ascending, Leaderboard.ColumnType.Float);
