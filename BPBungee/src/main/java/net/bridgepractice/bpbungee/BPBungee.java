@@ -134,7 +134,7 @@ public class BPBungee extends Plugin implements Listener {
         UUID uuid = event.getConnection().getUniqueId();
         // check if banned
         try(PreparedStatement statement = connection.prepareStatement("SELECT players.bannedAt, players.uuid, players.bannedDays, players.bannedReason FROM bannedIps INNER JOIN players ON bannedIps.uuid=players.uuid WHERE ip=?;")) {
-            statement.setString(1, event.getConnection().getAddress().getAddress().toString());
+            statement.setString(1, event.getConnection().getAddress().getAddress().getHostAddress());
             ResultSet res = statement.executeQuery();
             if(res.next()) {
                 // player's ip is in fact banned
