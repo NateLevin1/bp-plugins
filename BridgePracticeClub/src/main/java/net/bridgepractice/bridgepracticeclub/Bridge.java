@@ -280,11 +280,11 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
 
         nmsServer = ((CraftServer) getServer()).getServer();
         nmsWorld = ((CraftWorld) this.world).getHandle();
-        createNPCForAll(new Location(this.world, -7.5, 99.5, 7.5, -90, 0), "Prebow Practice", "cruh", "/prebow");
-        createNPCForAll(new Location(this.world, -8.5, 100, 4.5, -90, 0), "Bypass Practice", "cheetahh", "/bypass");
-        createNPCForAll(new Location(this.world, -9.5, 100, 0.5, -90, 0), "Clutch Practice", "BuckyBarrTV", "/clutch");
-        createNPCForAll(new Location(this.world, -8.5, 100, -3.5, -90, 0), "Bot Practice", "parihs", "/bot");
-        createNPCForAll(new Location(this.world, -7.5, 99.5, -6.5, -90, 0), "Wing Practice", "fozzie1000", "/wing");
+        createNPCForAll(new Location(this.world, -7.5, 99.5, 7.5, -90, 0), "Prebow Practice", "/prebow", "ewogICJ0aW1lc3RhbXAiIDogMTY1NTU2ODQ3NTcyNCwKICAicHJvZmlsZUlkIiA6ICJjOWYyNGU5ZDhkMDk0NWQ4OGY0ZWVhZTk5OWJjM2UzOCIsCiAgInByb2ZpbGVOYW1lIiA6ICJDcnVoIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2ZmMzFiMjJhMTc3ZDMwNDNlNmI5MmYxYzgxMGY2YzE0MzA2ZTczZTRjMmRlNjY2NTA2MGE1MTZiMjEyNGY4MjUiCiAgICB9LAogICAgIkNBUEUiIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzIzNDBjMGUwM2RkMjRhMTFiMTVhOGIzM2MyYTdlOWUzMmFiYjIwNTFiMjQ4MWQwYmE3ZGVmZDYzNWNhN2E5MzMiCiAgICB9CiAgfQp9", "FIl+flzfXFtoNVPwB37yuprPYjxIIr7v7B0PmmbHL1fOrRHOA1DuUBkoXdO65rnLsC4qnZBP2uZAaALeXGgV7JXLpG84dFm4B5TNznOwpEuPkarqUnwqtOD/08jBQZ1mpEd0Y5s96nElRY4VucP4ypQTdcZMs0WATZwTEyOdL2RvqNHdY01YY+22updP9HdyLe4O5qL4ikniW9/t4BzCAg6bQYDkNLTRA2aan/LCixPxHXdA5cEmMpLqpAk35tEBgFxm8A0qIflpIf5hd744MReCJ/mcZ7ykBkwGuxek6JLclv2S57fxkEAWbjzme7b4wmbtsu1Ot2tEM9eM6tj6G1dLWA3RNBr/ywfScnfJgjcLrOaT+a4Im2lH8kuFQ316q6xLvNSqaUUZTFaE+vuYuDJBWEdI6dAMd8pvM922uISiDPC4ArhDTKxhgkY9sR9hfLWtXuRh7YiI7ZSCWZXJafCIaspXc7UTcVO8do5RQwBC8mQeFqFbj8r34v0D746hSk3d7oAQZPERANYI36C6JBsMJ3TY/miXLD/7zR6vBACt/H9xfvvBBaxGBdc4VC7gp7Udh8t77IELcOnZZdN7zloxiWwSw00tz7J/ZCLBtCerrMkkThPzD2NKZ/LoqkQqrU1+o22prVsbB+sumjKo1/M4YoUDNUJ/oQZR+Q/eus0=");
+        createNPCForAll(new Location(this.world, -8.5, 100, 4.5, -90, 0), "Bypass Practice", "/bypass", "ewogICJ0aW1lc3RhbXAiIDogMTYxMzU3MDQxNTI4OSwKICAicHJvZmlsZUlkIiA6ICIwOTQxOTg4MTg5YjI0NjJmYTE2MDZiZmI1MmZlYzRlNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJDaGVldGFoaCIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yOWI5YmIyZGYzNWU1OWQ3OWJjYzQwOTdmMTJiZjBiY2NhZGVjZjYyODQ3YTM5NGU5MDI0OWJmMmVjYmQzNDk2IgogICAgfQogIH0KfQ==", "ihRJxO5mVf+u+Nxp8QugJfoHxeqkkzYLUjcSXSWBls/u4nNsbajTgpIFmA0Ienc0CS72eHoLN2e4q5o0q4An9Dv0Os2WTeymFc7gzpyGqZnw5sjEPPuCQr3UYJ53XJ7ocY2NOwColjlKTL+jP0yQ69ObAAKAswmHPqViDDS4XfFsQmIV5Rk8SzpKzFWWTCeGo4fkuO5566/hIFSv9jIYE4NH/rOZElb6VFfTgfHdcQcW/STRJDEC9Lxb102vlT66gAwlI3HJmVnQcZRfCrxtGbtB83hAL73nQ1uK0gWz4UrnwuSPI+ZsS3k5B8r1UmffobcS9RK/9ZmKEDYf44hhdqBwGN8DS4PGOMs9iOBhz1kEw9jr9qSv7nEYNfFY66izzeY6aGWR0z9CaAQGkVPBhTCAUQMFmrtipNZzssp47wYeHeBJNd1cp5raL/3d4PIDHA2k4Ir2nHZU5y8QM3r/grzm2+p9xriT9gzYNOcEoWh38IbVXMSpnv62uBwCh61k+nsScbrlCCrOiFJyiLl/hNSRvM5YjnUcLuOz334ZHj7pKj8rz6oJtkz6YzuViI/1mGSdyD9unBJqORJHKuB3a5T93mfCb7cnM+CT1h+0dHcuGKktQ0+uTKW8/KZAivyatHLK00jdLfR6qMRAR0EIJTJ8zeNEFBy9W9L+y5rLNRA=");
+        createNPCForAll(new Location(this.world, -9.5, 100, 0.5, -90, 0), "Clutch Practice",  "/clutch", "ewogICJ0aW1lc3RhbXAiIDogMTY1NTU2ODQ3NzIxNywKICAicHJvZmlsZUlkIiA6ICJmODExOWY3ZGZkYjI0ZTU2OWQ4NTg5OWM2NmQ4ZTE2ZSIsCiAgInByb2ZpbGVOYW1lIiA6ICJCdWNreUJhcnJUViIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS9iZmJmOWRmZTY2ZmU4NmE3YjM3OTNiNmI4MmRmODU2Y2IwMGQ4Nzc0YmViYTliNWFjMTMzMGVkMzE4YzQ5Y2YzIgogICAgfQogIH0KfQ==", "B+ZCAEFmu1fzZPFQhgi7OXS3HjDS3oCYgKchXXgCwcul/NiGl0J33pUkP6wKRVeYc2fsf8a5951JUcgSuB8G2ufSlvO37fRJ4DDVX41cibWzZyUDSGfzSiaQnhxDcey7CV7z2mBbI6KKa8Ibw6oVbfz3aoDEkloqBUUbSZZXu7saulCpyohNeYE22Zo54VUh+qr7eoITtc2uDBeE2OOc8LYRBGc084kz+ASlstt9FBMNs6K3gTyeBxH7S3BosxfURqrwDGoxXdqrjq4QpKLTVaCL1/ix896XTOnwgoiDs4QkvWU6jk0h4Asbif2fr55kO8TL4qyxqErJZagCR/goEMaU5BrMiKvL9GJRm9yR16E9NWuOQtJAVs1+X83bW4sxqB4J6flo39MDCnF3cZO8AZXcet8z6WYEqymyFJCYNFL1IR/ts2/DGaQDa7m2Y1wpnrNxBDrBNUIyQx5v34N3E+3LYGCKcwUltfiS+vyM9xQdL0ZVToVcuEa41PKBpuaoItMIPmDi+X6VarroAIFjmUV11ZmAO05t1RY5OimWNfakC/bAXzmiba5O/5I3FucODZEOvb7T+DcJonPyjxryfofQHQsWslLXG7XgKYSVNGKW1lE6iwCnsbPgEibA7aijcS5HmNrnwXnpeo4UwjMZhHDDtwQz9Y1620533UIsRTQ=");
+        createNPCForAll(new Location(this.world, -8.5, 100, -3.5, -90, 0), "Bot Practice", "/bot", "ewogICJ0aW1lc3RhbXAiIDogMTY1NTU2ODQ3Nzk3NCwKICAicHJvZmlsZUlkIiA6ICIzNTZlODUzMjM0NDY0Mjk5Yjk2OTFkNzExYWY5NDcxOSIsCiAgInByb2ZpbGVOYW1lIiA6ICJwYXJpaHMiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOGNkMTcxNzhjZTY0MjUzYzAzZjU1OWNiMmNjZjJkZDQwZTRkNzNhODRmZDQ4MjYxMDA2Zjk0OGJiNTBhNTIzZCIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9LAogICAgIkNBUEUiIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzIzNDBjMGUwM2RkMjRhMTFiMTVhOGIzM2MyYTdlOWUzMmFiYjIwNTFiMjQ4MWQwYmE3ZGVmZDYzNWNhN2E5MzMiCiAgICB9CiAgfQp9", "yCfoZqYWyP2n9HjNmGJte7BrIEJAeA4TcpMxg8VqEWo/RG3YE3y/+V7XUNvjRjps87fYjIKepfGi6TfE65gYapvoxb5RZgCG/Ae1hvUAWZDdFt8gTonn2AvK2zrUtyMHo9TLb1pxi6UxvmyZ0WNdLBcH27yTxN7PB3ke95zkzNHhacblzZdrw4sPEh8PWg9pmC4TSaEluKFSHyLCqtEzm1zsDUFMkUMK6z0hmKq5usZJ6FETd5LdJLeXWUgGsZg4NJtyxxbvYjCKNo7Q7Ey3tPHJYNN/dVeW2T0M6Iwo5aHjjQw5ZMXJVuuXGQNSAjRliAoBI0JP3ZpO9awJH1mNYLKSvOCrAdKjr++b3q3ki4rN32wy0vieyEfyWEsmF+VWshI2iLCfIseRosMwQeH7y7OQ6dIz0tqzCwRFCA4M0ZfTfDhJOnD6vuo4Z52v+G2AMsFxqOGK9Y1cLcyNiFL0kliQWwhlRBhvm9YFsLGjdW6XTDoYvlGUZlCm+ikCTJID9q8Dpfi2OECs4g/CusgUfoLPX8RgOAm3rUAqNNnaGVPCRDK3qx0/WIOnyah7b6VFj/GcVWSRlsdcelbjIuud3YGOfh5/vSnoZenljkwj2hCr4Y5Cj8y07nYCWO1MQuXYXdVoXLzQH8xi0mAYcxr/GtbDB0iquaa/tBSCRVReGV4=");
+        createNPCForAll(new Location(this.world, -7.5, 99.5, -6.5, -90, 0), "Wing Practice", "/wing", "ewogICJ0aW1lc3RhbXAiIDogMTY1NTU2ODQ3ODc0NiwKICAicHJvZmlsZUlkIiA6ICJjYTBiNzAzMzkxZjU0OTA1OWNkZjk1ODQzYWEwMjFkNyIsCiAgInByb2ZpbGVOYW1lIiA6ICJGb3p6aWUxMDAwIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2VmZWNjZWNjMWI1YjNlNmYxYzkxZjkzMWU0MTM2NjRmNTQ0NmFiZTI3MGEzMjhjNDg5YzgyYjgxNDk4NTZmMGUiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfSwKICAgICJDQVBFIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yMzQwYzBlMDNkZDI0YTExYjE1YThiMzNjMmE3ZTllMzJhYmIyMDUxYjI0ODFkMGJhN2RlZmQ2MzVjYTdhOTMzIgogICAgfQogIH0KfQ==", "i5aLrccBYMiEG6yJ06SCnDNj97upAiI2I4pIbru194XEEpRd9M2Ugk8QIHYsGAE/CkX00NkvRHBBqSig5N/esoq/KdylCmNw1gStEtJSLZJcYbhO2t1RdJ6O+nrexFwVPOPiszfk+D7zJ1sCQIW2Qgsj13WiQCiOtYfTktGvGzkpyoxoTr/HNCzHQ/QvuvzP/nZUXukNNRWgYg1pdZx1AmUpYh/gAXt2Jy8ayq+LG4/AXQeECr3e1xkBTP98bwEXh0v3lNB2ZnU4wGsH2rbjwFr/2OZI1hBH8bPclhTWgvv4SJBFR44Fk2topt4QRIIla82G2fyKw21IQbh2nyHVnj5z9bfOuJumJb5MXsbhFFfDNANvO0d1Jb6FYuLyDHGPCMldhqtzfvIu2cyDGwphUwd5mLc7HUi04PLFFJ0nfh6nQnWz0MR+1NPX7/QANYJowVEITf/ZV05BEahv1VPxu1qnLn2cPl6PFFU2jHS6sBk585UZY1UI4AsrnCkniLN5KCEwRwqWv6iUyYe+P9RMFRz5tBBrIrb9R/8KKjlKOm3VQBGS5TE5HjdDGLYNDFthgt/QXbM4H7a2gFCGaqo9wNBwCr2l32Iae5BKpFyXAtNFEOeJemEkH26Ic0Kg8Dp7KdQYaOReMYPi+DFuYHSQCNLWwdQhiSPl+UEXOBt/eSM=");
 
         // load content arrays
         CommandWing.islandContentDefault = getBlocks(new Location(Bridge.instance.world, 1000, 97, -5), 4, 3, 4);
@@ -368,7 +368,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
     public ArrayList<EntityPlayer> getAllNpcs() {
         return this.npcs;
     }
-    public void createNPCForAll(Location loc, String name, String skinUsername, String chatOnInteract) {
+    public void createNPCForAll(Location loc, String name, String chatOnInteract, String skinBase64, String signature) {
         // see https://www.spigotmc.org/threads/how-to-create-and-modify-npcs.400753/
         GameProfile gameProfile = new GameProfile(UUID.randomUUID(), name); // max 16 characters
         EntityPlayer npc = new EntityPlayer(nmsServer, nmsWorld, gameProfile, new PlayerInteractManager(nmsWorld)); // This will be the EntityPlayer (NPC) we send with the sendNPCPacket method.
@@ -377,7 +377,13 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         npcs.add(npc);
 
         // add skin (should we do this more often than startup?)
-        gameProfile.getProperties().put("textures", getSkin(skinUsername));
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                // faster startup, still works
+                gameProfile.getProperties().put("textures", new Property("textures", skinBase64, signature));
+            }
+        }).runTaskAsynchronously(this);
     }
     Property getSkin(String skinUsername) {
         try {
@@ -392,6 +398,10 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
                 int indexOfSignature = reply.indexOf("\"signature\": \"");
                 String skin = reply.substring(indexOfValue + 10, reply.indexOf("\"", indexOfValue + 10));
                 String signature = reply.substring(indexOfSignature + 14, reply.indexOf("\"", indexOfSignature + 14));
+
+                System.out.println(skinUsername);
+                System.out.println("skin = " + skin);
+                System.out.println("signature = " + signature);
 
                 return new Property("textures", skin, signature);
             } else {
