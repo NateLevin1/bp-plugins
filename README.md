@@ -11,15 +11,15 @@ cd C:\Path\To\bp-plugins
 # Now, go to your editor and make some changes!
 
 # If you added new files you will need to run:
-git add .
+git add src # Make sure not to acidentally commit your pom.xml!!!
 
 # Don't make too many changes before committing though, try to make each commit
 # be specfic to one thing.
 # Start your commit with the plugin you are modifying if it is a small change/bug fix
 # If you are making a big change across multiple plugins you don't need to do that
-git commit -am "BPBridge: Fix issue with xp not adding" # Make sure the string is descriptive!
-git commit -am "BridgePracticeClub: Fix NPE" # Make sure the string is descriptive!
-git commit -am "BridgePracticeLobby: Add cookie gadget" # Make sure the string is descriptive!
+git commit -m "BPBridge: Fix issue with xp not adding" # Make sure the string is descriptive!
+git commit -m "BridgePracticeClub: Fix NPE" # Make sure the string is descriptive!
+git commit -m "BridgePracticeLobby: Add cookie gadget" # Make sure the string is descriptive!
 # create a new branch
 git branch some-name-to-describe-the-changes-in-the-pr
 # switch to that branch
