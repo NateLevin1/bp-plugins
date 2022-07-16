@@ -16,7 +16,7 @@ public class EnderbuttGrant implements CommandExecutor {
         if (sender instanceof Player) {
             Player p = (Player) sender;
 
-            if (p.hasPermission("group.mod")) {
+            if (p.hasPermission("group.admin")) {
 
                 if (args.length == 0) {
 
