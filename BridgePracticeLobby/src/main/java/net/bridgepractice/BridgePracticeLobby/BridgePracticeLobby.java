@@ -24,15 +24,14 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.*;
@@ -43,6 +42,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -61,6 +61,7 @@ import java.sql.Date;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginMessageListener {
     public static BridgePracticeLobby instance;
@@ -95,6 +96,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     String username = "mc";
     String password = "mcserver";
     static Connection connection;
+
     @Override
     public void onEnable() {
         getServer().getPluginManager().registerEvents(this, this);
@@ -117,7 +119,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         (new BukkitRunnable() {
             @Override
             public void run() {
-                for(World world : worlds) {
+                for (World world : worlds) {
                     world.setTime(1000L);
                 }
             }
@@ -135,12 +137,12 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             public void onPacketReceiving(PacketEvent event) {
                 Player player = event.getPlayer();
                 InventoryView inv = player.getOpenInventory();
-                if(inv == null) return;
-                if(inv.getCursor().getType() != Material.AIR) {
+                if (inv == null) return;
+                if (inv.getCursor().getType() != Material.AIR) {
                     inv.setCursor(new ItemStack(Material.AIR));
                 }
                 Menu menu = Menu.menus.get(inv.getTitle());
-                if(menu == null) return;
+                if (menu == null) return;
                 menu.allowForGarbageCollection();
             }
         });
@@ -153,14 +155,14 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 int entityId = packet.getIntegers().read(0);
                 GameType gameType = entityGameTypes.get(entityId);
                 Leaderboard[] clickedLb = clickableLeaderboards.get(player.getUniqueId());
-                if(gameType != null) {
+                if (gameType != null) {
                     long lastPressTime = playerNpcTimes.getOrDefault(player.getUniqueId(), 0L);
-                    if(System.currentTimeMillis() - lastPressTime > 800) {
+                    if (System.currentTimeMillis() - lastPressTime > 800) {
                         playerNpcTimes.put(player.getUniqueId(), System.currentTimeMillis());
                         BukkitRunnable send = new BukkitRunnable() {
                             @Override
                             public void run() {
-                                switch(gameType) {
+                                switch (gameType) {
                                     case Singleplayer: {
                                         ByteArrayDataOutput out = ByteStreams.newDataOutput();
                                         out.writeUTF("Connect");
@@ -201,8 +203,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                     }
                 }
 
-                for(Leaderboard leaderboard : clickedLb) {
-                    if(leaderboard.isIdFromThisLeaderboard(entityId)) {
+                for (Leaderboard leaderboard : clickedLb) {
+                    if (leaderboard.isIdFromThisLeaderboard(entityId)) {
                         leaderboard.onClickableClick(player);
                     }
                 }
@@ -213,9 +215,9 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         ItemStack pvp = Utils.makeItem(Material.IRON_BOOTS, "§aBridge PvP 1v1", "§8Multiplayer", "", "§7Kill your opponent 5 times", "§7on a developed bridge", "", "§eClick to Play!");
         ItemStack noBridge = Utils.makeItem(Material.BARRIER, "§aThe §c§m Bridge ", "§8Multiplayer", "", "§7The Bridge But Without", "§7The Bridge...", "", "§7Is this The Bridge?", "§7This is so wrong...", "", "§eClick to Play!", "§8(Stats don't count in this gamemode.)");
 
-       gameMenu = new Menu("Game Menu", 5, false,
+        gameMenu = new Menu("Game Menu", 5, false,
                 new MenuItem(1, 1, Utils.makeItem(Material.BOOKSHELF, "§aMain Lobby", "§7Return to the Main Lobby.", "", "§eClick to Go"), (p, m) -> sendPlayerToServer(p, "lobby")),
-                new MenuItem(2, 1, Utils.makeCustomPlayerHead("http://textures.minecraft.net/texture/e25a2f9cb91863bedcfcc40ec31992368fb4ea8f34c532bc3a58c0ac63977be5", "§aMy Stats", "§7View your statistics", "§7across gamemodes.", "", "§eClick to View"), (p, m) -> StatsCommand.showStats(p,p)),
+                new MenuItem(2, 1, Utils.makeCustomPlayerHead("http://textures.minecraft.net/texture/e25a2f9cb91863bedcfcc40ec31992368fb4ea8f34c532bc3a58c0ac63977be5", "§aMy Stats", "§7View your statistics", "§7across gamemodes.", "", "§eClick to View"), (p, m) -> StatsCommand.showStats(p, p)),
                 new MenuItem(3, 1, Utils.makeItem(Material.EMERALD, "§aBridgePractice Store", "§7Purchase a rank to help", "§7support the server!", "", "§eClick to Visit"), (p, m) -> {
                     m.allowForGarbageCollection();
                     p.closeInventory();
@@ -262,14 +264,17 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
 
         getCommand("joinannounce").setExecutor(new JoinAnnounceCommand());
         getCommand("stats").setExecutor(new StatsCommand());
-      
+
         getCommand("telestick").setExecutor(new TelestickCommand());
+
+        getCommand("playerrider").setExecutor(new PlayerRider());
+        getCommand("grantenderbutt").setExecutor(new EnderbuttGrant());
 
         // every 15 seconds, get the player count. it will be stored and shown to players!
         (new BukkitRunnable() {
             @Override
             public void run() {
-                if(getServer().getOnlinePlayers().size() == 0) return;
+                if (getServer().getOnlinePlayers().size() == 0) return;
 
                 Player player = getServer().getOnlinePlayers().iterator().next();
 
@@ -278,14 +283,16 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 allCount.writeUTF("ALL");
                 player.sendPluginMessage(instance, "BungeeCord", allCount.toByteArray());
             }
-        }).runTaskTimerAsynchronously(instance, 5*20, 15*20);
+        }).runTaskTimerAsynchronously(instance, 5 * 20, 15 * 20);
     }
+
     @Override
     public void onDisable() {
     }
+
     // DB Related Methods
     public void openConnection() throws SQLException {
-        if(connection != null && !connection.isClosed()) {
+        if (connection != null && !connection.isClosed()) {
             return;
         }
         // NOTE: If something around this are fails, something is different between my host machine and the machine
@@ -295,20 +302,24 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                         + this.host + ":" + this.port + "/" + this.database + "?characterEncoding=latin1&autoReconnect=true",
                 this.username, this.password);
     }
+
     private static class HotbarItem {
         ItemStack item;
         int index;
+
         HotbarItem(ItemStack item, int index) {
             this.item = item;
             this.index = index;
         }
     }
+
     public void requestGame(Player player, String gameType) {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("RequestGame");
         out.writeUTF(gameType);
         player.sendPluginMessage(instance, "BungeeCord", out.toByteArray());
     }
+
     public void sendPlayerToServer(Player player, String serverName) {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("Connect");
@@ -316,6 +327,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
 
         player.sendPluginMessage(this, "BungeeCord", out.toByteArray());
     }
+
     public void playSingleplayerGame(Player player, String gameName) {
         sendPlayerToServer(player, "singleplayer");
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
@@ -336,11 +348,12 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         out.write(msgbytes.toByteArray());
         player.sendPluginMessage(instance, "BungeeCord", out.toByteArray());
     }
+
     private HotbarItem[] getHotbarSync(Player player) {
-        try(PreparedStatement statement = connection.prepareStatement("SELECT hotbarSword, hotbarBow, hotbarPickaxe, hotbarBlocksOne, hotbarBlocksTwo, hotbarGoldenApple, hotbarArrow, hotbarGlyph FROM players WHERE uuid=?;")) {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT hotbarSword, hotbarBow, hotbarPickaxe, hotbarBlocksOne, hotbarBlocksTwo, hotbarGoldenApple, hotbarArrow, hotbarGlyph FROM players WHERE uuid=?;")) {
             statement.setString(1, player.getUniqueId().toString()); // uuid
             ResultSet res = statement.executeQuery();
-            if(!res.next()) {
+            if (!res.next()) {
                 throw new SQLException("Did not get a row from the database. Player name: " + player.getName() + " Player UUID: " + player.getUniqueId());
             }
             HotbarItem[] items = new HotbarItem[8];
@@ -359,6 +372,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         }
         return new HotbarItem[0];
     }
+
     private HotbarItem[] getHotbarFromHypixelSync(Player player) throws IOException {
         JsonObject apiResponse;
         try {
@@ -367,10 +381,10 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             throw new IOException("Player is not available in the Hypixel API");
         }
         HotbarItem[] items = new HotbarItem[8];
-        for(Map.Entry<String, JsonElement> item : apiResponse.entrySet()) {
+        for (Map.Entry<String, JsonElement> item : apiResponse.entrySet()) {
             int i = Integer.parseInt(item.getKey());
             String name = item.getValue().getAsString();
-            switch(name) {
+            switch (name) {
                 case "iron_sword":
                     items[0] = new HotbarItem(Utils.getSword(), i);
                     break;
@@ -399,23 +413,24 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         }
         return items;
     }
+
     private void getFromHypixelIfNotCustomized(Player player) {
         (new BukkitRunnable() {
             @Override
             public void run() {
-                try(PreparedStatement barCustomStatement = connection.prepareStatement("SELECT hotbarCustomized FROM players WHERE uuid=?;")) {
+                try (PreparedStatement barCustomStatement = connection.prepareStatement("SELECT hotbarCustomized FROM players WHERE uuid=?;")) {
                     barCustomStatement.setString(1, player.getUniqueId().toString()); // uuid
                     ResultSet res = barCustomStatement.executeQuery();
-                    if(!res.next()) {
+                    if (!res.next()) {
                         throw new SQLException("Did not get a row from the database. Player name: " + player.getName() + " Player UUID: " + player.getUniqueId());
                     }
                     boolean isCustomized = res.getBoolean(1);
-                    if(!isCustomized) {
+                    if (!isCustomized) {
                         HotbarItem[] items = getHotbarFromHypixelSync(player);
-                        try(PreparedStatement updateStatement = connection.prepareStatement("UPDATE players SET hotbarCustomized = TRUE, hotbarSword = ?, hotbarBow = ?, hotbarPickaxe = ?, hotbarBlocksOne = ?, hotbarBlocksTwo = ?, hotbarGoldenApple = ?, hotbarArrow = ?, hotbarGlyph = ? WHERE uuid=?;")) {
+                        try (PreparedStatement updateStatement = connection.prepareStatement("UPDATE players SET hotbarCustomized = TRUE, hotbarSword = ?, hotbarBow = ?, hotbarPickaxe = ?, hotbarBlocksOne = ?, hotbarBlocksTwo = ?, hotbarGoldenApple = ?, hotbarArrow = ?, hotbarGlyph = ? WHERE uuid=?;")) {
                             boolean hasSeenBlocks = false;
-                            for(HotbarItem item : items) {
-                                switch(item.item.getType()) {
+                            for (HotbarItem item : items) {
+                                switch (item.item.getType()) {
                                     case IRON_SWORD:
                                         updateStatement.setInt(1, item.index);
                                         break;
@@ -426,7 +441,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                         updateStatement.setInt(3, item.index);
                                         break;
                                     case STAINED_CLAY:
-                                        if(!hasSeenBlocks) {
+                                        if (!hasSeenBlocks) {
                                             hasSeenBlocks = true;
                                             updateStatement.setInt(4, item.index);
                                         } else {
@@ -455,6 +470,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             }
         }).runTaskAsynchronously(this);
     }
+
     private HotbarItem[] defaultHotbar() {
         HotbarItem[] items = new HotbarItem[8];
         items[0] = new HotbarItem(Utils.getSword(), 0);
@@ -471,15 +487,35 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     public static String prettifyTime(double time) {
         return String.format("%.3f", time);
     }
+
     private void sendToStore(Player player) {
         player.sendMessage("\n§a§lClick below to visit the store!!");
         player.spigot().sendMessage(new ComponentBuilder("https://store.bridgepractice.net/").color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://store.bridgepractice.net/")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{new TextComponent("§bClick to visit the store!")})).create());
         player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 1, 1);
     }
+
+    private void sendToCustom(Player player) {
+        player.sendMessage("\n§a§lClick below to check out Custom Rank!!");
+        player.spigot().sendMessage(new ComponentBuilder("https://store.bridgepractice.net/custom").color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://store.bridgepractice.net/")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{new TextComponent("§bClick to visit the store!")})).create());
+        player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 1, 1);
+    }
+
+    private void sendToLegend(Player player) {
+        player.sendMessage("\n§a§lClick below to check out Legend Rank!!");
+        player.spigot().sendMessage(new ComponentBuilder("https://store.bridgepractice.net/legend").color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://store.bridgepractice.net/")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{new TextComponent("§bClick to visit the store!")})).create());
+        player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 1, 1);
+    }
+
+    private void sendToGodlike(Player player) {
+        player.sendMessage("\n§a§lClick below to check out Godlike Rank!!");
+        player.spigot().sendMessage(new ComponentBuilder("https://store.bridgepractice.net/godlike").color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://store.bridgepractice.net/")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{new TextComponent("§bClick to visit the store!")})).create());
+        player.playSound(player.getLocation(), Sound.SUCCESSFUL_HIT, 1, 1);
+    }
+
     public void showPlayerNPCs(Player player) {
         // see https://www.spigotmc.org/threads/how-to-create-and-modify-npcs.400753/
         PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
-        for(EntityPlayer npc : npcs) {
+        for (EntityPlayer npc : npcs) {
             connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, npc));
             connection.sendPacket(new PacketPlayOutNamedEntitySpawn(npc)); // Spawns the NPC for the player client.
             connection.sendPacket(new PacketPlayOutEntityHeadRotation(npc, (byte) ((npc.yaw - 45) * 256 / 360))); // Correct head rotation when spawned in player look direction.
@@ -499,6 +535,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             removeFromTab.runTaskLater(this, 60);
         }
     }
+
     enum GameType {
         Singleplayer,
         Multiplayer,
@@ -508,6 +545,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     }
 
     private final HashMap<Integer, GameType> entityGameTypes = new HashMap<>();
+
     public void createNPCForAll(Location loc, String name, String skinBase64, String signature, GameType gameType) {
         // see https://www.spigotmc.org/threads/how-to-create-and-modify-npcs.400753/
         GameProfile gameProfile = new GameProfile(UUID.randomUUID(), name); // max 16 characters
@@ -525,16 +563,18 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             }
         }).runTaskAsynchronously(this);
     }
+
     private void showMultiplayerGames(Player player) {
         player.openInventory(multiplayerGamesMenu.getInventory());
     }
+
     private void setCage(Player player, Menu menu, Cage cage) {
         menu.allowForGarbageCollection();
         player.closeInventory();
         (new BukkitRunnable() {
             @Override
             public void run() {
-                try(PreparedStatement statement = connection.prepareStatement("UPDATE players SET cage = ? WHERE uuid=?;")) {
+                try (PreparedStatement statement = connection.prepareStatement("UPDATE players SET cage = ? WHERE uuid=?;")) {
                     statement.setInt(1, cage.ordinal());
                     statement.setString(2, player.getUniqueId().toString()); // uuid, set to player uuid
                     statement.executeUpdate();
@@ -547,10 +587,11 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             }
         }).runTaskAsynchronously(this);
     }
-    public void removeGadgetEffects(Player player){
+
+    public void removeGadgetEffects(Player player) {
         Gadget gadget = getGadget(player);
         if (gadget == null) return;
-        switch (gadget.fifthSlotItem.getType()){
+        switch (gadget.fifthSlotItem.getType()) {
             case COOKIE:
                 player.setFoodLevel(20);
                 break;
@@ -560,8 +601,9 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         }
 
     }
+
     public void openHotbarEditor(Player player) {
-        if(System.currentTimeMillis() - lastPlayerHotbarEdits.getOrDefault(player.getUniqueId(), 0L) > 3000) {
+        if (System.currentTimeMillis() - lastPlayerHotbarEdits.getOrDefault(player.getUniqueId(), 0L) > 3000) {
             lastPlayerHotbarEdits.put(player.getUniqueId(), System.currentTimeMillis());
             (new BukkitRunnable() {
                 @Override
@@ -575,17 +617,17 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                 (new BukkitRunnable() {
                                     @Override
                                     public void run() {
-                                        try(PreparedStatement statement = connection.prepareStatement("UPDATE players SET hotbarCustomized = TRUE, hotbarSword = ?, hotbarBow = ?, hotbarPickaxe = ?, hotbarBlocksOne = ?, hotbarBlocksTwo = ?, hotbarGoldenApple = ?, hotbarArrow = ?, hotbarGlyph = ? WHERE uuid=?;")) {
+                                        try (PreparedStatement statement = connection.prepareStatement("UPDATE players SET hotbarCustomized = TRUE, hotbarSword = ?, hotbarBow = ?, hotbarPickaxe = ?, hotbarBlocksOne = ?, hotbarBlocksTwo = ?, hotbarGoldenApple = ?, hotbarArrow = ?, hotbarGlyph = ? WHERE uuid=?;")) {
                                             Inventory inv = m.getInventory();
                                             boolean hasSeenBlocks = false;
                                             int itemsFound = 0;
-                                            for(int i = 0; i < 9 * 5; i++) {
+                                            for (int i = 0; i < 9 * 5; i++) {
                                                 ItemStack item = inv.getItem(i);
-                                                if(item != null && item.getType() != Material.STAINED_GLASS_PANE) {
+                                                if (item != null && item.getType() != Material.STAINED_GLASS_PANE) {
                                                     int rowIncludingSeparation = 4 - ((int) Math.floor(i / 9f));
                                                     int row = rowIncludingSeparation == 0 ? 0 : 4 - (rowIncludingSeparation - 1);
                                                     int index = row * 9 + (i % 9);
-                                                    switch(item.getType()) {
+                                                    switch (item.getType()) {
                                                         case IRON_SWORD:
                                                             statement.setInt(1, index);
                                                             itemsFound++;
@@ -599,7 +641,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                                             itemsFound++;
                                                             break;
                                                         case STAINED_CLAY:
-                                                            if(!hasSeenBlocks) {
+                                                            if (!hasSeenBlocks) {
                                                                 hasSeenBlocks = true;
                                                                 statement.setInt(4, index);
                                                             } else {
@@ -622,7 +664,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                                     }
                                                 }
                                             }
-                                            if(itemsFound != 8) {
+                                            if (itemsFound != 8) {
                                                 m.allowForGarbageCollection();
                                                 p.closeInventory();
                                                 p.sendMessage("§c✕ Your inventory didn't look right!");
@@ -644,7 +686,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                 updateHotbarEditor(m, defaultHotbar());
                             }),
                             new MenuItem(5, 7, Utils.makeItem(Material.EXP_BOTTLE, "§aGet From Hypixel", "§7Get your hotbar layout", "§7from Hypixel."), (p, m) -> {
-                                if(System.currentTimeMillis() - lastPlayerGetFromHypixel.getOrDefault(player.getUniqueId(), 0L) > 3000) {
+                                if (System.currentTimeMillis() - lastPlayerGetFromHypixel.getOrDefault(player.getUniqueId(), 0L) > 3000) {
                                     lastPlayerGetFromHypixel.put(player.getUniqueId(), System.currentTimeMillis());
                                     (new BukkitRunnable() {
                                         @Override
@@ -673,6 +715,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             player.sendMessage("§cYou must wait §e3s§c between uses!");
         }
     }
+
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
@@ -682,7 +725,9 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         inv.clear();
 
         ItemStack[] armorSet = new ItemStack[player.getInventory().getArmorContents().length];
-        for (int i = 0; i < armorSet.length; i++) {armorSet[i] = new ItemStack(Material.AIR);}
+        for (int i = 0; i < armorSet.length; i++) {
+            armorSet[i] = new ItemStack(Material.AIR);
+        }
         player.getInventory().setArmorContents(armorSet);
 
         player.setFoodLevel(20);
@@ -690,12 +735,12 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         event.setJoinMessage(null);
         clickableLeaderboards.remove(player.getUniqueId());
 
-        for(Player p : playersHidingPlayers) {
+        for (Player p : playersHidingPlayers) {
             p.hidePlayer(player);
         }
 
         // if they don't have a db row then create it
-        try(PreparedStatement statement = connection.prepareStatement("INSERT IGNORE INTO players(uuid, firstLogin) VALUES (?, ?);"); /* insert if doesn't exist */) {
+        try (PreparedStatement statement = connection.prepareStatement("INSERT IGNORE INTO players(uuid, firstLogin) VALUES (?, ?);"); /* insert if doesn't exist */) {
             statement.setString(1, player.getUniqueId().toString()); // uuid, set to player uuid
             statement.setDate(2, new Date(new java.util.Date().getTime())); // firstLogin, set to today's date
             statement.executeUpdate();
@@ -718,11 +763,11 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
 
         // send welcome message
         player.sendMessage("§3§m----------------------------------§6" +
-                        "\n  Welcome to §eBridge Practice§6!" +
-                        "\n  §3§lDISCORD: §bbridgepractice.net/discord" +
-                        "\n  §c§lNEW! §a§lSTORE: §bstore.bridgepractice.net" +
-                        "\n§3§m----------------------------------");
-        if(!player.hasPermission("group.legend")) {
+                "\n  Welcome to §eBridge Practice§6!" +
+                "\n  §3§lDISCORD: §bbridgepractice.net/discord" +
+                "\n  §a§lSTORE: §bstore.bridgepractice.net" +
+                "\n§3§m----------------------------------");
+        if (!player.hasPermission("group.legend")) {
             player.spigot().sendMessage(new ComponentBuilder("Please support this custom-coded\nserver by buying a rank! (click)").color(ChatColor.GREEN).bold(false).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click to visit our store!").color(ChatColor.AQUA).create())).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://store.bridgepractice.net")).create());
         }
 
@@ -754,7 +799,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
 
         Team npcTeam = board.registerNewTeam("npcs");
         npcTeam.setPrefix("§8[NPC] ");
-        for(EntityPlayer npc : npcs) {
+        for (EntityPlayer npc : npcs) {
             npcTeam.addEntry(npc.getName());
         }
         npcTeam.setNameTagVisibility(NameTagVisibility.NEVER);
@@ -774,26 +819,26 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             }
         }).runTaskLater(this, 10);
 
-        if(player.hasPermission("bridgepractice.lobby.effect.fly")) {
+        if (player.hasPermission("bridgepractice.lobby.effect.fly")) {
             player.setAllowFlight(true);
             player.setFlySpeed(0.07f);
         }
 
-        if(player.hasPermission("bridgepractice.lobby.announce.show")) {
-            if(player.hasPermission("bridgepractice.lobby.announce.loud")) {
-                event.setJoinMessage(" §b>§c>§a> "+player.getCustomName()+" §6joined the lobby! §a<§c<§b<");
+        if (player.hasPermission("bridgepractice.lobby.announce.show")) {
+            if (player.hasPermission("bridgepractice.lobby.announce.loud")) {
+                event.setJoinMessage(" §b>§c>§a> " + player.getCustomName() + " §6joined the lobby! §a<§c<§b<");
             } else {
-                event.setJoinMessage(player.getCustomName()+" §6joined the lobby!");
+                event.setJoinMessage(player.getCustomName() + " §6joined the lobby!");
             }
         }
 
         (new BukkitRunnable() {
             @Override
             public void run() {
-                try(PreparedStatement statement = connection.prepareStatement("SELECT text, messageId FROM playerMessages WHERE forUuid = ?;")) {
+                try (PreparedStatement statement = connection.prepareStatement("SELECT text, messageId FROM playerMessages WHERE forUuid = ?;")) {
                     statement.setString(1, player.getUniqueId().toString()); // uuid
                     ResultSet res = statement.executeQuery();
-                    if(!res.next()) {
+                    if (!res.next()) {
                         return; // perfectly valid, they have no messages!
                     }
                     String text = res.getString("text").replaceAll("\\[([^]]+)]\\((http[^)]+)\\)", "§3$1 §0(§1§n$2§0)");
@@ -821,7 +866,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                         }
                     }).runTaskLater(instance, 10);
 
-                    try(PreparedStatement removeStatement = connection.prepareStatement("DELETE FROM playerMessages WHERE messageId = ?;")) {
+                    try (PreparedStatement removeStatement = connection.prepareStatement("DELETE FROM playerMessages WHERE messageId = ?;")) {
                         removeStatement.setInt(1, messageId); // uuid, set to player uuid
                         removeStatement.executeUpdate();
                     }
@@ -834,27 +879,30 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     }
 
     private int totalPlayersOnline = 0;
+
     @Override
     public void onPluginMessageReceived(String channel, Player someRandomPlayer, byte[] message) {
-        if(!channel.equals("BungeeCord")) {
+        if (!channel.equals("BungeeCord")) {
             return;
         }
         ByteArrayDataInput in = ByteStreams.newDataInput(message);
         String subchannel = in.readUTF();
-        if(subchannel.equals("PlayerCount")) {
+        if (subchannel.equals("PlayerCount")) {
             String server = in.readUTF(); // Name of server, as given in the arguments
             int playerCount = in.readInt();
-            if(server.equals("ALL")) { // just to be sure
+            if (server.equals("ALL")) { // just to be sure
                 totalPlayersOnline = playerCount;
                 updateAllScoreboards();
             }
         }
     }
+
     private void updateAllScoreboards() {
-        for(Player player : getServer().getOnlinePlayers()) {
+        for (Player player : getServer().getOnlinePlayers()) {
             updatePlayerScoreboard(player);
         }
     }
+
     private void updatePlayerScoreboard(Player player) {
         player.getScoreboard().getTeam("total").setSuffix("§a" + totalPlayersOnline);
         player.getScoreboard().getTeam("game").setSuffix("§a" + Math.max(totalPlayersOnline - getServer().getOnlinePlayers().size(), 0));
@@ -878,40 +926,43 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
 
         event.setQuitMessage("");
     }
+
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
 
         Player player = event.getPlayer();
         Inventory inv = player.getInventory();
-        if(player.getLocation().getY() < 80 || player.getLocation().getY() > 150
-        || player.getLocation().getX() < -40 || player.getLocation().getX() > 80
-        || player.getLocation().getZ() < -40 || player.getLocation().getZ() > 40 ) {
+        if (player.getLocation().getY() < 80 || player.getLocation().getY() > 150
+                || player.getLocation().getX() < -40 || player.getLocation().getX() > 80
+                || player.getLocation().getZ() < -40 || player.getLocation().getZ() > 40) {
 
-                player.teleport(respawnLocation.getOrDefault(player.getUniqueId(), new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0)));
+            player.teleport(respawnLocation.getOrDefault(player.getUniqueId(), new Location(player.getWorld(), 2.5, 99, 0.5, -90, 0)));
         }
 
         //SWITCH SPADE NAME ON EXIT
-        if(isPlayerInLeaderboards(player)) {
+        if (isPlayerInLeaderboards(player)) {
             if (!inv.getItem(8).equals(spawnSpade)) {
                 inv.setItem(8, spawnSpade);
             }
-        }else {
+        } else {
             if (!inv.getItem(8).equals(leaderboardsSpade)) {
                 inv.setItem(8, leaderboardsSpade);
             }
         }
     }
+
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         event.setCancelled(true);
     }
+
     @EventHandler
     public void onPlayerConsumeItem(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
-        if(item.getType() == Material.COOKIE) {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 10*20, 4, false, false), true);
-            player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 10*20, 1, false, false), true);
+        if (item.getType() == Material.COOKIE) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 10 * 20, 4, false, false), true);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 10 * 20, 1, false, false), true);
             (new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -921,13 +972,14 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             }).runTaskLater(this, 1);
         }
     }
+
     @EventHandler
     public void onPlayerUse(PlayerInteractEvent event) {
         Player player = event.getPlayer();
 
-        if(event.getAction() == Action.PHYSICAL) {
+        if (event.getAction() == Action.PHYSICAL) {
             Block plate = event.getClickedBlock();
-            if(plate.getType() == Material.GOLD_PLATE) {
+            if (plate.getType() == Material.GOLD_PLATE) {
                 player.sendMessage("§aStarted parkour '" + plate.getMetadata("parkour").get(0).asString() + "'");
                 respawnLocation.put(player.getUniqueId(), (Location) plate.getMetadata("parkour_respawn_location").get(0).value());
                 PlayerInventory inv = player.getInventory();
@@ -938,9 +990,9 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             return;
         }
 
-        if(event.getItem() == null) return;
+        if (event.getItem() == null) return;
 
-        switch(event.getMaterial()) {
+        switch (event.getMaterial()) {
             case COMPASS:
                 player.openInventory(gameMenu.getInventory());
                 break;
@@ -948,16 +1000,16 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 StatsCommand.showStats(player, player);
                 break;
             case EMERALD:
-                if(System.currentTimeMillis() - lastShop.getOrDefault(player.getUniqueId(), 0L) > 1000) {
+                if (System.currentTimeMillis() - lastShop.getOrDefault(player.getUniqueId(), 0L) > 1000) {
                     lastShop.put(player.getUniqueId(), System.currentTimeMillis());
                     (new BukkitRunnable() {
                         @Override
                         public void run() {
                             Cage cage;
-                            try(PreparedStatement statement = connection.prepareStatement("SELECT cage FROM players WHERE uuid=?;")) {
+                            try (PreparedStatement statement = connection.prepareStatement("SELECT cage FROM players WHERE uuid=?;")) {
                                 statement.setString(1, player.getUniqueId().toString()); // uuid
                                 ResultSet res = statement.executeQuery();
-                                if(!res.next()) {
+                                if (!res.next()) {
                                     throw new SQLException("Did not get a row from the database. Player name: " + player.getName() + " Player UUID: " + player.getUniqueId());
                                 }
                                 cage = Cage.values()[res.getInt("cage")];
@@ -967,12 +1019,29 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                 return;
                             }
                             Menu shop = new Menu("BridgePractice Shop", 4, true,
-                                    MenuItem.close(3, 4),
 
-                                    new MenuItem(1, 3, Utils.makeItem(Material.EMERALD, "§aStore", "§7Purchase a rank to help", "§7support the server!", "", "§eClick to Visit"), (p, m) -> {
+                                    new MenuItem(1, 3, Utils.makeItem(Material.EMERALD_BLOCK, "§aRanks", "§7Purchase a rank to help", "§7support the server!", "", "§eClick to Visit"), (p, m) -> {
                                         m.allowForGarbageCollection();
-                                        p.closeInventory();
-                                        sendToStore(p);
+                                        Menu ranks = new Menu("§rView Ranks", 4, true,
+                                                MenuItem.close(3, 4),
+                                                new MenuItem(1, 2, Utils.makeItem(Material.REDSTONE_BLOCK, "§4[§cLEGEND§4] §cRank", " ", "§7Support the server", "§7Roles in Discord", "§7Access to Dev Logs", "§7Announces when you join the server", "§7/fw command", "§7/cookie command"), (p2, m2) -> {
+                                                    sendToLegend(player);
+                                                    p.closeInventory();
+                                                }),
+                                                new MenuItem(1, 4, Utils.makeItem(Material.GOLD_BLOCK, "§5[§dGODLIKE§5] §dRank", " ", "§4[§cLEGEND§4] §7Perks +", "§7/rainbow command", "§7/telestick command", "§7/stats <player> command", "§7Golden Duel Sword", "§7Golden GG", "§7Fly in lobby"), (p2, m2) -> {
+                                                    sendToGodlike(player);
+                                                    p.closeInventory();
+                                                }),
+                                                new MenuItem(1, 6, Utils.makeItem(Material.DIAMOND_BLOCK, "§6[§eCUSTOM§6] §eRank", " ", "§5[§dGODLIKE§5] §7perks +", "§7Custom Color Name Tag", "§7Custom Chat prefix"), (p2, m2) -> {
+                                                    sendToCustom(player);
+                                                    p.closeInventory();
+                                                }),
+                                                new MenuItem(0, 4, Utils.makeItem(Material.EMERALD, "§aStore Link", "§7Purchase a rank to help", "§7support the server!", "", "§eClick to Visit"), (p2, m2) -> {
+                                                    sendToStore(player);
+                                                    p.closeInventory();
+                                                })
+                                        );
+                                        p.openInventory(ranks.getInventory());
                                     }),//menu item end
                                     new MenuItem(1, 5, Utils.makeItem(Material.MOB_SPAWNER, "§aCages", "§7Select a cage to spawn within", "§7before each round of The Bridge.", "", "§7Currently Selected:", "§a" + cage.toString(), "", "§eClick to View!"), (p, m) -> {
                                         m.allowForGarbageCollection();
@@ -1002,6 +1071,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                     })
                             );
                             player.openInventory(shop.getInventory());
+
                         }
                     }).runTaskAsynchronously(this);
                 } else {
@@ -1009,11 +1079,11 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 }
                 break;
             case INK_SACK:
-                if(!playersHidingPlayers.contains(player)) {
-                    if(System.currentTimeMillis() - lastPlayerVisibilityChanges.getOrDefault(player.getUniqueId(), 0L) > 3000) {
+                if (!playersHidingPlayers.contains(player)) {
+                    if (System.currentTimeMillis() - lastPlayerVisibilityChanges.getOrDefault(player.getUniqueId(), 0L) > 3000) {
                         // add to list, loop through all online and hide, say players are hidden
                         playersHidingPlayers.add(player);
-                        for(Player p : getServer().getOnlinePlayers()) {
+                        for (Player p : getServer().getOnlinePlayers()) {
                             player.hidePlayer(p);
                         }
                         player.getInventory().setItem(7, Utils.makeDyed(Material.INK_SACK, DyeColor.SILVER, "§fPlayers: §cHidden §7(Right Click)", "§7Right click to toggle player visibility!"));
@@ -1022,10 +1092,10 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                         player.sendMessage("§cYou must wait §e3s§c between uses!");
                     }
                 } else {
-                    if(System.currentTimeMillis() - lastPlayerVisibilityChanges.getOrDefault(player.getUniqueId(), 0L) > 3000) {
+                    if (System.currentTimeMillis() - lastPlayerVisibilityChanges.getOrDefault(player.getUniqueId(), 0L) > 3000) {
                         // remove from list, loop through all online and show, say players are shown
                         playersHidingPlayers.remove(player);
-                        for(Player p : getServer().getOnlinePlayers()) {
+                        for (Player p : getServer().getOnlinePlayers()) {
                             player.showPlayer(p);
                         }
                         player.getInventory().setItem(7, Utils.makeDyed(Material.INK_SACK, DyeColor.PURPLE, "§fPlayers: §aShown §7(Right Click)", "§7Right click to toggle player visibility!"));
@@ -1047,7 +1117,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                         player.teleport(new Location(player.getWorld(), 50.5, 103, 0.5, -90, 0));
                         inven.setItem(8, spawnSpade);
                     }
-                } else if(timeSinceSpade > 10){
+                } else if (timeSinceSpade > 10) {
                     player.sendMessage("§cYou must wait §e0.5s§c between uses!");
                 }
                 break;
@@ -1107,7 +1177,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                         }
                     }//block checking for loop
 
-                    if(raycastPoint == null) return;
+                    if (raycastPoint == null) return;
 
                     //loop broken or gone 5 blocks
                     raycastPoint.setY(raycastPoint.getBlock().getLocation().getY() + 0.5);
@@ -1116,21 +1186,34 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                     player.teleport(raycastPoint);
                     player.playSound(player.getLocation(), Sound.ENDERMAN_TELEPORT, 1, 1);
                 } else {
-                    if(timeSinceTele > 20) {
+                    if (timeSinceTele > 20) {
                         player.sendMessage("§cYou're clicking too fast!");
                     }
                 }
                 break;
             case CHEST:
-                if(player.hasPermission("group.legend")) {
+                if (player.hasPermission("group.legend")) {
                     Menu gadgetsMenu;
-                    if(player.hasPermission("group.godlike")) {
+                    new MenuItem(0, 4, Utils.makeItem(Material.MOB_SPAWNER, "§a(BETA) Pets", "§7Right click to", "§7open the pets menu!", "", "§eClick to open"), (p, m) -> {
+                        m.allowForGarbageCollection();
+                        p.closeInventory();
+                        Menu pets = new Menu("§rYour Pets", 4, true,
+                                MenuItem.close(3, 4),
+                                new MenuItem(1, 2, Utils.makeItem(Material.RAW_FISH, "§aCat", " ", "§7A little cat that follows you", " ", "§eClick to select"), (p2, m2) -> {
+                                    m.allowForGarbageCollection();
+                                    p.closeInventory();
+                                    spawnCat(p);
+                                })
+                        );
+                        p.openInventory(pets.getInventory());
+                    });
+                    if (player.hasPermission("group.godlike")) {
                         MenuItem hotbarLayout = new MenuItem(1, 1, Utils.getEnchanted(Utils.makeItem(Material.BOOK, "§aEdit Hotbar Layout", "§7Customize your hotbar", "§7layout for all modes", "", "§eClick to open editor")), (p, m) -> {
                             m.allowForGarbageCollection();
                             p.closeInventory();
                             openHotbarEditor(p);
                         });
-                        MenuItem cookieGadget = new MenuItem(1, 3, Utils.makeItem(Material.COOKIE, "§aCookie Gadget", "§7Eat to gain speed and","§7jump boost for §a5s§7.", "", "§eClick to select"), (p, m) -> {
+                        MenuItem cookieGadget = new MenuItem(1, 3, Utils.makeItem(Material.COOKIE, "§aCookie Gadget", "§7Eat to gain speed and", "§7jump boost for §a5s§7.", "", "§eClick to select"), (p, m) -> {
                             m.allowForGarbageCollection();
                             p.closeInventory();
                             CookieCommand.giveGadget(p);
@@ -1140,7 +1223,24 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                             p.closeInventory();
                             TelestickCommand.giveGadget(p);
                         });
-                        if(player.hasPermission("group.custom")) {
+                        MenuItem petmenu = new MenuItem(0, 4, Utils.makeItem(Material.MOB_SPAWNER, "§a(BETA) Pets", "§7Right click to", "§7open the pets menu!", "", "§eClick to open"), (p, m) -> {
+                            m.allowForGarbageCollection();
+                            p.closeInventory();
+                            Menu pets = new Menu("§rYour Pets", 4, true,
+                                    MenuItem.close(3, 4),
+                                    new MenuItem(1, 3, Utils.makeItem(Material.RAW_FISH, "§aCat", " ", "§7A little cat that follows you", " ", "§eClick to select"), (p2, m2) -> {
+                                        m.allowForGarbageCollection();
+                                        p.closeInventory();
+                                        spawnCat(p);
+                                    }),
+                                    new MenuItem(1, 5, Utils.makeItem(Material.PORK, "§aPig", " ", "§7A piglet that follows you around", " ", "§eClick to select"), (p2, m2) -> {
+                                        m.allowForGarbageCollection();
+                                        p.closeInventory();
+                                        spawnPig(p);
+                                    }));
+                            p.openInventory(pets.getInventory());
+                        });
+                        if (player.hasPermission("group.custom")) {
                             gadgetsMenu = new Menu("Gadgets", 3, true,
                                     hotbarLayout,
                                     cookieGadget,
@@ -1151,13 +1251,44 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                         BridgePracticeLobby.instance.setGadget(p, null);
                                         BridgePracticeLobby.instance.giveGadgets(p, p.getInventory());
                                         p.getInventory().setHeldItemSlot(5);
+                                    }),
+                                    new MenuItem(1, 4, Utils.makeItem(Material.LEASH, "§aRide-A-Player", "§7Right click to", "§7ride a player!", "", "§eClick to select"), (p, m) -> {
+                                        m.allowForGarbageCollection();
+                                        p.closeInventory();
+                                        PlayerRider.giveGadget(p);
+                                        p.getInventory().setHeldItemSlot(5);
+                                    }),
+                                    new MenuItem(0, 4, Utils.makeItem(Material.MOB_SPAWNER, "§a(BETA) Pets", "§7Right click to", "§7open the pets menu!", "", "§eClick to open"), (p, m) -> {
+                                        m.allowForGarbageCollection();
+                                        p.closeInventory();
+                                        Menu pets = new Menu("§rYour Pets", 4, true,
+                                                MenuItem.close(3, 4),
+                                                new MenuItem(1, 2, Utils.makeItem(Material.RAW_FISH, "§aCat", " ", "§7A little cat that follows you", " ", "§eClick to select"), (p2, m2) -> {
+                                                    m.allowForGarbageCollection();
+                                                    p.closeInventory();
+                                                    spawnCat(p);
+                                                }),
+                                                new MenuItem(1, 4, Utils.makeItem(Material.PORK, "§aPig", " ", "§7A piglet that follows you around", " ", "§eClick to select"), (p2, m2) -> {
+                                                    m.allowForGarbageCollection();
+                                                    p.closeInventory();
+                                                    spawnPig(p);
+                                                }),
+                                                new MenuItem(1, 6, Utils.makeItem(Material.BONE, "§aWolf", " ", "§7A brave wolf that wonders after you", " ", "§eClick to select"), (p2, m2) -> {
+                                                    m.allowForGarbageCollection();
+                                                    p.closeInventory();
+                                                    spawnWolf(p);
+                                                })
+                                        );
+                                        p.openInventory(pets.getInventory());
+
                                     })
                             );
-                        }  else {
+                        } else {
                             gadgetsMenu = new Menu("Gadgets", 3, true,
                                     hotbarLayout,
                                     cookieGadget,
                                     telestickGadget,
+                                    petmenu,
                                     new MenuItem(1, 7, Utils.makeItem(Material.GOLD_SWORD, "§aDuel Sword Gadget", "§7Left click on a", "§7player to duel them!", "", "§eClick to select"), (p, m) -> {
                                         m.allowForGarbageCollection();
                                         p.closeInventory();
@@ -1174,7 +1305,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                     p.closeInventory();
                                     openHotbarEditor(p);
                                 }),
-                                new MenuItem(1, 4, Utils.makeItem(Material.COOKIE, "§aCookie Gadget", "§7Eat to gain speed and","§7jump boost for §a5s§7.", "", "§eClick to select"), (p, m) -> {
+                                new MenuItem(1, 4, Utils.makeItem(Material.COOKIE, "§aCookie Gadget", "§7Eat to gain speed and", "§7jump boost for §a5s§7.", "", "§eClick to select"), (p, m) -> {
                                     m.allowForGarbageCollection();
                                     p.closeInventory();
                                     CookieCommand.giveGadget(p);
@@ -1185,6 +1316,18 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                     BridgePracticeLobby.instance.setGadget(p, null);
                                     BridgePracticeLobby.instance.giveGadgets(p, p.getInventory());
                                     p.getInventory().setHeldItemSlot(5);
+                                }),
+                                new MenuItem(0, 4, Utils.makeItem(Material.MOB_SPAWNER, "§a(BETA) Pets", "§7Right click to", "§7open the pets menu!", "", "§eClick to open"), (p, m) -> {
+                                    m.allowForGarbageCollection();
+                                    p.closeInventory();
+                                    Menu pets = new Menu("§rYour Pets", 4, true,
+                                            MenuItem.close(3, 4),
+                                            new MenuItem(1, 4, Utils.makeItem(Material.RAW_FISH, "§aCat", " ", "§7A little cat that follows you", " ", "§eClick to select"), (p2, m2) -> {
+                                                m.allowForGarbageCollection();
+                                                p.closeInventory();
+                                                spawnCat(p);
+                                            }));
+                                    p.openInventory(pets.getInventory());
                                 })
                         );
                     }
@@ -1193,30 +1336,36 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 break;
         }
     }
+
     private final HashMap<UUID, Gadget> currentGadgets = new HashMap<>();
+
     static class Gadget {
         ItemStack fourthSlotItem;
         ItemStack fifthSlotItem;
+
         public Gadget(ItemStack fourthSlotItem, ItemStack fifthSlotItem) {
             this.fourthSlotItem = fourthSlotItem;
             this.fifthSlotItem = fifthSlotItem;
         }
     }
+
     public Gadget getGadget(Player player) {
         return currentGadgets.get(player.getUniqueId());
     }
+
     public void setGadget(Player player, Gadget gadget) {
         removeGadgetEffects(player);
         currentGadgets.put(player.getUniqueId(), gadget);
     }
+
     public void giveGadgets(Player player, Inventory inv) {
         Gadget gadget = getGadget(player);
-        if(gadget == null) {
+        if (gadget == null) {
             ItemStack fourthSlot = player.hasPermission("group.legend") ? gadgetsItem : hotbarLayoutItem;
             ItemStack fifthSlot;
-            if(player.hasPermission("bridgepractice.lobby.diamondduelitem")) {
+            if (player.hasPermission("bridgepractice.lobby.diamondduelitem")) {
                 fifthSlot = duelPlayerItemDiamond;
-            } else if(player.hasPermission("bridgepractice.lobby.goldduelitem")) {
+            } else if (player.hasPermission("bridgepractice.lobby.goldduelitem")) {
                 fifthSlot = duelPlayerItemGold;
             } else {
                 fifthSlot = duelPlayerItemIron;
@@ -1230,36 +1379,95 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             inv.setItem(5, gadget.fifthSlotItem);
         }
     }
+
     private void updateHotbarEditor(Menu m, HotbarItem[] items) {
-        for(int i = 0; i < 9 * 3; i++) {
+        for (int i = 0; i < 9 * 3; i++) {
             m.removeItem(i);
         }
-        for(int i = 0; i < 9; i++) {
+        for (int i = 0; i < 9; i++) {
             m.removeItem(36 + i);
         }
-        for(HotbarItem hotbarItem : items) {
+        for (HotbarItem hotbarItem : items) {
             int row = 4 - ((int) Math.floor(hotbarItem.index / 9f));
             m.addDraggableItem(new MenuItem(row == 4 ? row : 3 - row, hotbarItem.index % 9, hotbarItem.item, null));
         }
     }
+
+    public void followPlayer(Player player, LivingEntity entity, double d) {
+        final LivingEntity e = entity;
+        final Player p = player;
+        final float f = (float) d;
+        Bukkit.getScheduler().scheduleSyncRepeatingTask((Plugin) this, new Runnable() {
+            @Override
+            public void run() {
+                ((EntityInsentient) ((CraftEntity) e).getHandle()).getNavigation().a(p.getLocation().getX(), p.getLocation().getY(), p.getLocation().getZ(), f);
+            }
+
+        }, 0 * 20, 2 * 20);
+    }
+
+    public void spawnPig(Player p) {
+        LivingEntity pig = p.getWorld().spawn(p.getLocation(), Pig.class);
+        pig.setCustomName(p.getDisplayName() + "'s Pig");
+        followPlayer(p, pig, 1.75);
+    }
+
+    public void spawnWolf(Player p) {
+        LivingEntity wolf = p.getWorld().spawn(p.getLocation(), Wolf.class);
+        wolf.setCustomName(p.getDisplayName() + "'s Wolf");
+        followPlayer(p, wolf, 1.75);
+    }
+
+    public void spawnCat(Player p) {
+        LivingEntity cat = p.getWorld().spawn(p.getLocation(), Ocelot.class);
+        cat.setCustomName(p.getDisplayName() + "'s Cat");
+        followPlayer(p, cat, 1.75);
+    }
+
+    public void despawnPig(Player p) {
+        Location loc = p.getLocation();
+        LivingEntity pig = (LivingEntity) p.getWorld().getNearbyEntities(loc, 5, 5, 5);
+        if (pig.getCustomName() == p.getDisplayName() + "'s Pig") {
+            pig.setHealth(0.0);
+        }
+    }
+
+    public void despawnWolf(Player p) {
+        Location loc = p.getLocation();
+        LivingEntity wolf = (LivingEntity) p.getWorld().getNearbyEntities(loc, 5, 5, 5);
+        if (wolf.getCustomName() == p.getDisplayName() + "'s Wolf") {
+            wolf.setHealth(0.0);
+        }
+    }
+
+    public void despawnCat(Player p) {
+        Location loc = p.getLocation();
+        LivingEntity cat = (LivingEntity) p.getWorld().getNearbyEntities(loc, 5, 5, 5);
+        if (cat.getCustomName() == p.getDisplayName() + "'s Cat") {
+            cat.setHealth(0.0);
+        }
+    }
+
     @EventHandler
     public void onPlayerDamagedBySelf(EntityDamageEvent event) {
         // disable drown, fall, etc damage
-        if(event.getEntity() instanceof Player) {
+        if (event.getEntity() instanceof Player) {
             event.setCancelled(true);
         }
     }
+
     @EventHandler
     public void onFoodLevelChange(FoodLevelChangeEvent event) {
         event.setCancelled(true);
     }
+
     @EventHandler
     public void onPlayerHit(EntityDamageByEntityEvent event) {
-        if(event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
+        if (event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
             Player damager = (Player) event.getDamager();
             Player damaged = (Player) event.getEntity();
             Material type = damager.getItemInHand().getType();
-            if(type == Material.IRON_SWORD || type == Material.GOLD_SWORD || type == Material.DIAMOND_SWORD) {
+            if (type == Material.IRON_SWORD || type == Material.GOLD_SWORD || type == Material.DIAMOND_SWORD) {
                 // duel
                 Menu duelMenu = new Menu("Duel " + damaged.getName(), 4, true,
                         new MenuItem(1, 2, Utils.makeDyed(Material.STAINED_CLAY, DyeColor.BLUE, "§aBridge 1v1", "§7Invite §a" + damaged.getName() + "§7 to", "§7a 1v1 duel.", "", "§eCLICK TO DUEL"), (p, m) -> {
@@ -1284,39 +1492,88 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         }
         event.setCancelled(true);
     }
+
     @EventHandler
     public void onWeatherChange(WeatherChangeEvent event) {
         event.setCancelled(event.toWeatherState());
     }
+
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         Inventory inv = event.getClickedInventory();
-        if(event.getWhoClicked().getGameMode() == GameMode.CREATIVE && event.getClickedInventory() != null && event.getWhoClicked().getInventory().equals(event.getClickedInventory())) return;
+        if (event.getWhoClicked().getGameMode() == GameMode.CREATIVE && event.getClickedInventory() != null && event.getWhoClicked().getInventory().equals(event.getClickedInventory()))
+            return;
         event.setCancelled(true);
         try {
-            if(inv != null) {
+            if (inv != null) {
                 Menu menuClicked = Menu.menus.get(inv.getTitle());
-                if(menuClicked != null) {
-                    if(menuClicked.draggables.contains(event.getCursor().getType()) && menuClicked.doesHaveOnClick(event.getSlot())) {
+                if (menuClicked != null) {
+                    if (menuClicked.draggables.contains(event.getCursor().getType()) && menuClicked.doesHaveOnClick(event.getSlot())) {
                         return;
                     }
-                    if((menuClicked.draggables.contains(event.getCurrentItem().getType()) || menuClicked.draggables.contains(event.getCursor().getType())) && event.getHotbarButton() == -1 && !event.isShiftClick()) {
+                    if ((menuClicked.draggables.contains(event.getCurrentItem().getType()) || menuClicked.draggables.contains(event.getCursor().getType())) && event.getHotbarButton() == -1 && !event.isShiftClick()) {
                         event.setCancelled(false);
                     }
                     menuClicked.runOnClick(event.getSlot(), (Player) event.getWhoClicked());
                 }
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             // we do this so it is still canceled if something goes wrong
             e.printStackTrace();
         }
 
     }
+
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
         event.setCancelled(true);
     }
-    private boolean isPlayerInLeaderboards(Player player){
+
+    private boolean isPlayerInLeaderboards(Player player) {
         return player.getLocation().getX() > 43 && player.getLocation().getX() < 66 && player.getLocation().getZ() > -10 && player.getLocation().getZ() < 9;
     }
+
+    @EventHandler
+    public void onClick(PlayerInteractEntityEvent event) {
+        Player p = event.getPlayer();
+
+        if (event.getRightClicked().getType() == EntityType.PLAYER) {
+            if (event.getPlayer().getItemInHand().getType() == Material.LEASH) {
+                Player target = (Player) event.getRightClicked();
+                target.setPassenger(p);
+            }
+
+        }
+    }
+
+    @EventHandler
+    public void onPearlThrow(ProjectileLaunchEvent e) {
+
+        if (e.getEntity().getShooter() instanceof Player) {
+            Player p = (Player) e.getEntity().getShooter();
+
+            ItemStack itemInMainHand = p.getInventory().getItemInHand();
+            if (itemInMainHand.getItemMeta().getDisplayName().equalsIgnoreCase("§5Enderbutt")) {
+                e.getEntity().setPassenger(p);
+
+            }
+            if (e.getEntityType().equals(EntityType.ENDER_PEARL) && e.getEntity().isOnGround()) {
+                e.getEntity().getPassenger().remove();
+
+            }
+
+        }
+    }
+
+    @EventHandler
+    public void onPearlLand(ProjectileHitEvent e) {
+        if (e.getEntity().getShooter() instanceof Player && e.getEntityType() == EntityType.ENDER_PEARL) {
+            Player p = (Player) e.getEntity().getShooter();
+            p.getInventory().setItem(5, Utils.createEnderButt());
+        }
+    }
+
 }
+
+
+
