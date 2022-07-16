@@ -40,7 +40,11 @@ public class Menu {
     public void runOnClick(int index, Player player) {
         MenuItemClick run = onClicks.get(index);
         if(run != null) {
-            run.run(player, this);
+            try {
+                run.run(player, this);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
     public boolean doesHaveOnClick(int index) {
