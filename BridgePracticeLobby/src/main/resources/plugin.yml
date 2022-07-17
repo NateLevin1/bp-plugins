@@ -29,3 +29,11 @@ commands:
     description: Get a stick that makes you teleport!
     permission: bridgepractice.command.telestick
     permission-message: §cYou must have a godlike rank or higher to use this command!
+  playerrider:
+    description: Get a leash that lets you ride other players
+    permission: bridgepractice.command.playerrider
+    permission-message: §cYou must have a custom rank or higher to use this command!
+  grantenderbutt:
+    description: Get a pearl that you can ride (BETA)
+    permission: group.mod
+    permission-message: §cYou must have a mod rank or higher to use this command!
