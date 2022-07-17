@@ -35,5 +35,5 @@ commands:
     permission-message: §cYou must have a custom rank or higher to use this command!
   grantenderbutt:
     description: Get a pearl that you can ride (BETA)
-    permission: group.mod
-    permission-message: §cYou must have a mod rank or higher to use this command!
+    permission: group.admin
+    permission-message: §cYou must have admin rank or higher to use this command!
