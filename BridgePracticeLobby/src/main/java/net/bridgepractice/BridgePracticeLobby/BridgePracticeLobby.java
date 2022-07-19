@@ -14,7 +14,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import com.mysql.jdbc.TimeUtil;
 import net.luckperms.api.LuckPerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.*;
