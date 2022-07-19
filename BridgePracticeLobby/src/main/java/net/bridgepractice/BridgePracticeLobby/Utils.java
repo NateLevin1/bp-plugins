@@ -60,7 +60,6 @@ public class Utils {
         item.setDurability(color.getData());
         return item;
     }
-
     public static ItemStack makePlayerHead(String ownerName, String name, String... lore) {
         ItemStack item = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
         List<String> itemLore = Arrays.asList(lore);
@@ -71,7 +70,6 @@ public class Utils {
         item.setItemMeta(itemMeta);
         return item;
     }
-
     public static ItemStack makeCustomPlayerHead(String url, String name, String... lore) {
         ItemStack item = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
         List<String> itemLore = Arrays.asList(lore);
@@ -94,7 +92,6 @@ public class Utils {
         item.setItemMeta(itemMeta);
         return item;
     }
-
     public static ItemStack getEnchanted(ItemStack stack) {
         // see https://www.spigotmc.org/threads/adding-the-enchant-glow-to-block.50892/
         stack.addUnsafeEnchantment(Enchantment.ARROW_INFINITE, 1);
@@ -104,7 +101,6 @@ public class Utils {
         nmsStack.setTag(tag);
         return CraftItemStack.asCraftMirror(nmsStack);
     }
-
     public static void sendTablist(Player player, String Title, String subTitle) {
         // see https://www.spigotmc.org/threads/tablist-header-in-1-8-8.296009/
         IChatBaseComponent tabTitle = IChatBaseComponent.ChatSerializer.a("{\"text\":\"" + Title + "\"}");
@@ -121,7 +117,6 @@ public class Utils {
             e.printStackTrace();
         }
     }
-
     public static void sendActionBar(Player player, String text, int times) {
         IChatBaseComponent comp = IChatBaseComponent.ChatSerializer
                 .a("{\"text\":\"" + text + " \"}");
@@ -135,7 +130,6 @@ public class Utils {
             }).runTaskLater(BridgePracticeLobby.instance, 20L * (i));
         }
     }
-
     public static ItemStack addLore(ItemStack item, String... lore) {
         ItemMeta itemMeta = item.getItemMeta();
         List<String> itemLore = itemMeta.getLore();
@@ -144,7 +138,6 @@ public class Utils {
         item.setItemMeta(itemMeta);
         return item;
     }
-
     public static ItemStack getUnbreakable(ItemStack stack) {
         net.minecraft.server.v1_8_R3.ItemStack nmsStack = CraftItemStack.asNMSCopy(stack);
         NBTTagCompound nmsCompound = (nmsStack.hasTag()) ? nmsStack.getTag() : new NBTTagCompound();
@@ -152,7 +145,6 @@ public class Utils {
         nmsStack.setTag(nmsCompound);
         return CraftItemStack.asBukkitCopy(nmsStack);
     }
-
     public static JsonObject getJSON(String urlString) throws IOException {
         URL url = new URL(urlString);
         BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -164,7 +156,6 @@ public class Utils {
         in.close();
         return result;
     }
-
     public static JsonArray getJSONArray(String urlString) throws IOException {
         URL url = new URL(urlString);
         BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -176,15 +167,12 @@ public class Utils {
         in.close();
         return result;
     }
-
     private static String getNameFromUuidSync(String uuid) throws IOException {
         JsonArray names = getJSONArray("https://api.mojang.com/user/profiles/" + uuid + "/names");
         return names.get(names.size() - 1).getAsJsonObject().get("name").getAsString();
     }
-
     private static final ConcurrentHashMap<String, String> cachedUuidToName = new ConcurrentHashMap<>();
     private static final AtomicLong lastCacheEvict = new AtomicLong(System.currentTimeMillis());
-
     public static String getNameFromUuidSyncCached(String uuid) throws IOException {
         if (System.currentTimeMillis() - lastCacheEvict.get() > 60 * 60 * 1000) {
             lastCacheEvict.set(System.currentTimeMillis());
@@ -200,7 +188,6 @@ public class Utils {
             return requestedName;
         }
     }
-
     public static String getUuidFromNameSync(String name) throws IOException {
         Player possiblyOnlinePlayer = BridgePracticeLobby.instance.getServer().getPlayer(name);
         if (possiblyOnlinePlayer != null) {
@@ -208,7 +195,6 @@ public class Utils {
         }
         return getJSON("https://api.mojang.com/users/profiles/minecraft/" + name).get("id").getAsString().replaceAll("(.{8})(.{4})(.{4})(.{4})(.+)", "$1-$2-$3-$4-$5");
     }
-
     public static org.bukkit.scoreboard.Scoreboard createScoreboard(String displayName, String[] scores) {
         Scoreboard board = BridgePracticeLobby.instance.getServer().getScoreboardManager().getNewScoreboard();
         Objective objective = board.registerNewObjective("scoreboard", "dummy");
@@ -244,7 +230,6 @@ public class Utils {
 
         return board;
     }
-
     public static int getPlayerXPSync(Player player) {
         try (PreparedStatement statement = BridgePracticeLobby.connection.prepareStatement("SELECT xp FROM players WHERE uuid=?;")) {
             statement.setString(1, player.getUniqueId().toString()); // uuid
@@ -259,7 +244,6 @@ public class Utils {
         }
         return -1;
     }
-
     public static void sendDuelRequest(Player requester, Player playerToDuel, String gameType) {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("DuelPlayer");
@@ -267,46 +251,37 @@ public class Utils {
         out.writeUTF(gameType);
         requester.sendPluginMessage(BridgePracticeLobby.instance, "BungeeCord", out.toByteArray());
     }
-
     private static final ItemStack sword = Utils.getUnbreakable(new ItemStack(Material.IRON_SWORD));
     private static final ItemStack bow = Utils.getUnbreakable(Utils.makeItem(Material.BOW, "§aBow", "§7Arrows regenerate every", "§a3.5s§7. You can have a maximum", "§7of §a1§7 arrow at a time.", ""));
     private static final ItemStack arrow = Utils.makeItem(Material.ARROW, "§aArrow", "§7Regenerates every §a3.5s§7!", "");
     private static final ItemStack glyph = Utils.makeItem(Material.DIAMOND, "§6Glyph Menu", "§7Least useful item", "§7in the game!", "");
-
     public static ItemStack getSword() {
         return sword.clone();
     }
-
     public static ItemStack getBow() {
         return bow.clone();
     }
-
     public static ItemStack getArrow() {
         return arrow.clone();
     }
-
     public static ItemStack getGlyph() {
         return glyph.clone();
     }
-
     public static ItemStack getPickaxe() {
         ItemStack pick = Utils.makeItem(Material.DIAMOND_PICKAXE, "§bDiamond Pickaxe");
         pick.addEnchantment(Enchantment.DIG_SPEED, 2);
         return Utils.getUnbreakable(pick);
     }
-
     public static ItemStack getBlocks() {
         ItemStack blocks = new ItemStack(Material.STAINED_CLAY);
         blocks.setAmount(64);
         return blocks;
     }
-
     public static ItemStack getGapple() {
         ItemStack gap = Utils.makeItem(Material.GOLDEN_APPLE, "§bGolden Apple", "§7Instantly heals you to full", "§7health and grants §aAbsorption", "§aI§7.");
         gap.setAmount(8);
         return gap;
     }
-
     public static void sendMessageSync(Player player, String message) {
         (new BukkitRunnable() {
             @Override
@@ -315,7 +290,6 @@ public class Utils {
             }
         }).runTask(BridgePracticeLobby.instance);
     }
-
     public static ItemStack createEnderButt() {
 
         ItemStack EnderButt = new ItemStack(Material.ENDER_PEARL, 1);
