@@ -1341,7 +1341,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         return player.getLocation().getX() > 43 && player.getLocation().getX() < 66 && player.getLocation().getZ() > -10 && player.getLocation().getZ() < 9;
     }
     @EventHandler
-    public void onPlayerClick(PlayerInteractEntityEvent event) {
+    public void onPlayerClickEntity(PlayerInteractEntityEvent event) {
         Player p = event.getPlayer();
 
         if (event.getRightClicked().getType() == EntityType.PLAYER) {
@@ -1353,7 +1353,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         }
     }
     @EventHandler
-    public void onPearlThrow(ProjectileLaunchEvent e) {
+    public void onProjectileLaunch(ProjectileLaunchEvent e) {
 
         if (e.getEntity().getShooter() instanceof Player) {
             Player p = (Player) e.getEntity().getShooter();
@@ -1371,7 +1371,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     }
 
     @EventHandler
-    public void onPearlLand(ProjectileHitEvent e) {
+    public void onProjectileLand(ProjectileHitEvent e) {
         if (e.getEntity().getShooter() instanceof Player && e.getEntityType() == EntityType.ENDER_PEARL) {
             Player p = (Player) e.getEntity().getShooter();
             p.getInventory().setItem(5, Utils.createEnderButt());
