@@ -33,7 +33,7 @@ commands:
     description: Get a leash that lets you ride other players
     permission: group.custom
     permission-message: §cYou must have a custom rank or higher to use this command!
-  grantenderbutt:
+  enderbutt:
     description: Get a pearl that you can ride 
-    permission: group.admin
-    permission-message: §cYou must have admin rank or higher to use this command!
+    permission: group.legend
+    permission-message: §cYou must have legend rank or higher to use this command!
