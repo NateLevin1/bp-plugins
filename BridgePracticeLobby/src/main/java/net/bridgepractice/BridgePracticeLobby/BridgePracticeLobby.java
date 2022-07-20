@@ -1189,7 +1189,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                     } else {
                         gadgetsMenu = new Menu("Gadgets", 3, true,
                                 new MenuItem(1, 2, Utils.getEnchanted(Utils.makeItem(Material.BOOK, "§aEdit Hotbar Layout", "§7Customize your hotbar", "§7layout for all modes", "", "§eClick to open editor")), (p, m) -> {
-                                    m.allowforGarbageCollection();
+                                    m.allowForGarbageCollection();
                                     p.closeInventory();
                                     openHotbarEditor(p);
                                 }),
