@@ -263,8 +263,6 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         getCommand("stats").setExecutor(new StatsCommand());
       
         getCommand("telestick").setExecutor(new TelestickCommand());
-        getCommand("enderbutt").setExecutor(new EnderbuttGrant());
-
         // every 15 seconds, get the player count. it will be stored and shown to players!
         (new BukkitRunnable() {
             @Override
@@ -1151,7 +1149,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                         MenuItem EnderButt = new MenuItem(2, 4, Utils.makeItem(Material.ENDER_PEARL, "§aEnderButt Gadget", "§7Shoot your shot and", "§7teleport anywhere!", "", "§eClick to select"), (p, m) -> {
                             m.allowForGarbageCollection();
                             p.closeInventory();
-                            EnderbuttGrant.giveGadget(p);
+                            EnderbuttCommand.giveGadget(p);
                         });
                         if(player.hasPermission("group.custom")) {
                             gadgetsMenu = new Menu("Gadgets", 3, true,
@@ -1191,7 +1189,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                     } else {
                         gadgetsMenu = new Menu("Gadgets", 3, true,
                                 new MenuItem(1, 2, Utils.getEnchanted(Utils.makeItem(Material.BOOK, "§aEdit Hotbar Layout", "§7Customize your hotbar", "§7layout for all modes", "", "§eClick to open editor")), (p, m) -> {
-                                    m.allowForGarbageCollection();
+                                    m.allowforGarbageCollection();
                                     p.closeInventory();
                                     openHotbarEditor(p);
                                 }),
