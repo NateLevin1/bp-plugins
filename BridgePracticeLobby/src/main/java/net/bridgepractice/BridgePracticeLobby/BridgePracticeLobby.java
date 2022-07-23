@@ -933,6 +933,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 inv.setItem(5, Utils.makeItem(Material.BED, "§cCancel Parkour"));
                 inv.setHeldItemSlot(4);
             }
+            return;
         }
 
         if(event.getItem() == null) return;
@@ -1342,12 +1343,9 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     public void onPlayerClickEntity(PlayerInteractEntityEvent event) {
         Player p = event.getPlayer();
 
-        if (event.getRightClicked().getType() == EntityType.PLAYER) {
-            if (event.getPlayer().getItemInHand().getType() == Material.LEASH) {
-                Player target = (Player) event.getRightClicked();
-                target.setPassenger(p);
-            }
-
+        if (event.getRightClicked().getType() == EntityType.PLAYER && event.getPlayer().getItemInHand().getType() == Material.LEASH) {
+           Player target = (Player) event.getRightClicked();
+           target.setPassenger(p);
         }
     }
     @EventHandler
