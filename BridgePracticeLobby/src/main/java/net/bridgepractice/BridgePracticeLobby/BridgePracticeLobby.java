@@ -853,14 +853,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     }
 
     private void spawnPet(PetType type, Player p) {
-        if (rainbowSheep.containsKey(p.getUniqueId())) {
-            rainbowSheep.get(p.getUniqueId()).cancel();
-            rainbowSheep.remove(p.getUniqueId());
-        }
-        if (currentPets.containsKey(p.getUniqueId())) {
-            currentPets.get(p.getUniqueId()).remove();
-            currentPets.remove(p.getUniqueId());
-        }
+        removePet(p.getUniqueId());
         Class animal;
         LivingEntity pet;
         String petName;
@@ -905,6 +898,17 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         currentPets.put(p.getUniqueId(), pet);
     }
 
+    private void removePet(UUID uuid) {
+        if (rainbowSheep.containsKey(uuid)) {
+            rainbowSheep.get(uuid).cancel();
+            rainbowSheep.remove(uuid);
+        }
+        if (currentPets.containsKey(uuid)) {
+            currentPets.get(uuid).remove();
+            currentPets.remove(uuid);
+        }
+    }
+
     private int totalPlayersOnline = 0;
     @Override
     public void onPluginMessageReceived(String channel, Player someRandomPlayer, byte[] message) {
@@ -947,14 +951,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         lastSpade.remove(uuid);
         lastTele.remove(uuid);
         currentGadgets.remove(uuid);
-        if (rainbowSheep.containsKey(uuid)) {
-            rainbowSheep.get(uuid).cancel();
-            rainbowSheep.remove(uuid);
-        }
-        if (currentPets.containsKey(uuid)) {
-            currentPets.get(uuid).remove();
-            currentPets.remove(uuid);
-        }
+        removePet(uuid);
 
         event.setQuitMessage("");
     }
