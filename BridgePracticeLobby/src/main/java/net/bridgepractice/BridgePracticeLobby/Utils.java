@@ -290,17 +290,5 @@ public class Utils {
             }
         }).runTask(BridgePracticeLobby.instance);
     }
-    public static ItemStack createEnderButt() {
-
-        ItemStack EnderButt = new ItemStack(Material.ENDER_PEARL, 1);
-        ItemMeta EnderButtMeta = EnderButt.getItemMeta();
-        EnderButtMeta.setDisplayName("§5EnderButt");
-        List<String> lore = new ArrayList<>();
-        lore.add("§7Shoot your shot ");
-        lore.add("§7and Teleport anywhere.");
-        EnderButtMeta.setLore(lore);
-        EnderButt.setItemMeta(EnderButtMeta);
-
-        return EnderButt;
-    }
+   
 }
