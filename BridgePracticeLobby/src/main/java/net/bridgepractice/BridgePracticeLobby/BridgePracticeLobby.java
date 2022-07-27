@@ -261,7 +261,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
 
         getCommand("joinannounce").setExecutor(new JoinAnnounceCommand());
         getCommand("stats").setExecutor(new StatsCommand());
-      
+
         getCommand("telestick").setExecutor(new TelestickCommand());
         // every 15 seconds, get the player count. it will be stored and shown to players!
         (new BukkitRunnable() {
@@ -1123,7 +1123,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 (new BukkitRunnable() {
                     @Override
                     public void run() {
-                        player.getInventory().setItem(5, Utils.createEnderButt());
+                        EnderbuttCommand.giveGadget(player);
                     }
                 }).runTaskLater(this, 1);
 
@@ -1370,7 +1370,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     public void onProjectileLand(ProjectileHitEvent e) {
         if (e.getEntity().getShooter() instanceof Player && e.getEntityType() == EntityType.ENDER_PEARL) {
             Player p = (Player) e.getEntity().getShooter();
-            p.getInventory().setItem(5, Utils.createEnderButt());
+            EnderbuttCommand.giveGadget(p);
         }
     }
 
