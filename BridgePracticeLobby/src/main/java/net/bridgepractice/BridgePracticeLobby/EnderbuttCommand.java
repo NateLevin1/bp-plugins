@@ -27,12 +27,11 @@ public class EnderbuttCommand implements CommandExecutor {
         return true;
     }
 
-        public static void giveGadget(Player p){
-            BridgePracticeLobby.Gadget current = BridgePracticeLobby.instance.getGadget(p);
-            ItemStack enderbutt = Utils.makeItem(Material.ENDER_PEARL, "§5EnderButt", "§7Shoot your shot and", "§7teleport anywhere!");
-            BridgePracticeLobby.instance.setGadget(p, new BridgePracticeLobby.Gadget(current.fourthSlotItem, enderbutt));
-            p.getInventory().setHeldItemSlot(5);
-            BridgePracticeLobby.instance.giveGadgets(p, p.getInventory());
-
-        }
+    public static void giveGadget(Player p){
+        BridgePracticeLobby.Gadget current = BridgePracticeLobby.instance.getGadget(p);
+        ItemStack enderbutt = Utils.makeItem(Material.ENDER_PEARL, "§5EnderButt", "§7Shoot your shot and", "§7teleport anywhere!");
+        BridgePracticeLobby.instance.setGadget(p, new BridgePracticeLobby.Gadget(current.fourthSlotItem, enderbutt));
+        p.getInventory().setHeldItemSlot(5);
+        BridgePracticeLobby.instance.giveGadgets(p, p.getInventory());
     }
+}
