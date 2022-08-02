@@ -46,6 +46,7 @@ public class Utils {
         item.setItemMeta(itemMeta);
         return item;
     }
+
     public static ItemStack makeItem(Material material, String name) {
         ItemStack item = new ItemStack(material);
         ItemMeta itemMeta = item.getItemMeta();
@@ -53,6 +54,7 @@ public class Utils {
         item.setItemMeta(itemMeta);
         return item;
     }
+
     public static ItemStack makeDyed(Material material, DyeColor color, String name, String... lore) {
         ItemStack item = makeItem(material, name, lore);
         item.setDurability(color.getData());
@@ -119,7 +121,7 @@ public class Utils {
         IChatBaseComponent comp = IChatBaseComponent.ChatSerializer
                 .a("{\"text\":\"" + text + " \"}");
         PacketPlayOutChat packet = new PacketPlayOutChat(comp, (byte) 2);
-        for(int i = 0; i < times; i++) {
+        for (int i = 0; i < times; i++) {
             (new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -147,8 +149,8 @@ public class Utils {
         URL url = new URL(urlString);
         BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
         JsonElement parsed = new JsonParser().parse(in);
-        if(!parsed.isJsonObject()) {
-            throw new IOException("Did not get a JSON object from URL "+urlString);
+        if (!parsed.isJsonObject()) {
+            throw new IOException("Did not get a JSON object from URL " + urlString);
         }
         JsonObject result = parsed.getAsJsonObject();
         in.close();
@@ -158,8 +160,8 @@ public class Utils {
         URL url = new URL(urlString);
         BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
         JsonElement parsed = new JsonParser().parse(in);
-        if(!parsed.isJsonArray()) {
-            throw new IOException("Did not get a JSON array from URL "+urlString);
+        if (!parsed.isJsonArray()) {
+            throw new IOException("Did not get a JSON array from URL " + urlString);
         }
         JsonArray result = parsed.getAsJsonArray();
         in.close();
@@ -167,18 +169,18 @@ public class Utils {
     }
     private static String getNameFromUuidSync(String uuid) throws IOException {
         JsonArray names = getJSONArray("https://api.mojang.com/user/profiles/" + uuid + "/names");
-        return names.get(names.size()-1).getAsJsonObject().get("name").getAsString();
+        return names.get(names.size() - 1).getAsJsonObject().get("name").getAsString();
     }
     private static final ConcurrentHashMap<String, String> cachedUuidToName = new ConcurrentHashMap<>();
     private static final AtomicLong lastCacheEvict = new AtomicLong(System.currentTimeMillis());
     public static String getNameFromUuidSyncCached(String uuid) throws IOException {
-        if(System.currentTimeMillis() - lastCacheEvict.get() > 60*60*1000) {
+        if (System.currentTimeMillis() - lastCacheEvict.get() > 60 * 60 * 1000) {
             lastCacheEvict.set(System.currentTimeMillis());
             cachedUuidToName.clear();
             BridgePracticeLobby.instance.getLogger().info("Evicting UUID to username cache");
         }
         String name = cachedUuidToName.get(uuid);
-        if(name != null) {
+        if (name != null) {
             return name;
         } else {
             String requestedName = Utils.getNameFromUuidSync(uuid);
@@ -188,7 +190,7 @@ public class Utils {
     }
     public static String getUuidFromNameSync(String name) throws IOException {
         Player possiblyOnlinePlayer = BridgePracticeLobby.instance.getServer().getPlayer(name);
-        if(possiblyOnlinePlayer != null) {
+        if (possiblyOnlinePlayer != null) {
             return possiblyOnlinePlayer.getUniqueId().toString();
         }
         return getJSON("https://api.mojang.com/users/profiles/minecraft/" + name).get("id").getAsString().replaceAll("(.{8})(.{4})(.{4})(.{4})(.+)", "$1-$2-$3-$4-$5");
@@ -201,11 +203,11 @@ public class Utils {
 
         int numSpaces = 0;
         int numResets = 1;
-        for(int i = 0; i < scores.length; i++) {
-            if(scores[i].equals("")) {
+        for (int i = 0; i < scores.length; i++) {
+            if (scores[i].equals("")) {
                 objective.getScore(String.join("", Collections.nCopies(numSpaces, " "))).setScore(scores.length - i);
                 numSpaces++;
-            } else if(scores[i].startsWith("%")) {
+            } else if (scores[i].startsWith("%")) {
                 int percent = scores[i].substring(1).indexOf('%') + 1;
                 String teamName = scores[i].substring(1, percent);
                 Team team = board.registerNewTeam(teamName);
@@ -213,7 +215,7 @@ public class Utils {
                 team.addEntry(entry);
                 String content = scores[i].substring(percent + 1);
                 int split = content.indexOf("%");
-                if(split == -1) {
+                if (split == -1) {
                     team.setPrefix(content);
                 } else {
                     team.setPrefix(content.substring(0, split));
@@ -229,10 +231,10 @@ public class Utils {
         return board;
     }
     public static int getPlayerXPSync(Player player) {
-        try(PreparedStatement statement = BridgePracticeLobby.connection.prepareStatement("SELECT xp FROM players WHERE uuid=?;")) {
+        try (PreparedStatement statement = BridgePracticeLobby.connection.prepareStatement("SELECT xp FROM players WHERE uuid=?;")) {
             statement.setString(1, player.getUniqueId().toString()); // uuid
             ResultSet res = statement.executeQuery();
-            if(!res.next()) {
+            if (!res.next()) {
                 throw new SQLException("Did not get a row from the database. Player name: " + player.getName() + " Player UUID: " + player.getUniqueId());
             }
             return res.getInt(1); // 1 indexing!
@@ -251,8 +253,8 @@ public class Utils {
     }
     private static final ItemStack sword = Utils.getUnbreakable(new ItemStack(Material.IRON_SWORD));
     private static final ItemStack bow = Utils.getUnbreakable(Utils.makeItem(Material.BOW, "§aBow", "§7Arrows regenerate every", "§a3.5s§7. You can have a maximum", "§7of §a1§7 arrow at a time.", ""));
-    private static final ItemStack arrow = Utils.makeItem(Material.ARROW, "§aArrow","§7Regenerates every §a3.5s§7!","");
-    private static final ItemStack glyph = Utils.makeItem(Material.DIAMOND, "§6Glyph Menu","§7Least useful item","§7in the game!","");
+    private static final ItemStack arrow = Utils.makeItem(Material.ARROW, "§aArrow", "§7Regenerates every §a3.5s§7!", "");
+    private static final ItemStack glyph = Utils.makeItem(Material.DIAMOND, "§6Glyph Menu", "§7Least useful item", "§7in the game!", "");
     public static ItemStack getSword() {
         return sword.clone();
     }
@@ -276,11 +278,10 @@ public class Utils {
         return blocks;
     }
     public static ItemStack getGapple() {
-        ItemStack gap = Utils.makeItem(Material.GOLDEN_APPLE, "§bGolden Apple", "§7Instantly heals you to full","§7health and grants §aAbsorption","§aI§7.");
+        ItemStack gap = Utils.makeItem(Material.GOLDEN_APPLE, "§bGolden Apple", "§7Instantly heals you to full", "§7health and grants §aAbsorption", "§aI§7.");
         gap.setAmount(8);
         return gap;
     }
-
     public static void sendMessageSync(Player player, String message) {
         (new BukkitRunnable() {
             @Override
@@ -289,4 +290,5 @@ public class Utils {
             }
         }).runTask(BridgePracticeLobby.instance);
     }
+   
 }

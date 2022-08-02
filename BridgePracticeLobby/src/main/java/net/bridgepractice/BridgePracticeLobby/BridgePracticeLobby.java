@@ -31,9 +31,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.*;
@@ -263,9 +261,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
 
         getCommand("joinannounce").setExecutor(new JoinAnnounceCommand());
         getCommand("stats").setExecutor(new StatsCommand());
-      
-        getCommand("telestick").setExecutor(new TelestickCommand());
 
+        getCommand("telestick").setExecutor(new TelestickCommand());
         // every 15 seconds, get the player count. it will be stored and shown to players!
         (new BukkitRunnable() {
             @Override
@@ -1198,6 +1195,15 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                     }
                 }
                 break;
+            case ENDER_PEARL:
+                (new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        EnderbuttCommand.giveGadget(player);
+                    }
+                }).runTaskLater(this, 1);
+
+                break;
             case CHEST:
                 if(player.hasPermission("group.legend")) {
                     Menu gadgetsMenu;
@@ -1230,6 +1236,12 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                             p.closeInventory();
                             TelestickCommand.giveGadget(p);
                         });
+                        MenuItem EnderButt = new MenuItem(2, 4, Utils.makeItem(Material.ENDER_PEARL, "§aEnderButt Gadget", "§7Shoot your shot and", "§7teleport anywhere!", "", "§eClick to select"), (p, m) -> {
+                            m.allowForGarbageCollection();
+                            p.closeInventory();
+                            EnderbuttCommand.giveGadget(p);
+                        });
+
                         MenuItem petmenu = new MenuItem(0, 4, Utils.makeItem(Material.MOB_SPAWNER, "§aPets", "§7Right click to", "§7open the pets menu!", "", "§eClick to open"), (p, m) -> {
                             m.allowForGarbageCollection();
                             p.closeInventory();
@@ -1246,12 +1258,15 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                         spawnPet(PetType.PIG, p);
                                     }));
                             p.openInventory(pets.getInventory());
+
                         });
+                        
                         if(player.hasPermission("group.custom")) {
                             gadgetsMenu = new Menu("Gadgets", 3, true,
                                     hotbarLayout,
                                     cookieGadget,
                                     telestickGadget,
+                                    EnderButt,
                                     new MenuItem(1, 7, Utils.makeItem(Material.DIAMOND_SWORD, "§aDuel Sword Gadget", "§7Left click on a", "§7player to duel them!", "", "§eClick to select"), (p, m) -> {
                                         m.allowForGarbageCollection();
                                         p.closeInventory();
@@ -1259,6 +1274,13 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                         BridgePracticeLobby.instance.giveGadgets(p, p.getInventory());
                                         p.getInventory().setHeldItemSlot(5);
                                     }),
+                                    new MenuItem(1, 4, Utils.makeItem(Material.LEASH, "§aRide-A-Player", "§7Right click to", "§7ride a player!", "", "§eClick to select"), (p, m) -> {
+                                        m.allowForGarbageCollection();
+                                        p.closeInventory();
+                                        PlayerRider.giveGadget(p);
+                                        p.getInventory().setHeldItemSlot(5);
+                                    }),
+
                                     new MenuItem(0, 4, Utils.makeItem(Material.MOB_SPAWNER, "§aPets", "§7Right click to", "§7open the pets menu!", "", "§eClick to open"), (p, m) -> {
                                         m.allowForGarbageCollection();
                                         p.closeInventory();
@@ -1286,7 +1308,6 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                                 })
                                         );
                                         p.openInventory(pets.getInventory());
-
                                     })
                             );
                         }  else {
@@ -1294,6 +1315,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                     hotbarLayout,
                                     cookieGadget,
                                     telestickGadget,
+                                    EnderButt,
                                     new MenuItem(1, 7, Utils.makeItem(Material.GOLD_SWORD, "§aDuel Sword Gadget", "§7Left click on a", "§7player to duel them!", "", "§eClick to select"), (p, m) -> {
                                         m.allowForGarbageCollection();
                                         p.closeInventory();
@@ -1459,4 +1481,40 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     private boolean isPlayerInLeaderboards(Player player){
         return player.getLocation().getX() > 43 && player.getLocation().getX() < 66 && player.getLocation().getZ() > -10 && player.getLocation().getZ() < 9;
     }
+    @EventHandler
+    public void onPlayerClickEntity(PlayerInteractEntityEvent event) {
+        Player p = event.getPlayer();
+
+        if (event.getRightClicked().getType() == EntityType.PLAYER && event.getPlayer().getItemInHand().getType() == Material.LEASH) {
+           Player target = (Player) event.getRightClicked();
+           target.setPassenger(p);
+        }
+    }
+    @EventHandler
+    public void onProjectileLaunch(ProjectileLaunchEvent e) {
+
+        if (e.getEntity().getShooter() instanceof Player) {
+            Player p = (Player) e.getEntity().getShooter();
+
+            ItemStack itemInMainHand = p.getInventory().getItemInHand();
+            if (itemInMainHand.getItemMeta().getDisplayName().equalsIgnoreCase("§5Enderbutt")) {
+                e.getEntity().setPassenger(p);
+            }
+            if (e.getEntityType().equals(EntityType.ENDER_PEARL) && e.getEntity().isOnGround()) {
+                e.getEntity().getPassenger().remove();
+
+            }
+
+        }
+    }
+
+    @EventHandler
+    public void onProjectileLand(ProjectileHitEvent e) {
+        if (e.getEntity().getShooter() instanceof Player && e.getEntityType() == EntityType.ENDER_PEARL) {
+            Player p = (Player) e.getEntity().getShooter();
+            EnderbuttCommand.giveGadget(p);
+        }
+    }
+
 }
+

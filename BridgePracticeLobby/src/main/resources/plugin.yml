@@ -29,3 +29,11 @@ commands:
     description: Get a stick that makes you teleport!
     permission: bridgepractice.command.telestick
     permission-message: §cYou must have a godlike rank or higher to use this command!
+  playerrider:
+    description: Get a leash that lets you ride other players
+    permission: group.custom
+    permission-message: §cYou must have a custom rank or higher to use this command!
+  enderbutt:
+    description: Get a pearl that you can ride 
+    permission: group.legend
+    permission-message: §cYou must have legend rank or higher to use this command!
