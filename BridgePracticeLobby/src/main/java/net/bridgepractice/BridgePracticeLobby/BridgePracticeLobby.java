@@ -24,10 +24,10 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -48,17 +48,15 @@ import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.NameTagVisibility;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
 import java.io.*;
-import java.math.RoundingMode;
 import java.sql.*;
 import java.sql.Date;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginMessageListener {
@@ -84,6 +82,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     private final ItemStack spawnSpade = Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Teleport to Spawn §7(Right Click)", "§7Go back to spawn"));
     private final HashMap<UUID, Long> playerNpcTimes = new HashMap<>();
     public final ArrayList<EntityPlayer> npcs = new ArrayList<>();
+    private final HashMap<UUID, LivingEntity> currentPets = new HashMap<>();
+    private final HashMap<UUID, BukkitTask> rainbowSheep = new HashMap<>();
     Menu gameMenu;
     Menu multiplayerGamesMenu;
 
@@ -277,9 +277,27 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 player.sendPluginMessage(instance, "BungeeCord", allCount.toByteArray());
             }
         }).runTaskTimerAsynchronously(instance, 5*20, 15*20);
+
+        (new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (UUID uuid : currentPets.keySet()) {
+                    Player p = getServer().getPlayer(uuid);
+                    LivingEntity e = currentPets.get(uuid);
+                    if (p.getLocation().distance(e.getLocation()) > 13 && !p.isFlying()) {
+                        e.teleport(p.getLocation());
+                    } else if (p.getLocation().distance(e.getLocation()) > 2.5) {
+                        ((EntityInsentient) ((CraftEntity) e).getHandle()).getNavigation().a(p.getLocation().getX(), p.getLocation().getY(), p.getLocation().getZ(), 1.75);
+                    }
+                }
+            }
+        }).runTaskTimerAsynchronously(instance, 0, 20);
     }
     @Override
     public void onDisable() {
+        for (LivingEntity e : currentPets.values()) {
+            e.remove();
+        }
     }
     // DB Related Methods
     public void openConnection() throws SQLException {
@@ -831,6 +849,63 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         }).runTaskAsynchronously(this);
     }
 
+    private void spawnPet(PetType type, Player p) {
+        removePet(p.getUniqueId());
+        Class animal;
+        LivingEntity pet;
+        String petName;
+        switch (type) {
+            default:
+            case OCELOT:
+                animal = Ocelot.class;
+                petName = p.getDisplayName() + "'s Cat";
+                break;
+            case WOLF:
+                animal = Wolf.class;
+                petName = p.getDisplayName() + "'s Wolf";
+                break;
+            case PIG:
+                animal = Pig.class;
+                petName = p.getDisplayName() + "'s Pig";
+                break;
+            case RAINBOW_SHEEP:
+                animal = Sheep.class;
+                petName = p.getDisplayName() + "'s Rainbow Sheep";
+                break;
+        }
+        if (type == PetType.RAINBOW_SHEEP) {
+            Sheep sheep = (Sheep) p.getWorld().spawn(p.getLocation(), animal);
+            rainbowSheep.put(p.getUniqueId(), new BukkitRunnable() {
+
+                int dyeIndex = 0;
+
+                @Override
+                public void run() {
+                    sheep.setColor(DyeColor.values()[dyeIndex++]);
+                    if(dyeIndex == DyeColor.values().length) dyeIndex = 0;
+                }
+
+            }.runTaskTimer(instance, 20L, 10L));
+            pet = sheep;
+        } else {
+            pet = (LivingEntity) p.getWorld().spawn(p.getLocation(), animal);
+            pet.setCustomName(petName);
+        }
+        pet.setCustomNameVisible(true);
+        currentPets.put(p.getUniqueId(), pet);
+    }
+
+    private void removePet(UUID uuid) {
+        if (rainbowSheep.containsKey(uuid)) {
+            rainbowSheep.get(uuid).cancel();
+            rainbowSheep.remove(uuid);
+        }
+        if (currentPets.containsKey(uuid)) {
+            currentPets.get(uuid).remove();
+            currentPets.remove(uuid);
+        }
+    }
+
     private int totalPlayersOnline = 0;
     @Override
     public void onPluginMessageReceived(String channel, Player someRandomPlayer, byte[] message) {
@@ -873,6 +948,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         lastSpade.remove(uuid);
         lastTele.remove(uuid);
         currentGadgets.remove(uuid);
+        removePet(uuid);
 
         event.setQuitMessage("");
     }
@@ -1131,6 +1207,19 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
             case CHEST:
                 if(player.hasPermission("group.legend")) {
                     Menu gadgetsMenu;
+                    new MenuItem(0, 4, Utils.makeItem(Material.MOB_SPAWNER, "§aPets", "§7Right click to", "§7open the pets menu!", "", "§eClick to open"), (p, m) -> {
+                        m.allowForGarbageCollection();
+                        p.closeInventory();
+                        Menu pets = new Menu("§rYour Pets", 4, true,
+                                MenuItem.close(3, 4),
+                                new MenuItem(1, 2, Utils.makeItem(Material.RAW_FISH, "§aCat", " ", "§7A little cat that follows you", " ", "§eClick to select"), (p2, m2) -> {
+                                    m.allowForGarbageCollection();
+                                    p.closeInventory();
+                                    spawnPet(PetType.OCELOT, p);
+                                })
+                        );
+                        p.openInventory(pets.getInventory());
+                    });
                     if(player.hasPermission("group.godlike")) {
                         MenuItem hotbarLayout = new MenuItem(1, 1, Utils.getEnchanted(Utils.makeItem(Material.BOOK, "§aEdit Hotbar Layout", "§7Customize your hotbar", "§7layout for all modes", "", "§eClick to open editor")), (p, m) -> {
                             m.allowForGarbageCollection();
@@ -1152,6 +1241,26 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                             p.closeInventory();
                             EnderbuttCommand.giveGadget(p);
                         });
+
+                        MenuItem petmenu = new MenuItem(0, 4, Utils.makeItem(Material.MOB_SPAWNER, "§aPets", "§7Right click to", "§7open the pets menu!", "", "§eClick to open"), (p, m) -> {
+                            m.allowForGarbageCollection();
+                            p.closeInventory();
+                            Menu pets = new Menu("§rYour Pets", 4, true,
+                                    MenuItem.close(3, 4),
+                                    new MenuItem(1, 3, Utils.makeItem(Material.RAW_FISH, "§aCat", " ", "§7A little cat that follows you", " ", "§eClick to select"), (p2, m2) -> {
+                                        m.allowForGarbageCollection();
+                                        p.closeInventory();
+                                        spawnPet(PetType.OCELOT, p);
+                                    }),
+                                    new MenuItem(1, 5, Utils.makeItem(Material.PORK, "§aPig", " ", "§7Beef tastes good, but pork is better!", " ", "§eClick to select"), (p2, m2) -> {
+                                        m.allowForGarbageCollection();
+                                        p.closeInventory();
+                                        spawnPet(PetType.PIG, p);
+                                    }));
+                            p.openInventory(pets.getInventory());
+
+                        });
+                        
                         if(player.hasPermission("group.custom")) {
                             gadgetsMenu = new Menu("Gadgets", 3, true,
                                     hotbarLayout,
@@ -1170,6 +1279,35 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                                         p.closeInventory();
                                         PlayerRider.giveGadget(p);
                                         p.getInventory().setHeldItemSlot(5);
+                                    }),
+
+                                    new MenuItem(0, 4, Utils.makeItem(Material.MOB_SPAWNER, "§aPets", "§7Right click to", "§7open the pets menu!", "", "§eClick to open"), (p, m) -> {
+                                        m.allowForGarbageCollection();
+                                        p.closeInventory();
+                                        Menu pets = new Menu("§rYour Pets", 5, true,
+                                                MenuItem.close(3, 4),
+                                                new MenuItem(1, 2, Utils.makeItem(Material.RAW_FISH, "§aCat", " ", "§7A little cat that follows you", " ", "§eClick to select"), (p2, m2) -> {
+                                                    m.allowForGarbageCollection();
+                                                    p.closeInventory();
+                                                    spawnPet(PetType.OCELOT, p);
+                                                }),
+                                                new MenuItem(1, 4, Utils.makeItem(Material.PORK, "§aPig", " ", "§7Beef tastes good, but pork is better!", " ", "§eClick to select"), (p2, m2) -> {
+                                                    m.allowForGarbageCollection();
+                                                    p.closeInventory();
+                                                    spawnPet(PetType.PIG, p);
+                                                }),
+                                                new MenuItem(1, 6, Utils.makeItem(Material.BONE, "§aWolf", " ", "§7WOOF WOOF", " ", "§eClick to select"), (p2, m2) -> {
+                                                    m.allowForGarbageCollection();
+                                                    p.closeInventory();
+                                                    spawnPet(PetType.WOLF, p);
+                                                }),
+                                                new MenuItem(3, 4, Utils.makeItem(Material.WOOL, "§aRainbow Sheep", " ", "§7Who doesn't like rainbows?", " ", "§eClick to select"), (p2, m2) -> {
+                                                    m.allowForGarbageCollection();
+                                                    p.closeInventory();
+                                                    spawnPet(PetType.RAINBOW_SHEEP, p);
+                                                })
+                                        );
+                                        p.openInventory(pets.getInventory());
                                     })
                             );
                         }  else {
@@ -1266,6 +1404,10 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
     public void onPlayerDamagedBySelf(EntityDamageEvent event) {
         // disable drown, fall, etc damage
         if(event.getEntity() instanceof Player) {
+            event.setCancelled(true);
+        }
+        // stop pets from taking damage
+        if(event.getEntity().getType() == EntityType.SHEEP || event.getEntity().getType() == EntityType.WOLF || event.getEntity().getType() == EntityType.PIG || event.getEntity().getType() == EntityType.OCELOT) {
             event.setCancelled(true);
         }
     }
