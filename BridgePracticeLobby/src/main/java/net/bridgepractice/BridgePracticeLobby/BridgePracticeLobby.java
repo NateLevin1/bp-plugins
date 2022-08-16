@@ -18,9 +18,9 @@ import net.luckperms.api.LuckPerms;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.*;
 import net.minecraft.server.v1_8_R3.*;
-import org.bukkit.*;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
 import org.bukkit.craftbukkit.v1_8_R3.CraftWorld;
@@ -54,9 +54,11 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
-import java.io.*;
-import java.sql.*;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.sql.Date;
+import java.sql.*;
 import java.util.*;
 
 public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginMessageListener {
@@ -263,6 +265,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         getCommand("stats").setExecutor(new StatsCommand());
 
         getCommand("telestick").setExecutor(new TelestickCommand());
+        getCommand("coins").setExecutor(new CoinCommands());
         // every 15 seconds, get the player count. it will be stored and shown to players!
         (new BukkitRunnable() {
             @Override
@@ -730,7 +733,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         inv.setItem(7, Utils.makeDyed(Material.INK_SACK, DyeColor.PURPLE, "§fPlayers: §aShown §7(Right Click)", "§7Right click to toggle player visibility!"));
         inv.setItem(8, Utils.getUnbreakable(Utils.makeItem(Material.GOLD_SPADE, "§6Leaderboards §7(Right Click)", "§7View the leaderboards")));
 
-        Utils.sendTablist(player, "§e§lbridgepractice.net", "\n§aJoin the Discord!\n§b§nbridgepractice.net/discord");
+        Utils.sendTablist(player, "§e§lbridgepractice.net", "\n§3§m----------------------------------\n§3§lDISCORD: §bbridgepractice.net/discord\n§a§lSTORE: §bstore.bridgepractice.net\n§6§lWEBSITE: §bbridgepractice.net\n§3§m----------------------------------");
 
         // send welcome message
         player.sendMessage("§3§m----------------------------------§6" +
@@ -744,8 +747,10 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
 
         Scoreboard board = Utils.createScoreboard("   §b§lBridge §c§lPractice   ", new String[]{
                 "",
+                "%rank%  Rank: " ,
+                "",
                 "%xp%  XP: ",
-//                "%level%  Your Level: ", // once we add levels :)
+                "%coins%  Coins: ",
 //                "%percentage%    ",
                 "",
                 "  Players Online:",
@@ -756,13 +761,20 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         });
         player.setScoreboard(board);
 
+        String name = player.getDisplayName().replace(player.getName(), "");
         updatePlayerScoreboard(player);
 
-        // show xp
+        // show xp, coins and levels
         (new BukkitRunnable() {
             @Override
             public void run() {
                 board.getTeam("xp").setSuffix("§a" + Utils.getPlayerXPSync(player) + "⫯");
+                board.getTeam("coins").setSuffix("§a" + Utils.getPlayerCoinsSync(player) + " ✪");
+                if (player.hasPermission("group.legend")) {
+                    board.getTeam("rank").setSuffix(name);
+                } else {
+                    board.getTeam("rank").setSuffix("§aDefault");
+                }
             }
         }).runTaskAsynchronously(this);
 

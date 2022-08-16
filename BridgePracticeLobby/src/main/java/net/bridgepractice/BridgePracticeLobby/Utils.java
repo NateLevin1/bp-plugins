@@ -244,6 +244,21 @@ public class Utils {
         }
         return -1;
     }
+
+    public static int getPlayerCoinsSync(Player player) {
+        try(PreparedStatement statement = BridgePracticeLobby.connection.prepareStatement("SELECT coins FROM players WHERE uuid=?;")) {
+            statement.setString(1, player.getUniqueId().toString()); // uuid
+            ResultSet res = statement.executeQuery();
+            if(!res.next()) {
+                throw new SQLException("Did not get a row from the database. Player name: " + player.getName() + " Player UUID: " + player.getUniqueId());
+            }
+            return res.getInt(1); // 1 indexing!
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+            player.sendMessage("§c§lUh oh!§r§c Something went wrong fetching your xp from our database. Please open a ticket on the discord!");
+        }
+        return -1;
+    }
     public static void sendDuelRequest(Player requester, Player playerToDuel, String gameType) {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF("DuelPlayer");
