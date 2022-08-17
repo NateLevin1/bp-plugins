@@ -23,7 +23,7 @@ public class CoinCommands implements CommandExecutor {
         Player player = (Player) sender;
         if (args.length == 0) {
             player.sendMessage(line);
-            player.sendMessage("§bHelp Menu");
+            player.sendMessage("§b/coins Help");
             player.sendMessage(line);
             player.sendMessage("§c/coins give <amount> <player>");
             player.sendMessage("§c/coins remove <amount> <player>");
@@ -41,7 +41,7 @@ public class CoinCommands implements CommandExecutor {
                         }
                     } else if (args.length == 3) {
                         if (player.hasPermission("group.mod") || player.isOp()) {
-                            Player c = Bukkit.getPlayer(args[2]);
+                            Player c = Bukkit.getPlayerExact(args[2]);
                             if (c != null) {
                                 try (PreparedStatement statement = connection.prepareStatement("UPDATE players SET coins = coins + " + args[1] + " WHERE uuid=?;")) {
                                     statement.setString(1, c.getUniqueId().toString()); // uuid, set to player uuid
@@ -69,7 +69,7 @@ public class CoinCommands implements CommandExecutor {
                         }
                     } else if (args.length == 3) {
                         if (player.hasPermission("group.mod") || player.isOp()) {
-                            Player c = Bukkit.getPlayer(args[2]);
+                            Player c = Bukkit.getPlayerExact(args[2]);
                             if (c != null) {
                                 try (PreparedStatement statement = connection.prepareStatement("UPDATE players SET coins = coins - " + args[1] + " WHERE uuid=?;")) {
                                     statement.setString(1, c.getUniqueId().toString()); // uuid, set to player uuid
@@ -92,7 +92,7 @@ public class CoinCommands implements CommandExecutor {
                     player.sendMessage("§cCorrect usage: /coins reset <player>");
                 } else if (args.length == 2) {
                     if (player.hasPermission("group.mod") || player.isOp()) {
-                        Player c = Bukkit.getPlayer(args[1]);
+                        Player c = Bukkit.getPlayerExact(args[1]);
                         if (c != null) {
                             try (PreparedStatement statement = connection.prepareStatement("UPDATE players SET coins = 0 WHERE uuid=?;")) {
                                 statement.setString(1, c.getUniqueId().toString()); // uuid, set to player uuid

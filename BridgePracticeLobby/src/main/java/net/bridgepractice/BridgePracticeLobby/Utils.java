@@ -255,7 +255,7 @@ public class Utils {
             return res.getInt(1); // 1 indexing!
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            player.sendMessage("§c§lUh oh!§r§c Something went wrong fetching your xp from our database. Please open a ticket on the discord!");
+            player.sendMessage("§c§lUh oh!§r§c Something went wrong fetching your coins from our database. Please open a ticket on the discord!");
         }
         return -1;
     }
