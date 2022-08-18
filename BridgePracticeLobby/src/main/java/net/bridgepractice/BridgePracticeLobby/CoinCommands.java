@@ -23,7 +23,7 @@ public class CoinCommands implements CommandExecutor {
         Player player = (Player) sender;
         if (args.length == 0) {
             player.sendMessage(line);
-            player.sendMessage("§b/coins Help");
+            player.sendMessage("§Coins Help");
             player.sendMessage(line);
             player.sendMessage("§c/coins give <amount> <player>");
             player.sendMessage("§c/coins remove <amount> <player>");
@@ -32,85 +32,75 @@ public class CoinCommands implements CommandExecutor {
 
         } else {
             if (args[0].equalsIgnoreCase("give")) {
-                if (args.length == 1) {
+                if (args.length == 1 || args.length == 2 && player.hasPermission("group.mod") || player.isOp()) {
                     player.sendMessage("§cCorrect usage: /coins give <amount> <player>");
-                } else {
-                    if (args.length == 2) {
-                        if (player.hasPermission("group.mod") || player.isOp()) {
-                            player.sendMessage("§cCorrect usage: /coins give <amount> <player>");
-                        }
-                    } else if (args.length == 3) {
-                        if (player.hasPermission("group.mod") || player.isOp()) {
-                            Player c = Bukkit.getPlayerExact(args[2]);
-                            if (c != null) {
-                                try (PreparedStatement statement = connection.prepareStatement("UPDATE players SET coins = coins + " + args[1] + " WHERE uuid=?;")) {
-                                    statement.setString(1, c.getUniqueId().toString()); // uuid, set to player uuid
-                                    statement.executeUpdate();
-                                } catch (SQLException throwables) {
-                                    throwables.printStackTrace();
-                                    if (player.isOnline()) {
-                                        player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your information to our database. Please open a ticket on the discord and screenshot your current win streak!");
-                                    }
-                                }
-                                player.sendMessage("§aSuccessfully added " + args[1] + " §acoins to " + c.getDisplayName() + "§a.");
-                            } else {
-                                player.sendMessage("§cCannot find player " + args[2] + "!");
-                            }
-                        }
-                    }
-                }
-            } else if (args[0].equalsIgnoreCase("remove")) {
-                if (args.length == 1) {
-                    player.sendMessage("§cCorrect usage: /coins remove <amount> <player>");
-                } else {
-                    if (args.length == 2) {
-                        if (player.hasPermission("group.mod") || player.isOp()) {
-                            player.sendMessage("§cCorrect usage: /coins remove <amount> <player>");
-                        }
-                    } else if (args.length == 3) {
-                        if (player.hasPermission("group.mod") || player.isOp()) {
-                            Player c = Bukkit.getPlayerExact(args[2]);
-                            if (c != null) {
-                                try (PreparedStatement statement = connection.prepareStatement("UPDATE players SET coins = coins - " + args[1] + " WHERE uuid=?;")) {
-                                    statement.setString(1, c.getUniqueId().toString()); // uuid, set to player uuid
-                                    statement.executeUpdate();
-                                } catch (SQLException throwables) {
-                                    throwables.printStackTrace();
-                                    if (player.isOnline()) {
-                                        player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your information to our database. Please open a ticket on the discord and screenshot your current win streak!");
-                                    }
-                                }
-                                player.sendMessage("§aSuccessfully removed " + args[1] + " §acoins from " + c.getDisplayName() + "§a.");
-                            } else {
-                                player.sendMessage("§cCannot find player " + args[2] + "!");
-                            }
-                        }
-                    }
-                }
-            } else if (args[0].equalsIgnoreCase("reset")) {
-                if (args.length == 1) {
-                    player.sendMessage("§cCorrect usage: /coins reset <player>");
-                } else if (args.length == 2) {
+                } else if (args.length == 3) {
                     if (player.hasPermission("group.mod") || player.isOp()) {
-                        Player c = Bukkit.getPlayerExact(args[1]);
+                        Player c = Bukkit.getPlayerExact(args[2]);
                         if (c != null) {
-                            try (PreparedStatement statement = connection.prepareStatement("UPDATE players SET coins = 0 WHERE uuid=?;")) {
+                            try (PreparedStatement statement = connection.prepareStatement("UPDATE players SET coins=? WHERE uuid=?;")) {
                                 statement.setString(1, c.getUniqueId().toString()); // uuid, set to player uuid
+                                statement.setInt(2, Integer.parseInt(args[1])); // set coin amount
                                 statement.executeUpdate();
                             } catch (SQLException throwables) {
                                 throwables.printStackTrace();
                                 if (player.isOnline()) {
-                                    player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your information to our database. Please open a ticket on the discord and screenshot your current win streak!");
+                                    player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your information to our database. Please open a ticket on the discord and screenshot your current amount of coins!");
                                 }
                             }
-                            player.sendMessage("§aSuccessfully reset " + c.getDisplayName() + "§a's coins.");
+                            player.sendMessage("§aSuccessfully added " + args[1] + " §acoins to " + c.getDisplayName() + "§a.");
                         } else {
-                            player.sendMessage("§cCannot find player " + args[1] + "!");
+                            player.sendMessage("§cCannot find player " + args[2] + "!");
                         }
+                    }
+                }
+            } else if (args[0].equalsIgnoreCase("remove")) {
+            if (args.length == 1 || args.length == 2 && player.hasPermission("group.mod") || player.isOp()) {
+                    player.sendMessage("§cCorrect usage: /coins remove <amount> <player>");
+                    }
+                } else if (args.length == 3) {
+                    if (player.hasPermission("group.mod") || player.isOp()) {
+                        Player c = Bukkit.getPlayerExact(args[2]);
+                        if (c != null) {
+                            try (PreparedStatement statement = connection.prepareStatement("UPDATE players SET coins=? WHERE uuid=?;")) {
+                                statement.setString(1, c.getUniqueId().toString()); // uuid, set to player uuid
+                                statement.setInt(2, Integer.parseInt(args[1])); // set coin amount
+                                statement.executeUpdate();
+                            } catch (SQLException throwables) {
+                                throwables.printStackTrace();
+                                if (player.isOnline()) {
+                                    player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your information to our database. Please open a ticket on the discord and screenshot your current amount of coins!");
+                                }
+                            }
+                            player.sendMessage("§aSuccessfully removed " + args[1] + " §acoins from " + c.getDisplayName() + "§a.");
+                        } else {
+                            player.sendMessage("§cCannot find player " + args[2] + "!");
+                        }
+                    }
+                } else if (args[0].equalsIgnoreCase("reset")) {
+            if (args.length == 1) {
+                player.sendMessage("§cCorrect usage: /coins reset <player>");
+            } else if (args.length == 2) {
+                if (player.hasPermission("group.mod") || player.isOp()) {
+                    Player c = Bukkit.getPlayerExact(args[1]);
+                    if (c != null) {
+                        try (PreparedStatement statement = connection.prepareStatement("UPDATE players SET coins=0 WHERE uuid=?;")) {
+                            statement.setString(1, c.getUniqueId().toString()); // uuid, set to player uuid
+                            statement.executeUpdate();
+                        } catch (SQLException throwables) {
+                            throwables.printStackTrace();
+                            if (player.isOnline()) {
+                                player.sendMessage("§c§lUh oh!§r§c Something went wrong syncing your information to our database. Please open a ticket on the discord and screenshot your current amount of coins!");
+                            }
+                        }
+                        player.sendMessage("§aSuccessfully reset " + c.getDisplayName() + "§a's coins.");
+                    } else {
+                        player.sendMessage("§cCannot find player " + args[1] + "!");
                     }
                 }
             }
         }
-        return false;
     }
+        return false;
+}
 }
