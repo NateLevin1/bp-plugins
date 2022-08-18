@@ -764,13 +764,18 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         String name = player.getDisplayName().replace(player.getName(), "");
         updatePlayerScoreboard(player);
 
-        // show xp, coins and levels
+        // show xp, coins and levels and rank
         (new BukkitRunnable() {
             @Override
             public void run() {
                 board.getTeam("xp").setSuffix("§a" + Utils.getPlayerXPSync(player) + "⫯");
+                board.getTeam("level").setSuffix("§a" + level);
                 board.getTeam("coins").setSuffix("§a" + Utils.getPlayerCoinsSync(player) + " ✪");
                 if (player.hasPermission("group.legend")) {
+                    board.getTeam("rank").setSuffix("§4[§cLEGEND§4]");
+                } else if (player.hasPermission("group.godlike")) {
+                    board.getTeam("rank").setSuffix("§5[§dGODLIKE§5]");
+                } else if (player.hasPermission("group.custom")) {
                     board.getTeam("rank").setSuffix(name);
                 } else {
                     board.getTeam("rank").setSuffix("§aDefault");
