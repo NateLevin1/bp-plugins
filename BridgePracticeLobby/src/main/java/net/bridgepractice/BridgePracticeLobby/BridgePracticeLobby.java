@@ -771,12 +771,19 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 board.getTeam("xp").setSuffix("§a" + Utils.getPlayerXPSync(player) + "⫯");
                 board.getTeam("level").setSuffix("§a" + level);
                 board.getTeam("coins").setSuffix("§a" + Utils.getPlayerCoinsSync(player) + " ✪");
-                if (player.hasPermission("group.legend")) {
-                    board.getTeam("rank").setSuffix("§4[§cLEGEND§4]");
+                 if (player.hasPermission("group.custom")) {
+                    if (name.length() < 16) {
+                       board.getTeam("rank").setSuffix(name);
+                    } else {;
+                        Pattern pattern = Pattern.compile("§[0-9|a-g|k-o|r]");
+                        Matcher matcher = pattern.matcher(name);
+                        String result = matcher.replaceAll("");
+                        board.getTeam("rank").setSuffix(result);
+                    }
                 } else if (player.hasPermission("group.godlike")) {
                     board.getTeam("rank").setSuffix("§5[§dGODLIKE§5]");
-                } else if (player.hasPermission("group.custom")) {
-                    board.getTeam("rank").setSuffix(name);
+                } else if (player.hasPermission("group.legend")) {
+                    board.getTeam("rank").setSuffix("§4[§cLEGEND§4]");
                 } else {
                     board.getTeam("rank").setSuffix("§aDefault");
                 }
