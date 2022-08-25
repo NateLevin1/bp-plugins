@@ -266,6 +266,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
 
         getCommand("telestick").setExecutor(new TelestickCommand());
         getCommand("coins").setExecutor(new CoinCommands());
+        getCommand("fly").setExecutor(new FlyCommand());
         // every 15 seconds, get the player count. it will be stored and shown to players!
         (new BukkitRunnable() {
             @Override
