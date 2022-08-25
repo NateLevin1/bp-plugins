@@ -13,7 +13,6 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import org.jetbrains.annotations.NotNull;
 import net.bridgepractice.RavenAntiCheat.RavenAntiCheat;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Material;
@@ -735,7 +734,7 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
         }
         return res;
     }
-    public void sendTablist(Player player, @NotNull String Title, @NotNull String subTitle) {
+    public void sendTablist(Player player, String Title, String subTitle) {
         // see https://www.spigotmc.org/threads/tablist-header-in-1-8-8.296009/
         IChatBaseComponent tabTitle = IChatBaseComponent.ChatSerializer.a("{\"text\":\"" + Title + "\"}");
         IChatBaseComponent tabSubTitle = IChatBaseComponent.ChatSerializer.a("{\"text\":\"" + subTitle + "\"}");
