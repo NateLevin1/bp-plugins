@@ -1,27 +1,14 @@
-RavenAntiCheat/
 .DS_Store
+.gitignore
+
 .idea/
+*/.idea/
+
 target/
+*/target/
+
 __pycache__/
+RavenAntiCheat/
 
-# xml files
-BPBridge/pom.xml
-BPBungee/pom.xml
-BPEmergency/pom.xml
-BPNick/pom.xml
-BPReport/pom.xml
-BPShowRanks/pom.xml
-BPShowRanksInNametag/pom.xml
-BridgePracticeClub/pom.xml
-BridgePracticeLobby/pom.xml
-
-# iml files
-BPBridge/BPBridge.iml
-BPBungee/BPBungee.iml
-BPEmergency/BPEmergency.iml
-BPNick/BPNick.iml
-BPReport/BPReport.iml
-BPShowRanks/BPShowRanks.iml
-BPShowRanksInNametag/BPShowRanksInNametag.iml
-BridgePracticeClub/BridgePracticeClub.iml
-BridgePracticeLobby/BridgePracticeLobby.iml
+*/pom.xml
+*/*.iml
