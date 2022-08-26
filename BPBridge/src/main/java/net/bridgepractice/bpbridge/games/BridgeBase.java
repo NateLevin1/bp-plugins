@@ -761,7 +761,7 @@ public class BridgeBase extends Game {
         (new BukkitRunnable() {
             @Override
             public void run() {
-                try(PreparedStatement statement = BPBridge.connection.prepareStatement("UPDATE players SET " + gameType + "AllTimeWinStreak = CASE WHEN " + gameType + "AllTimeWinStreak <= " + gameType + "CurrentWinStreak THEN " + gameType + "AllTimeWinStreak + 1 ELSE " + gameType + "AllTimeWinStreak END, " + gameType + "CurrentWinStreak = " + gameType + "CurrentWinStreak + 1, " + gameType + "Wins = " + gameType + "Wins + 1, xp = xp + 100 WHERE uuid=?;")) {
+                try(PreparedStatement statement = BPBridge.connection.prepareStatement("UPDATE players SET " + gameType + "AllTimeWinStreak = CASE WHEN " + gameType + "AllTimeWinStreak <= " + gameType + "CurrentWinStreak THEN " + gameType + "AllTimeWinStreak + 1 ELSE " + gameType + "AllTimeWinStreak END, " + gameType + "CurrentWinStreak = " + gameType + "CurrentWinStreak + 1, " + gameType + "Wins = " + gameType + "Wins + 1, xp = xp + 100, coins = coins + 150 WHERE uuid=?;")) {
                     // increase current winstreak, if all time is equal to current, update all time too, also increase XP
                     statement.setString(1, player.getUniqueId().toString()); // uuid, set to player uuid
                     statement.executeUpdate();
@@ -779,7 +779,7 @@ public class BridgeBase extends Game {
         (new BukkitRunnable() {
             @Override
             public void run() {
-                try(PreparedStatement statement = BPBridge.connection.prepareStatement("UPDATE players SET " + gameType + "CurrentWinStreak = 0, " + gameType + "Losses = " + gameType + "Losses + 1, xp = xp + 25 WHERE uuid=?;")) {
+                try(PreparedStatement statement = BPBridge.connection.prepareStatement("UPDATE players SET " + gameType + "CurrentWinStreak = 0, " + gameType + "Losses = " + gameType + "Losses + 1, xp = xp + 25, coins = coins + 50 WHERE uuid=?;")) {
                     // set current winstreak to 0, add a little xp
                     statement.setString(1, player.getUniqueId().toString()); // uuid, set to player uuid
                     statement.executeUpdate();

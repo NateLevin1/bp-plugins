@@ -37,3 +37,12 @@ commands:
     description: Get a pearl that you can ride 
     permission: group.legend
     permission-message: §cYou must have legend rank or higher to use this command!
+  coins:
+    description: Staff only command
+    permission: group.mod
+    permission-message: §cYou don't have permission to execute this command
+  fly:
+    description: Toggle fly
+    permission: group.godlike
+    permission-message: §cYou don't have permission to execute this command
+
