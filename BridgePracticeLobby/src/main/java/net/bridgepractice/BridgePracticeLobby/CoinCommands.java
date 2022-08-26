@@ -39,8 +39,8 @@ public class CoinCommands implements CommandExecutor {
                         Player c = Bukkit.getPlayerExact(args[2]);
                         if (c != null) {
                             try (PreparedStatement statement = connection.prepareStatement("UPDATE players SET coins=? WHERE uuid=?;")) {
-                                statement.setString(2, c.getUniqueId().toString()); // uuid, set to player uuid
                                 statement.setInt(1, Integer.parseInt(args[1])); // set coin amount
+                                statement.setString(2, c.getUniqueId().toString()); // uuid, set to player uuid
                                 statement.executeUpdate();
                             } catch (SQLException throwables) {
                                 throwables.printStackTrace();
