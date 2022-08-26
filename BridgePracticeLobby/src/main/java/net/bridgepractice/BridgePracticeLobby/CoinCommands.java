@@ -55,7 +55,7 @@ public class CoinCommands implements CommandExecutor {
                     }
                 }
             } else if (args[0].equalsIgnoreCase("remove")) {
-            if (args.length == 1 || args.length == 2 && player.hasPermission("group.mod") || player.isOp()) {
+            if (args.length == 1 || (args.length == 2 && (player.hasPermission("group.mod") || player.isOp()))) {
                     player.sendMessage("§cCorrect usage: /coins remove <amount> <player>");
                     }
                 } else if (args.length == 3) {
