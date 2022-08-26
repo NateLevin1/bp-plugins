@@ -14,16 +14,14 @@ public class FlyCommand implements CommandExecutor {
                 p.sendMessage("§cYou dont have permission");
                 return true;
             } else {
-                if (p.getAllowFlight() == true) {
+                if (p.getAllowFlight()) {
                     p.setAllowFlight(false);
                     p.sendMessage("§cYou disabled fly!");
-                    return true;
-                }
-                if (p.getAllowFlight() == false) {
+                } else {
                     p.setAllowFlight(true);
                     p.sendMessage("§aYou enabled fly!");
-                    return true;
                 }
+                return true;
 
             }
         }
