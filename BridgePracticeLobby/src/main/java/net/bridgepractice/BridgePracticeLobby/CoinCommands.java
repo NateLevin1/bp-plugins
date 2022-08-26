@@ -32,7 +32,7 @@ public class CoinCommands implements CommandExecutor {
 
         } else {
             if (args[0].equalsIgnoreCase("give")) {
-                if (args.length == 1 || args.length == 2 && player.hasPermission("group.mod") || player.isOp()) {
+                if (args.length == 1 || (args.length == 2 && (player.hasPermission("group.mod") || player.isOp()))) {
                     player.sendMessage("§cCorrect usage: /coins give <amount> <player>");
                 } else if (args.length == 3) {
                     if (player.hasPermission("group.mod") || player.isOp()) {
