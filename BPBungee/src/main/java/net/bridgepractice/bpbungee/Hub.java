@@ -14,6 +14,7 @@ public class Hub extends Command {
     public void execute(CommandSender sender, String[] args) {
         if(!(sender instanceof ProxiedPlayer)) {
             sender.sendMessage(new ComponentBuilder("This command can only be run by a player!").color(ChatColor.RED).create());
+            return;
         }
         ProxiedPlayer p = (ProxiedPlayer) sender;
         p.connect(ProxyServer.getInstance().getServerInfo("lobby"));
