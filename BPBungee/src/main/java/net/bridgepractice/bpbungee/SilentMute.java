@@ -22,7 +22,7 @@ public class SilentMute extends Command {
         if (sender.hasPermission("bridgepractice.moderation.chat")) {
             int days;
             if (args.length <= 1) {
-                sender.sendMessage((new ComponentBuilder("You need to provide more arguments for this command!")).color(ChatColor.RED).create());
+                sender.sendMessage(new ComponentBuilder("You need to provide more arguments for this command!").color(ChatColor.RED).create());
                 return;
             }
             String playerName = args[0];
