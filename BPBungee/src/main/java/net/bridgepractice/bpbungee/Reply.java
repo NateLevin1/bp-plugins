@@ -14,6 +14,7 @@ public class Reply extends Command {
     public void execute(CommandSender sender, String[] args) {
         if(!(sender instanceof ProxiedPlayer)) {
             sender.sendMessage(new ComponentBuilder("Only a player can run this command!").color(ChatColor.RED).create());
+            return;
         }
         ProxiedPlayer senderPlayer = ((ProxiedPlayer) sender);
         if(args.length == 0) {
