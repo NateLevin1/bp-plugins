@@ -20,6 +20,7 @@ public class Freeze extends Command {
         if(sender.hasPermission("bridgepractice.moderation.players")) {
             if(args.length == 0) {
                 sender.sendMessage(new ComponentBuilder("You need to provide a player for this command!").color(ChatColor.RED).create());
+                return;
             }
 
             BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
