@@ -238,16 +238,17 @@ public class Utils {
                 .create();
     }
 
-    public static String getGameModeName(MultiplayerMode mode) {
-        switch (mode) {
+   public static String getGameModeName(MultiplayerMode mode) {
+        switch(mode) {
             case pvp:
                 return "Bridge PvP 1v1";
             case unranked:
                 return "Bridge Duel";
             case nobridge:
                 return "NoBridge Duel";
+            default:
+                return "Unknown";
         }
-        return "Unknown";
     }
 
     public static void log(BaseComponent[] components, String permission) {
