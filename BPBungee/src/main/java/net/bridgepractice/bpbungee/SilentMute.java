@@ -59,7 +59,7 @@ public class SilentMute extends Command {
                     sender.sendMessage((new ComponentBuilder("SQL error thrown: " + throwables.getMessage())).color(ChatColor.RED).create());
                     return;
                 }
-                sender.sendMessage((new ComponentBuilder("Successfully silently muted player " + playerName + ".")).color(ChatColor.GREEN).create());
+                sender.sendMessage((new ComponentBuilder("Successfully muted player " + playerName + " silently.")).color(ChatColor.GREEN).create());
                 ProxiedPlayer onlinePlayer = BPBungee.instance.getProxy().getPlayer(playerName);
                 if (onlinePlayer != null)
                     BPBungee.mutedPlayers.put(onlinePlayer.getUniqueId(), Integer.valueOf(days));
