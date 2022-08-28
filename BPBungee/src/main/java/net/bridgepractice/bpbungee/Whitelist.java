@@ -14,7 +14,6 @@ public class Whitelist extends Command {
     public void execute(CommandSender sender, String[] args) {
         if(args.length == 0) {
             sender.sendMessage(new ComponentBuilder("Usage: /whitelist (enable|disable)").color(ChatColor.RED).create());
-            return;
         }
         String option = args[0];
         switch(option) {

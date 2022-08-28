@@ -19,7 +19,6 @@ public class Unban extends Command {
     public void execute(CommandSender sender, String[] args) {
         if(args.length == 0) {
             sender.sendMessage(new ComponentBuilder("Usage: /unban <player>").color(ChatColor.RED).create());
-            return;
         }
         String playerName = args[0];
         BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {

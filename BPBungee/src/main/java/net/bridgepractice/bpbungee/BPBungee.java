@@ -2,49 +2,79 @@ package net.bridgepractice.bpbungee;
 
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.hover.content.Content;
 import net.md_5.bungee.api.chat.hover.content.Text;
 import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.api.event.*;
+import net.md_5.bungee.api.event.ChatEvent;
+import net.md_5.bungee.api.event.LoginEvent;
+import net.md_5.bungee.api.event.PlayerDisconnectEvent;
+import net.md_5.bungee.api.event.PluginMessageEvent;
+import net.md_5.bungee.api.event.PostLoginEvent;
+import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
 
-import java.io.*;
-import java.net.*;
-import java.sql.*;
-import java.sql.Date;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
 public class BPBungee extends Plugin implements Listener {
     public static BPBungee instance;
+
     public static LuckPerms luckPerms;
+
     public static HashMap<MultiplayerMode, ArrayList<String>> queueingGames = new HashMap<>();
+
     public static HashMap<UUID, String> playerChatChannels = new HashMap<>();
+
     public static HashMap<UUID, UUID> playerMessageChannel = new HashMap<>();
+
     public static boolean multiplayerEnabled = true;
+
     public static boolean chatEnabled = true;
+
     public static String punishmentWebhook = "https://discord.com/api/webhooks/888106865697894410/bPuDlfi_RXBdY7ulqS_U9JT62rWbsSF_C45SQVM24rb2p4db3mhRWCIwj7peG6a-9zEs";
 
-    @Override
+    public static String chatWebhook = "https://discord.com/api/webhooks/1008405026777075804/9CY04dveVQd5qVCw9E5XzhdkWCiNrx0Sk7rBY7BGbaPhTGGDUlyXrp602vkdobhL4fHi";
+
     public void onEnable() {
         instance = this;
         luckPerms = LuckPermsProvider.get();
-
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Lobby());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Hub());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Discord());
@@ -79,119 +109,114 @@ public class BPBungee extends Plugin implements Listener {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Socialspy());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new SetChat());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new GetQueueingGames());
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new SilentMute());
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("bp:messages");
-
         openConnection();
-
         queueingGames.put(MultiplayerMode.unranked, new ArrayList<>());
         queueingGames.put(MultiplayerMode.pvp, new ArrayList<>());
         queueingGames.put(MultiplayerMode.nobridge, new ArrayList<>());
     }
 
     public static HashMap<UUID, Integer> mutedPlayers = new HashMap<>();
+
     public final HashMap<UUID, NamedPlayer> playerReplyTo = new HashMap<>();
+
     public final HashMap<UUID, Long> gameRequests = new HashMap<>();
-    public static final String frozenMessage = "§c§lYou have been frozen by our mod team.\n\n§fTo continue playing, you must join the Discord and open a ticket.\nInclude your IGN and any info you think we need in the ticket.\n\n\n§6Join the Discord by going to §b§nbridgepractice.net/discord\n§6Then accept the rules, go to #support, and click the \"Support\" button.";
+
+    public static final String frozenMessage = "have been frozen by our mod team.\n\ncontinue playing, you must join the Discord and open a ticket.\nInclude your IGN and any info you think we need in the ticket.\n\n\nthe Discord by going to \naccept the rules, go to #support, and click the \"Support\" button.";
 
     public static class NamedPlayer {
         public String name;
+
         public String rankedName;
+
         NamedPlayer(String name, String rankedName) {
             this.name = name;
             this.rankedName = rankedName;
         }
     }
 
-    // db related things
     String host = "localhost";
+
     String port = "3306";
+
     String database = "bridge";
+
     String username = "mc";
+
     String password = "mcserver";
+
     static Connection connection;
 
     public void openConnection() {
         try {
-            if(connection != null && !connection.isClosed()) {
+            if (connection != null && !connection.isClosed())
                 return;
-            }
-            // NOTE: If something around this are fails, something is different between my host machine and the machine
-            //       this is running on. Getting rid of the `characterEncoding` query parameter may help, but other
-            //       solutions are likely.
-            connection = DriverManager.getConnection("jdbc:mysql://"
-                            + this.host + ":" + this.port + "/" + this.database + "?characterEncoding=latin1&autoReconnect=true",
-                    this.username, this.password);
-
+            connection = DriverManager.getConnection("jdbc:mysql://" + this.host + ":" + this.port + "/" + this.database + "?characterEncoding=latin1&autoReconnect=true", this.username, this.password);
             CommandQueueChecker.startChecking();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
     HashMap<UUID, Long> playerSessionLogOnTime = new HashMap<>();
+
     @EventHandler
     public void onLogin(LoginEvent event) {
         UUID uuid = event.getConnection().getUniqueId();
-        // check if banned
-        try(PreparedStatement statement = connection.prepareStatement("SELECT players.bannedAt, players.uuid, players.bannedDays, players.bannedReason FROM bannedIps INNER JOIN players ON bannedIps.uuid=players.uuid WHERE ip=?;")) {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT players.bannedAt, players.uuid, players.bannedDays, players.bannedReason FROM bannedIps INNER JOIN players ON bannedIps.uuid=players.uuid WHERE ip=?;")) {
             statement.setString(1, event.getConnection().getAddress().getAddress().getHostAddress());
             ResultSet res = statement.executeQuery();
-            if(res.next()) {
-                // player's ip is in fact banned
+            if (res.next()) {
                 Date bannedAt = res.getDate("bannedAt");
-                if(!res.wasNull()) {
+                if (!res.wasNull()) {
                     int bannedDays = res.getInt("bannedDays");
                     int daysSince = (int) ChronoUnit.DAYS.between(bannedAt.toLocalDate(), LocalDate.now());
-                    if(daysSince < bannedDays) {
+                    if (daysSince < bannedDays) {
                         event.setCancelReason(Utils.getBanMessage(bannedDays - daysSince, res.getString("bannedReason"), !res.getString("uuid").equals(uuid.toString())));
                         event.setCancelled(true);
                         return;
-                    } else {
-                        Unban.applyUnban(res.getString("uuid"), null);
                     }
+                    Unban.applyUnban(res.getString("uuid"), null);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        try(PreparedStatement statement = connection.prepareStatement("SELECT frozen, bannedAt, bannedDays, bannedReason, mutedAt, mutedDays FROM players WHERE uuid=?;")) {
-            statement.setString(1, uuid.toString()); // uuid
+        try (PreparedStatement statement = connection.prepareStatement("SELECT frozen, bannedAt, bannedDays, bannedReason, mutedAt, mutedDays FROM players WHERE uuid=?;")) {
+            statement.setString(1, uuid.toString());
             ResultSet res = statement.executeQuery();
-            if(!res.next()) {
+            if (!res.next()) {
                 checkIpForAbuse(event.getConnection());
-                return; // perfectly acceptable since the player might have never logged in
+                return;
             }
             boolean frozen = res.getBoolean("frozen");
-            if(frozen) {
-                event.setCancelReason(new ComponentBuilder(frozenMessage).create());
+            if (frozen) {
+                event.setCancelReason((new ComponentBuilder("have been frozen by our mod team.\n\ncontinue playing, you must join the Discord and open a ticket.\nInclude your IGN and any info you think we need in the ticket.\n\n\nthe Discord by going to \naccept the rules, go to #support, and click the \"Support\" button.")).create());
                 event.setCancelled(true);
                 return;
             }
-
             Date bannedAt = res.getDate("bannedAt");
-            if(!res.wasNull()) {
+            if (!res.wasNull()) {
                 int bannedDays = res.getInt("bannedDays");
                 int daysSince = (int) ChronoUnit.DAYS.between(bannedAt.toLocalDate(), LocalDate.now());
-                if(daysSince < bannedDays) {
+                if (daysSince < bannedDays) {
                     event.setCancelReason(Utils.getBanMessage(bannedDays - daysSince, res.getString("bannedReason"), false));
                     event.setCancelled(true);
                     return;
-                } else {
-                    Unban.applyUnban(uuid.toString(), null);
                 }
+                Unban.applyUnban(uuid.toString(), null);
             }
-
             Date mutedAt = res.getDate("mutedAt");
-            if(!res.wasNull()) {
+            if (!res.wasNull()) {
                 int mutedDays = res.getInt("mutedDays");
                 int daysSince = (int) ChronoUnit.DAYS.between(mutedAt.toLocalDate(), LocalDate.now());
-                if(daysSince < mutedDays) {
-                    mutedPlayers.put(uuid, mutedDays - daysSince);
+                if (daysSince < mutedDays) {
+                    mutedPlayers.put(uuid, Integer.valueOf(mutedDays - daysSince));
                 } else {
-                    // they aren't muted but the DB says they are - remove the mute from the DB - this makes it so we don't have to compute the distance every time
-                    try(PreparedStatement updateMutedAt = connection.prepareStatement("UPDATE players SET mutedAt = NULL, mutedDays = NULL WHERE uuid=?;")) {
-                        updateMutedAt.setString(1, uuid.toString()); // uuid, set to player uuid
+                    try (PreparedStatement updateMutedAt = connection.prepareStatement("UPDATE players SET mutedAt = NULL, mutedDays = NULL, muteReason = NULL WHERE uuid=?;")) {
+                        updateMutedAt.setString(1, uuid.toString());
                         updateMutedAt.executeUpdate();
                     }
                 }
@@ -200,15 +225,17 @@ public class BPBungee extends Plugin implements Listener {
             e.printStackTrace();
         }
     }
+
     @EventHandler
     public void onPing(ProxyPingEvent event) {
-        if(Whitelist.enabled) {
+        if (Whitelist.enabled) {
             ServerPing ping = event.getResponse();
             ping.setVersion(new ServerPing.Protocol("Maintenance", 0));
-            ping.setDescription("§a              §c✕§a  bridge§bpractice§a.net  §c✕\n§c       Under maintenance, check back later!");
+            ping.setDescription("              bridge \n      Under maintenance, check back later!");
             event.setResponse(ping);
         }
     }
+
     @EventHandler
     public void onPlayerJoin(PostLoginEvent event) {
         ProxiedPlayer player = event.getPlayer();
@@ -280,7 +307,8 @@ public class BPBungee extends Plugin implements Listener {
             }
         }
     }
-    List<String> blockedCommandsIfMuted = Arrays.asList("msg", "r", "w", "message", "reply", "rainbow");
+
+    List<String> blockedCommandsIfMuted = Arrays.asList(new String[]{"msg", "r", "w", "message", "reply", "rainbow"});
     List<String> blockedCommands = Arrays.asList("/worldedit:/calc", "/worldedit:/calculate", "/worldedit:/eval", "/worldedit:/evaluate", "/worldedit:/solve");
     private final String[] blockedWords = {"nigga", "nigger", "anigger", "anigga", "aniga", "aniger", "niger", "niga", "fag", "faggot", "retard", "n1ger", "sex", "esex", "cum"};
     @EventHandler
@@ -357,25 +385,21 @@ public class BPBungee extends Plugin implements Listener {
                 }
             }
         }
-
-        // if player is muted
         boolean isMuted = mutedPlayers.containsKey(player.getUniqueId());
-        if(isMuted) {
-            // if is command and is not a command in the blocked list
-            if(event.isCommand() && !blockedCommandsIfMuted.contains(event.getMessage().split(" ")[0].substring(1)) && !event.getMessage().startsWith("/rc")) {
+        if (isMuted) {
+            if (event.isCommand() && !this.blockedCommandsIfMuted.contains(event.getMessage().split(" ")[0].substring(1)) && !event.getMessage().startsWith("/rc"))
                 return;
-            }
             event.setCancelled(true);
-            player.sendMessage(new ComponentBuilder()
-                    .append(new ComponentBuilder("----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).create())
-                    .append(new ComponentBuilder("\nYou cannot chat because you are muted.").strikethrough(false).color(ChatColor.RED).create())
-                    .append(new ComponentBuilder("\nYour mute will expire in ").color(ChatColor.GRAY).append(new ComponentBuilder(mutedPlayers.get(player.getUniqueId()) + " days").color(ChatColor.RED).create()).create())
-                    .append(new ComponentBuilder("\n\nTo appeal your mute, ").color(ChatColor.GRAY).append(new ComponentBuilder("join the Discord (click)").color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "http://bridgepractice.net/discord")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§bClick to go to the Discord invite."))).create()).create())
-                    .append(new ComponentBuilder("\n----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).underlined(false).event(((ClickEvent) null)).event(((HoverEvent) null)).create())
+            player.sendMessage((new ComponentBuilder())
+                    .append((new ComponentBuilder("----------------------------------------------------------------")).color(ChatColor.RED).strikethrough(true).create())
+                    .append((new ComponentBuilder("\nYou cannot chat because you are muted.")).strikethrough(false).color(ChatColor.RED).create())
+                    .append((new ComponentBuilder("\nYour mute will expire in ")).color(ChatColor.GRAY).append((new ComponentBuilder((new StringBuilder()).append(mutedPlayers.get(player.getUniqueId())).append(" days").toString())).color(ChatColor.RED).create()).create())
+                    .append((new ComponentBuilder("\nReason: ")).color(ChatColor.GRAY).append((new ComponentBuilder(Utils.getMuteReason(player))).color(ChatColor.RED).create()).create())
+                    .append((new ComponentBuilder("\n\nTo appeal your mute, ")).color(ChatColor.GRAY).append((new ComponentBuilder("join the Discord (click)")).color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "http://bridgepractice.net/discord")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Content[]{(Content) new Text("to go to the Discord invite.")})).create()).create())
+                    .append((new ComponentBuilder("\n----------------------------------------------------------------")).color(ChatColor.RED).strikethrough(true).underlined(false).event((ClickEvent) null).event((HoverEvent) null).create())
                     .create());
             return;
         }
-
         String chatChannel = playerChatChannels.get(player.getUniqueId());
         if (chatChannel != null && chatChannel.equals("staff") && !event.isCommand()) {
             event.setCancelled(true);
@@ -386,24 +410,33 @@ public class BPBungee extends Plugin implements Listener {
         if (chatChannel != null && chatChannel.equals("rank") && !event.isCommand()) {
             event.setCancelled(true);
             String text = event.getMessage();
+            String playerName = player.getName();
+            String cleanIgn = playerName.replaceAll("_", "\\_");
             RankChat.sendToRankChat(player.getDisplayName(), text);
+            Utils.rankedChatToDiscord(player.getUniqueId().toString(), text, cleanIgn, (CommandSender) player);
             return;
         }
         if (chatChannel != null && chatChannel.equals("message") && !event.isCommand()) {
             event.setCancelled(true);
-            ProxiedPlayer playerToSendMessage = BPBungee.instance.getProxy().getPlayer(BPBungee.playerMessageChannel.get(player.getUniqueId()));
+            ProxiedPlayer playerToSendMessage = instance.getProxy().getPlayer(playerMessageChannel.get(player.getUniqueId()));
             String text = event.getMessage();
-            player.sendMessage(new ComponentBuilder("§dTo "+playerToSendMessage.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
-            playerToSendMessage.sendMessage(new ComponentBuilder("§dFrom "+player.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
-            BPBungee.instance.playerReplyTo.put(playerToSendMessage.getUniqueId(), new BPBungee.NamedPlayer(player.getName(), player.getDisplayName()));
-            Utils.log(new ComponentBuilder("SocialSpy: ").color(ChatColor.AQUA).append("From "+player.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(" To "+playerToSendMessage.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(": "+text).color(ChatColor.GRAY).create(), "bridgepractice.moderation.socialspy");
+            player.sendMessage((new ComponentBuilder("" + playerToSendMessage.getDisplayName())).append(": " + text).color(ChatColor.GRAY).create());
+            playerToSendMessage.sendMessage((new ComponentBuilder("" + player.getDisplayName())).append(": " + text).color(ChatColor.GRAY).create());
+            instance.playerReplyTo.put(playerToSendMessage.getUniqueId(), new NamedPlayer(player.getName(), player.getDisplayName()));
+            Utils.log((new ComponentBuilder("SocialSpy: ")).color(ChatColor.AQUA).append("From " + player.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(" To " + playerToSendMessage.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(": " + text).color(ChatColor.GRAY).create(), "bridgepractice.moderation.socialspy");
             return;
         }
-
-        if (event.getMessage().startsWith("/rc ")) {
+        if (event.getMessage().startsWith("/rc ") && player.hasPermission("group.legend")) {
             RankChat.sendToRankChat(player.getDisplayName(), event.getMessage().replaceAll("/rc ", ""));
+            String text = event.getMessage();
+            String playerName = player.getName();
+            String cleanIgn = playerName.replaceAll("_", "\\_");
+            Utils.rankedChatToDiscord(player.getUniqueId().toString(), text, cleanIgn, (CommandSender) player);
+        } else if (player.hasPermission("group.legend") || event.getMessage().startsWith("/rc ")) {
+
         }
     }
+
     private String addEmojisToMessage(String msg) {
         msg = msg.replace("<3", "§c❤§f");
         msg = msg.replace(":eyes:", "⌊●_●⌋");
@@ -437,23 +470,23 @@ public class BPBungee extends Plugin implements Listener {
     }
 
     public String getPlayerPlayingTimeSync(ProxiedPlayer player) {
-        try(PreparedStatement statement = connection.prepareStatement("SELECT playingTime FROM players WHERE uuid=?;")) {
-            statement.setString(1, player.getUniqueId().toString()); // uuid
+        try (PreparedStatement statement = connection.prepareStatement("SELECT playingTime FROM players WHERE uuid=?;")) {
+            statement.setString(1, player.getUniqueId().toString());
             ResultSet res = statement.executeQuery();
-            if(!res.next()) {
+            if (!res.next())
                 throw new SQLException("Did not get a row from the database. Player name: " + player.getName() + " Player UUID: " + player.getUniqueId());
-            }
-            int playingTimeMinutes = Math.round((int) (((System.currentTimeMillis() - playerSessionLogOnTime.get(player.getUniqueId())) / 1000) / 60));
-            int totalMinutes = (res.getInt(1) + playingTimeMinutes);
+            int playingTimeMinutes = Math.round((int) ((System.currentTimeMillis() - ((Long) this.playerSessionLogOnTime.get(player.getUniqueId())).longValue()) / 1000L / 60L));
+            int totalMinutes = res.getInt(1) + playingTimeMinutes;
             int hours = totalMinutes / 60;
             int minutes = totalMinutes % 60;
-            return hours + " hour" + (hours == 1 ? "" : "s") + " " + minutes + " min" + (minutes == 1 ? "" : "s");
+            return hours + " hour" + ((hours == 1) ? "" : "s") + " " + minutes + " min" + ((minutes == 1) ? "" : "s");
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            player.sendMessage("§c§lUh oh!§r§c Something went wrong fetching your playing time from our database. Please open a ticket on the discord!");
+            player.sendMessage("oh!Something went wrong fetching your playing time from our database. Please open a ticket on the discord!");
+            return "N/A";
         }
-        return "N/A";
     }
+
     public void requestGame(String gameName, ProxiedPlayer player) {
         if(System.currentTimeMillis() - gameRequests.getOrDefault(player.getUniqueId(), 0L) > 3000) {
             gameRequests.put(player.getUniqueId(), System.currentTimeMillis());
@@ -494,6 +527,7 @@ public class BPBungee extends Plugin implements Listener {
         }
 
     }
+
     public boolean isWorldQueueing(String worldName, MultiplayerMode mode) {
         ArrayList<String> queueingGamesForMode = queueingGames.get(mode);
         return queueingGamesForMode.contains(worldName);

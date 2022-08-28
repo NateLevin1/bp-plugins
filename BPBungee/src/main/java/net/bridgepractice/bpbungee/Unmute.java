@@ -20,7 +20,6 @@ public class Unmute extends Command {
         if(sender.hasPermission("bridgepractice.moderation.chat")) {
             if(args.length == 0) {
                 sender.sendMessage(new ComponentBuilder("You need to provide more arguments for this command!").color(ChatColor.RED).create());
-                return;
             }
 
             BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
@@ -34,7 +33,7 @@ public class Unmute extends Command {
                 }
 
                 // add to database
-                try(PreparedStatement updateMutedAt = BPBungee.connection.prepareStatement("UPDATE players SET mutedAt = NULL, mutedDays = NULL WHERE uuid=?;")) {
+                try(PreparedStatement updateMutedAt = BPBungee.connection.prepareStatement("UPDATE players SET mutedAt = NULL, mutedDays = NULL, muteReason = NULL WHERE uuid=?;")) {
                     updateMutedAt.setString(1, playerUuid); // uuid, set to player uuid
                     updateMutedAt.executeUpdate();
                 } catch (SQLException throwables) {

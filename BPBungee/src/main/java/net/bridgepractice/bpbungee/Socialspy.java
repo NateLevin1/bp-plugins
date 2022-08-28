@@ -55,4 +55,3 @@ public class Socialspy extends Command {
         luckPerms.getUserManager().saveUser(user);
     }
 }
-

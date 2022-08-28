@@ -14,17 +14,14 @@ public class Reply extends Command {
     public void execute(CommandSender sender, String[] args) {
         if(!(sender instanceof ProxiedPlayer)) {
             sender.sendMessage(new ComponentBuilder("Only a player can run this command!").color(ChatColor.RED).create());
-            return;
         }
         ProxiedPlayer senderPlayer = ((ProxiedPlayer) sender);
         if(args.length == 0) {
             sender.sendMessage(new ComponentBuilder("Usage: /r <message here>").color(ChatColor.RED).create());
-            return;
         }
         BPBungee.NamedPlayer playerName = BPBungee.instance.playerReplyTo.get(senderPlayer.getUniqueId());
         if(playerName == null) {
             sender.sendMessage(new ComponentBuilder("Nobody has messaged you!").color(ChatColor.RED).create());
-            return;
         }
         String text = String.join(" ", args);
         ProxiedPlayer player = BPBungee.instance.getProxy().getPlayer(playerName.name);

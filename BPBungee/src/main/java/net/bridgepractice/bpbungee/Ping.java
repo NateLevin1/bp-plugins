@@ -12,7 +12,7 @@ public class Ping extends Command {
     }
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if(!(sender instanceof ProxiedPlayer)) return;
+        if(!(sender instanceof ProxiedPlayer))
         sender.sendMessage(new ComponentBuilder("Your ping is ").color(ChatColor.GREEN).append(new ComponentBuilder(((ProxiedPlayer) sender).getPing()+"").color(ChatColor.GOLD).create()).append(new ComponentBuilder("ms").color(ChatColor.GREEN).create()).create());
     }
 }

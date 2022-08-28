@@ -14,9 +14,9 @@ public class Help extends Command {
     }
     @Override
     public void execute(CommandSender sender, String[] args) {
-        if(args.length == 1) {
+        if (args.length == 1) {
             String page = args[0];
-            switch(page) {
+            switch (page) {
                 case "messaging":
                     sender.sendMessage(new ComponentBuilder("\nBridgePractice Messaging Help").color(ChatColor.YELLOW).bold(true).create());
                     sender.sendMessage(new ComponentBuilder("/msg <player> text").color(ChatColor.GOLD).append(new ComponentBuilder(" - Sends a message").color(ChatColor.GRAY).create()).create());
@@ -35,7 +35,6 @@ public class Help extends Command {
                 case "legend":
                     sender.sendMessage(new ComponentBuilder("\n[LEGEND] Rank Help").color(ChatColor.YELLOW).bold(true).create());
                     sender.sendMessage(new ComponentBuilder("/rank").color(ChatColor.GOLD).append(new ComponentBuilder(" - Shows information about your rank").color(ChatColor.GRAY).create()).create());
-                    sender.sendMessage(new ComponentBuilder("/rainbow text goes here").color(ChatColor.GOLD).append(new ComponentBuilder(" - Sends a rainbow chat message").color(ChatColor.GRAY).create()).create());
                     sender.sendMessage(new ComponentBuilder("/fw").color(ChatColor.GOLD).append(new ComponentBuilder(" - Launch a firework! (lobby only)").color(ChatColor.GRAY).create()).create());
                     sender.sendMessage(new ComponentBuilder("/cookie").color(ChatColor.GOLD).append(new ComponentBuilder(" - Gives you a cookie! (lobby only)").color(ChatColor.GRAY).create()).create());
                     sender.sendMessage(new ComponentBuilder("/joinannounce").color(ChatColor.GOLD).append(new ComponentBuilder(" - Toggle join announcement messages").color(ChatColor.GRAY).create()).create());
@@ -73,11 +72,11 @@ public class Help extends Command {
             sender.sendMessage(new ComponentBuilder(" * ").color(ChatColor.RED).append(new ComponentBuilder("Messaging commands").color(ChatColor.AQUA).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/help messaging")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§bView commands"))).create()).create());
             sender.sendMessage(new ComponentBuilder(" * ").color(ChatColor.RED).append(new ComponentBuilder("Singleplayer commands").color(ChatColor.AQUA).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/help singleplayer")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§bView commands"))).create()).create());
 
-            if(sender.hasPermission("group.custom")) {
+            if (sender.hasPermission("group.custom")) {
                 sender.sendMessage(new ComponentBuilder(" * ").color(ChatColor.RED).append(new ComponentBuilder("[CUSTOM]").color(ChatColor.GOLD).create()).append(new ComponentBuilder(" rank commands").color(ChatColor.AQUA).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/help godlike")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§bView commands"))).create()).create());
-            } else if(sender.hasPermission("group.godlike")) {
+            } else if (sender.hasPermission("group.godlike")) {
                 sender.sendMessage(new ComponentBuilder(" * ").color(ChatColor.RED).append(new ComponentBuilder("[").color(ChatColor.DARK_PURPLE).append("GODLIKE").color(ChatColor.LIGHT_PURPLE).append("]").color(ChatColor.DARK_PURPLE).create()).append(new ComponentBuilder(" rank commands").color(ChatColor.AQUA).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/help godlike")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§bView commands"))).create()).create());
-            } else if(sender.hasPermission("group.legend")) {
+            } else if (sender.hasPermission("group.legend")) {
                 sender.sendMessage(new ComponentBuilder(" * ").color(ChatColor.RED).append(new ComponentBuilder("[").color(ChatColor.DARK_RED).append("LEGEND").color(ChatColor.RED).append("]").color(ChatColor.DARK_RED).create()).append(new ComponentBuilder(" rank commands").color(ChatColor.AQUA).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/help legend")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§bView commands"))).create()).create());
             }
 

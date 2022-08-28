@@ -16,7 +16,6 @@ public class SetChat extends Command {
     public void execute(CommandSender sender, String[] args) {
         if(!(sender instanceof ProxiedPlayer)) {
             sender.sendMessage(new ComponentBuilder("Must be a player to use this command!").color(ChatColor.RED).create());
-            return;
         }
         if(args.length == 0 || args[0] == null) {
             if (sender.hasPermission("group.helper")) {
@@ -29,7 +28,6 @@ public class SetChat extends Command {
                 // not staff
                 sender.sendMessage(new ComponentBuilder("1 argument required! Usage: /chat <a, all, m, msg, message> [player]").color(ChatColor.RED).create());
             }
-            return;
         }
 
         ProxiedPlayer player = ((ProxiedPlayer) sender);
@@ -81,7 +79,6 @@ public class SetChat extends Command {
                         BPBungee.NamedPlayer playerName = BPBungee.instance.playerReplyTo.get(player.getUniqueId());
                         if(playerName == null) {
                             sender.sendMessage(new ComponentBuilder("Nobody has messaged you!").color(ChatColor.RED).create());
-                            return;
                         }
                         String text = String.join(" ", args);
                         ProxiedPlayer playerToSendMessage = BPBungee.instance.getProxy().getPlayer(playerName.name);
@@ -96,7 +93,6 @@ public class SetChat extends Command {
                         String playerName = args[1];
                         if(playerName.equalsIgnoreCase(sender.getName())) {
                             sender.sendMessage(new ComponentBuilder("You cannot message yourself!").color(ChatColor.RED).create());
-                            return;
                         }
                         String text = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
                         ProxiedPlayer playerToSendMessage = BPBungee.instance.getProxy().getPlayer(playerName);

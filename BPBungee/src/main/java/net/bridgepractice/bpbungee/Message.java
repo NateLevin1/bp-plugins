@@ -17,7 +17,6 @@ public class Message extends Command {
     public void execute(CommandSender sender, String[] args) {
         if(args.length <= 1) {
             sender.sendMessage(new ComponentBuilder("Usage: /msg <player> <message here>").color(ChatColor.RED).create());
-            return;
         }
 
         String senderName;
@@ -30,7 +29,6 @@ public class Message extends Command {
         String playerName = args[0];
         if(playerName.equalsIgnoreCase(sender.getName())) {
             sender.sendMessage(new ComponentBuilder("You cannot message yourself!").color(ChatColor.RED).create());
-            return;
         }
         String text = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
         ProxiedPlayer player = BPBungee.instance.getProxy().getPlayer(playerName);

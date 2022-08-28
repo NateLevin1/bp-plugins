@@ -51,6 +51,7 @@ public class Warn extends Command {
             BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, ()->player.sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("§e§lYou were warned by "+senderName)), 2, TimeUnit.SECONDS);
             Utils.playSound(player, "mob.wither.spawn");
 
+            Utils.sendWarnWebhook(reason, (ProxiedPlayer) sender, playerName, sender );
             sender.sendMessage(new ComponentBuilder("Successfully warned '"+playerName+"' for '"+reason+"'.").color(ChatColor.GREEN).create());
         } else {
             sender.sendMessage(new ComponentBuilder("You do not have permission to use this command").color(ChatColor.RED).create());

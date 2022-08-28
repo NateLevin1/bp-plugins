@@ -13,9 +13,9 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
-public class Mute extends Command {
-    public Mute() {
-        super("Mute");
+public class SilentMute extends Command {
+    public SilentMute() {
+        super("SilentMute");
     }
 
     public void execute(CommandSender sender, String[] args) {
@@ -39,8 +39,6 @@ public class Mute extends Command {
                 sender.sendMessage((new ComponentBuilder("Reason is too long")).color(ChatColor.RED).create());
                 return;
             }
-
-            ProxiedPlayer mutedPlayer = BPBungee.instance.getProxy().getPlayer(playerName);
             String finalReason = reason;
             BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
                 String playerUuid;
@@ -61,28 +59,14 @@ public class Mute extends Command {
                     sender.sendMessage((new ComponentBuilder("SQL error thrown: " + throwables.getMessage())).color(ChatColor.RED).create());
                     return;
                 }
-
-                sender.sendMessage(new ComponentBuilder("Successfully muted player " + playerName + ".").color(ChatColor.GREEN).create());
-
-                String senderName;
-                if(sender instanceof ProxiedPlayer) {
-                    senderName = ((ProxiedPlayer) sender).getDisplayName();
-                } else {
-                    senderName = sender.getName();
-                }
-
-                BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n §c§l✕ §a" + (mutedPlayer != null ? mutedPlayer.getDisplayName() : playerName) + "§c §cwas §d§lmuted§c by " + senderName + "§c!\n").create());
-
-                // if online, make them muted
+                sender.sendMessage((new ComponentBuilder("Successfully silently muted player " + playerName + ".")).color(ChatColor.GREEN).create());
                 ProxiedPlayer onlinePlayer = BPBungee.instance.getProxy().getPlayer(playerName);
-                if(onlinePlayer != null) {
-                    BPBungee.instance.mutedPlayers.put(onlinePlayer.getUniqueId(), days);
-                }
-
-                Utils.sendPunishmentWebhook(false, "muted", finalReason, days, sender.getName(), sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
-            }, 0, TimeUnit.MILLISECONDS);
+                if (onlinePlayer != null)
+                    BPBungee.mutedPlayers.put(onlinePlayer.getUniqueId(), Integer.valueOf(days));
+                Utils.sendPunishmentWebhook(false, "silently muted", finalReason, days, sender.getName(), (sender instanceof ProxiedPlayer) ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
+            }, 0L, TimeUnit.MILLISECONDS);
         } else {
-            sender.sendMessage(new ComponentBuilder("You do not have permission to use this command.").color(ChatColor.RED).create());
+            sender.sendMessage((new ComponentBuilder("You do not have permission to use this command.")).color(ChatColor.RED).create());
         }
     }
 }
