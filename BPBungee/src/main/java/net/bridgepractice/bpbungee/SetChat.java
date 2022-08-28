@@ -16,6 +16,7 @@ public class SetChat extends Command {
     public void execute(CommandSender sender, String[] args) {
         if(!(sender instanceof ProxiedPlayer)) {
             sender.sendMessage(new ComponentBuilder("Must be a player to use this command!").color(ChatColor.RED).create());
+            return;
         }
         if(args.length == 0 || args[0] == null) {
             if (sender.hasPermission("group.helper")) {
