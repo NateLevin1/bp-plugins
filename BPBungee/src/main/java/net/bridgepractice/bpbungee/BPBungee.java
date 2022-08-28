@@ -197,7 +197,7 @@ public class BPBungee extends Plugin implements Listener {
             ResultSet res = statement.executeQuery();
             if (!res.next()) {
                 checkIpForAbuse(event.getConnection());
-                return;
+                return; // perfectly acceptable since the player might have never logged in
             }
             boolean frozen = res.getBoolean("frozen");
             if (frozen) {
@@ -239,7 +239,7 @@ public class BPBungee extends Plugin implements Listener {
         if (Whitelist.enabled) {
             ServerPing ping = event.getResponse();
             ping.setVersion(new ServerPing.Protocol("Maintenance", 0));
-            ping.setDescription("              bridge \n      Under maintenance, check back later!");
+            ping.setDescription("§a              §c✕§a  bridge§bpractice§a.net  §c✕\n§c       Under maintenance, check back later!");
             event.setResponse(ping);
         }
     }
@@ -316,7 +316,7 @@ public class BPBungee extends Plugin implements Listener {
         }
     }
 
-    List<String> blockedCommandsIfMuted = Arrays.asList(new String[]{"msg", "r", "w", "message", "reply", "rainbow"});
+    List<String> blockedCommandsIfMuted = Arrays.asList("msg", "r", "w", "message", "reply", "rainbow")
     List<String> blockedCommands = Arrays.asList("/worldedit:/calc", "/worldedit:/calculate", "/worldedit:/eval", "/worldedit:/evaluate", "/worldedit:/solve");
     private final String[] blockedWords = {"nigga", "nigger", "anigger", "anigga", "aniga", "aniger", "niger", "niga", "fag", "faggot", "retard", "n1ger", "sex", "esex", "cum"};
     @EventHandler
@@ -426,12 +426,12 @@ public class BPBungee extends Plugin implements Listener {
         }
         if (chatChannel != null && chatChannel.equals("message") && !event.isCommand()) {
             event.setCancelled(true);
-            ProxiedPlayer playerToSendMessage = instance.getProxy().getPlayer(playerMessageChannel.get(player.getUniqueId()));
+            ProxiedPlayer playerToSendMessage = BPBungee.instance.getProxy().getPlayer(BPBungee.playerMessageChannel.get(player.getUniqueId()));
             String text = event.getMessage();
-            player.sendMessage((new ComponentBuilder("" + playerToSendMessage.getDisplayName())).append(": " + text).color(ChatColor.GRAY).create());
-            playerToSendMessage.sendMessage((new ComponentBuilder("" + player.getDisplayName())).append(": " + text).color(ChatColor.GRAY).create());
-            instance.playerReplyTo.put(playerToSendMessage.getUniqueId(), new NamedPlayer(player.getName(), player.getDisplayName()));
-            Utils.log((new ComponentBuilder("SocialSpy: ")).color(ChatColor.AQUA).append("From " + player.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(" To " + playerToSendMessage.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(": " + text).color(ChatColor.GRAY).create(), "bridgepractice.moderation.socialspy");
+            player.sendMessage(new ComponentBuilder("§dTo "+playerToSendMessage.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
+            playerToSendMessage.sendMessage(new ComponentBuilder("§dFrom "+player.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
+            BPBungee.instance.playerReplyTo.put(playerToSendMessage.getUniqueId(), new BPBungee.NamedPlayer(player.getName(), player.getDisplayName()));
+            Utils.log(new ComponentBuilder("SocialSpy: ").color(ChatColor.AQUA).append("From "+player.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(" To "+playerToSendMessage.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(": "+text).color(ChatColor.GRAY).create(), "bridgepractice.moderation.socialspy");
             return;
         }
         if (event.getMessage().startsWith("/rc ") && player.hasPermission("group.legend")) {
@@ -490,7 +490,7 @@ public class BPBungee extends Plugin implements Listener {
             return hours + " hour" + ((hours == 1) ? "" : "s") + " " + minutes + " min" + ((minutes == 1) ? "" : "s");
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            player.sendMessage("oh!Something went wrong fetching your playing time from our database. Please open a ticket on the discord!");
+            player.sendMessage("§c§lUh oh!§r§c Something went wrong fetching your playing time from our database. Please open a ticket on the discord!");
             return "N/A";
         }
     }
