@@ -22,14 +22,14 @@ public class Mute extends Command {
         if (sender.hasPermission("bridgepractice.moderation.chat")) {
             int days;
             if (args.length <= 1) {
-                sender.sendMessage((new ComponentBuilder("You need to provide more arguments for this command!")).color(ChatColor.RED).create());
+                sender.sendMessage(new ComponentBuilder("You need to provide more arguments for this command!").color(ChatColor.RED).create());
                 return;
             }
             String playerName = args[0];
             try {
                 days = Integer.parseInt(args[1]);
             } catch (NumberFormatException e) {
-                sender.sendMessage((new ComponentBuilder("Invalid number of days " + args[1])).color(ChatColor.RED).create());
+                sender.sendMessage(new ComponentBuilder("Invalid number of days "+args[1]).color(ChatColor.RED).create());
                 return;
             }
             String reason = "Chat Infraction";
