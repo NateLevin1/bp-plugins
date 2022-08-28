@@ -149,36 +149,44 @@ public class BPBungee extends Plugin implements Listener {
 
     static Connection connection;
 
-    public void openConnection() {
+     public void openConnection() {
         try {
-            if (connection != null && !connection.isClosed())
+            if(connection != null && !connection.isClosed()) {
                 return;
-            connection = DriverManager.getConnection("jdbc:mysql://" + this.host + ":" + this.port + "/" + this.database + "?characterEncoding=latin1&autoReconnect=true", this.username, this.password);
+            }
+            // NOTE: If something around this are fails, something is different between my host machine and the machine
+            //       this is running on. Getting rid of the `characterEncoding` query parameter may help, but other
+            //       solutions are likely.
+            connection = DriverManager.getConnection("jdbc:mysql://"
+                            + this.host + ":" + this.port + "/" + this.database + "?characterEncoding=latin1&autoReconnect=true",
+                    this.username, this.password);
+
             CommandQueueChecker.startChecking();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-
     HashMap<UUID, Long> playerSessionLogOnTime = new HashMap<>();
-
     @EventHandler
     public void onLogin(LoginEvent event) {
         UUID uuid = event.getConnection().getUniqueId();
-        try (PreparedStatement statement = connection.prepareStatement("SELECT players.bannedAt, players.uuid, players.bannedDays, players.bannedReason FROM bannedIps INNER JOIN players ON bannedIps.uuid=players.uuid WHERE ip=?;")) {
+        // check if banned
+        try(PreparedStatement statement = connection.prepareStatement("SELECT players.bannedAt, players.uuid, players.bannedDays, players.bannedReason FROM bannedIps INNER JOIN players ON bannedIps.uuid=players.uuid WHERE ip=?;")) {
             statement.setString(1, event.getConnection().getAddress().getAddress().getHostAddress());
             ResultSet res = statement.executeQuery();
-            if (res.next()) {
+            if(res.next()) {
+                // player's ip is in fact banned
                 Date bannedAt = res.getDate("bannedAt");
-                if (!res.wasNull()) {
+                if(!res.wasNull()) {
                     int bannedDays = res.getInt("bannedDays");
                     int daysSince = (int) ChronoUnit.DAYS.between(bannedAt.toLocalDate(), LocalDate.now());
-                    if (daysSince < bannedDays) {
+                    if(daysSince < bannedDays) {
                         event.setCancelReason(Utils.getBanMessage(bannedDays - daysSince, res.getString("bannedReason"), !res.getString("uuid").equals(uuid.toString())));
                         event.setCancelled(true);
                         return;
+                    } else {
+                        Unban.applyUnban(res.getString("uuid"), null);
                     }
-                    Unban.applyUnban(res.getString("uuid"), null);
                 }
             }
         } catch (SQLException e) {
