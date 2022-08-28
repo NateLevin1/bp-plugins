@@ -47,7 +47,7 @@ public class Mute extends Command {
                 try {
                     playerUuid = Utils.getUuidFromNameSync(playerName);
                 } catch (IOException e) {
-                    sender.sendMessage((new ComponentBuilder("'" + playerName + "' is not a valid username")).color(ChatColor.RED).create());
+                    sender.sendMessage(new ComponentBuilder("✕ '" + playerName + "' is not a valid username").color(ChatColor.RED).create());
                     return;
                 }
                 try (PreparedStatement statement = BPBungee.connection.prepareStatement("UPDATE players SET mutedAt = ?, mutedDays = ?, muteReason = ? WHERE uuid=?;")) {
