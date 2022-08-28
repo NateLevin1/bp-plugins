@@ -42,7 +42,7 @@ public class Mute extends Command {
 
             ProxiedPlayer mutedPlayer = BPBungee.instance.getProxy().getPlayer(playerName);
             String finalReason = reason;
-            BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
+            BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, ()->{
                 String playerUuid;
                 try {
                     playerUuid = Utils.getUuidFromNameSync(playerName);
