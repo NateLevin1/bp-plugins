@@ -225,16 +225,16 @@ public class Utils {
     }
 
     public static BaseComponent[] getBanMessage(int daysLeft, String reason, boolean isIpBan) {
-        return (new ComponentBuilder())
-                .append((new ComponentBuilder((isIpBan ? "Your IP is" : "You are") + " temporarily banned for ")).bold(true).color(ChatColor.RED).create())
-                .append((new ComponentBuilder(daysLeft + " days")).color(ChatColor.WHITE).create())
-                .append((new ComponentBuilder(" from this server!\n\n")).bold(false).color(ChatColor.RED).create())
-                .append((new ComponentBuilder("Reason: ")).color(ChatColor.GRAY).create())
-                .append((new ComponentBuilder(reason)).color(ChatColor.WHITE).create())
-                .append((new ComponentBuilder("\n\nTo appeal your ban, join the Discord and open a ticket.")).color(ChatColor.WHITE).create())
-                .append((new ComponentBuilder("\n\nJoin the Discord by going to ")).color(ChatColor.GOLD).create())
-                .append((new ComponentBuilder("https://bridgepractice.net/discord")).color(ChatColor.AQUA).underlined(true).create())
-                .append((new ComponentBuilder("\nThen accept the rules, go to #support, and click the \"Support\" button.")).underlined(false).color(ChatColor.GOLD).create())
+        return new ComponentBuilder()
+                .append(new ComponentBuilder((isIpBan ? "Your IP is" : "You are")+" temporarily banned for ").bold(true).color(ChatColor.RED).create())
+                .append(new ComponentBuilder(daysLeft+" days").color(ChatColor.WHITE).create())
+                .append(new ComponentBuilder(" from this server!\n\n").bold(false).color(ChatColor.RED).create())
+                .append(new ComponentBuilder("Reason: ").color(ChatColor.GRAY).create())
+                .append(new ComponentBuilder(reason).color(ChatColor.WHITE).create())
+                .append(new ComponentBuilder("\n\nTo appeal your ban, join the Discord and open a ticket.").color(ChatColor.WHITE).create())
+                .append(new ComponentBuilder("\n\nJoin the Discord by going to ").color(ChatColor.GOLD).create())
+                .append(new ComponentBuilder("https://bridgepractice.net/discord").color(ChatColor.AQUA).underlined(true).create())
+                .append(new ComponentBuilder("\nThen accept the rules, go to #support, and click the \"Support\" button.").underlined(false).color(ChatColor.GOLD).create())
                 .create();
     }
 
