@@ -58,7 +58,7 @@ public class Mute extends Command {
                     statement.executeUpdate();
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
-                    sender.sendMessage((new ComponentBuilder("SQL error thrown: " + throwables.getMessage())).color(ChatColor.RED).create());
+                    sender.sendMessage(new ComponentBuilder("SQL error thrown: " + throwables.getMessage()).color(ChatColor.RED).create());
                     return;
                 }
 
