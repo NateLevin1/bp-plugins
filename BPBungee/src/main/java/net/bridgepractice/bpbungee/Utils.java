@@ -219,7 +219,7 @@ public class Utils {
             return res.getString(1);
         } catch (SQLException throwables) {
             throwables.printStackTrace();
-            player.sendMessage("oh!Something went wrong fetching your xp from our database. Please open a ticket on the discord!");
+            player.sendMessage("§cOh! Something went wrong fetching your xp from our database. Please open a ticket on the discord!");
             return "Chat Infraction";
         }
     }
