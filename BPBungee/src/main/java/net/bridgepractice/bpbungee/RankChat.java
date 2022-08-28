@@ -14,6 +14,7 @@ public class RankChat extends Command {
     public void execute(CommandSender sender, String[] args) {
         if(args.length == 0) {
             sender.sendMessage(new ComponentBuilder("You need to provide a message for this command!").color(ChatColor.RED).create());
+            return;
         }
     }
 
