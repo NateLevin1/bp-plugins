@@ -765,24 +765,27 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         updatePlayerScoreboard(player);
 
         // show xp, coins and levels and rank
-        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-            board.getTeam("xp").setSuffix("§a" + Utils.getPlayerXPSync(player) + "⫯");
-            board.getTeam("coins").setSuffix("§a" + Utils.getPlayerCoinsSync(player) + " ✪");
-            if (player.hasPermission("group.custom")) {
-                if (name.length() < 16) {
-                    board.getTeam("rank").setSuffix(name);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                board.getTeam("xp").setSuffix("§a" + Utils.getPlayerXPSync(player) + "⫯");
+                board.getTeam("coins").setSuffix("§a" + Utils.getPlayerCoinsSync(player) + " ✪");
+                if (player.hasPermission("group.custom")) {
+                    if (name.length() < 16) {
+                        board.getTeam("rank").setSuffix(name);
+                    } else {
+                        String result = Pattern.compile("§[0-9|a-g|k-o|r]").matcher(name).replaceAll("");
+                        board.getTeam("rank").setSuffix(result);
+                    }
+                } else if (player.hasPermission("group.godlike")) {
+                    board.getTeam("rank").setSuffix("§5[§dGODLIKE§5]");
+                } else if (player.hasPermission("group.legend")) {
+                    board.getTeam("rank").setSuffix("§4[§cLEGEND§4]");
                 } else {
-                    String result = Pattern.compile("§[0-9|a-g|k-o|r]").matcher(name).replaceAll("");
-                    board.getTeam("rank").setSuffix(result);
+                    board.getTeam("rank").setSuffix("§aDefault");
                 }
-            } else if (player.hasPermission("group.godlike")) {
-                board.getTeam("rank").setSuffix("§5[§dGODLIKE§5]");
-            } else if (player.hasPermission("group.legend")) {
-                board.getTeam("rank").setSuffix("§4[§cLEGEND§4]");
-            } else {
-                board.getTeam("rank").setSuffix("§aDefault");
             }
-        });
+        }.runTaskAsynchronously(this);
 
         showPlayerNPCs(player);
 
