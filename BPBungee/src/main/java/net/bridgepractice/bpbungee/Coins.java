@@ -44,15 +44,8 @@ public class Coins extends Command {
                 return;
             }
 
-            try {
-                targetUUID = Utils.getUuidFromNameSync(args[2]);
-            } catch (IOException e) {
-                sender.sendMessage(new ComponentBuilder("x '").color(ChatColor.RED)
-                        .append(new ComponentBuilder(args[2]).color(ChatColor.RED).create())
-                        .append(new ComponentBuilder("' is not a valid username!").color(ChatColor.RED).create())
-                        .create());
-                return;
-            }
+            targetUUID = getUUID(args[2]);
+            if (targetUUID == null) return;
 
             giveCoins(sender, targetUUID, Integer.parseInt(args[1]));
             sender.sendMessage(new ComponentBuilder("Successfully added ").color(ChatColor.GREEN)
@@ -69,16 +62,8 @@ public class Coins extends Command {
                 sender.sendMessage(new ComponentBuilder("Correct usage: /coins remove <amount> <player>").color(ChatColor.RED).create());
                 return;
             }
-
-            try {
-                targetUUID = Utils.getUuidFromNameSync(args[2]);
-            } catch (IOException e) {
-                sender.sendMessage(new ComponentBuilder("x '").color(ChatColor.RED)
-                    .append(new ComponentBuilder(args[2]).color(ChatColor.RED).create())
-                    .append(new ComponentBuilder("' is not a valid username!").color(ChatColor.RED).create())
-                    .create());
-                return;
-            }
+            targetUUID = getUUID(args[2]);
+            if (targetUUID == null) return;
 
             removeCoins(sender, targetUUID, Integer.parseInt(args[1]));
             sender.sendMessage(new ComponentBuilder("Successfully removed ").color(ChatColor.GREEN)
@@ -96,15 +81,8 @@ public class Coins extends Command {
                 return;
             }
 
-            try {
-                targetUUID = Utils.getUuidFromNameSync(args[1]);
-            } catch (IOException e) {
-                sender.sendMessage(new ComponentBuilder("x '").color(ChatColor.RED)
-                    .append(new ComponentBuilder(args[1]).color(ChatColor.RED).create())
-                    .append(new ComponentBuilder("' is not a valid username!").color(ChatColor.RED).create())
-                    .create());
-                return;
-            }
+            targetUUID = getUUID(args[1]);
+            if (targetUUID == null) return;
 
             resetCoins(sender, targetUUID);
             sender.sendMessage(new ComponentBuilder("Successfully reset ").color(ChatColor.GREEN)
@@ -149,6 +127,13 @@ public class Coins extends Command {
         } catch (SQLException exception) {
             exception.printStackTrace();
             sender.sendMessage(new ComponentBuilder("SQL error thrown: " + exception.getMessage()).color(ChatColor.RED).create());
+        }
+    }
+    protected String getUUID(String target) {
+        try {
+            return Utils.getUuidFromNameSync(target);
+        } catch (IOException exception) {
+            return null;
         }
     }
 }
