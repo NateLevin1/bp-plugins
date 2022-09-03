@@ -768,7 +768,20 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
             board.getTeam("xp").setSuffix("§a" + Utils.getPlayerXPSync(player) + "⫯");
             board.getTeam("coins").setSuffix("§a" + Utils.getPlayerCoinsSync(player) + " ✪");
-            board.getTeam("rank").setSuffix(player.hasPermission("group.custom") ? name.length() <= 16 ? name : Pattern.compile("§[0-9|a-g|k-o|r]").matcher(name).replaceAll("") : player.hasPermission("group.godlike") ? "§5[§dGODLIKE§5]" : player.hasPermission("group.legend") ? "§4[§cLEGEND§4]" : "§aDefault");
+            if (player.hasPermission("group.custom")) {
+                if (name.length() < 16) {
+                    board.getTeam("rank").setSuffix(name);
+                } else {
+                    String result = Pattern.compile("§[0-9|a-g|k-o|r]").matcher(name).replaceAll("");
+                    board.getTeam("rank").setSuffix(result);
+                }
+            } else if (player.hasPermission("group.godlike")) {
+                board.getTeam("rank").setSuffix("§5[§dGODLIKE§5]");
+            } else if (player.hasPermission("group.legend")) {
+                board.getTeam("rank").setSuffix("§4[§cLEGEND§4]");
+            } else {
+                board.getTeam("rank").setSuffix("§aDefault");
+            }
         });
 
         showPlayerNPCs(player);
