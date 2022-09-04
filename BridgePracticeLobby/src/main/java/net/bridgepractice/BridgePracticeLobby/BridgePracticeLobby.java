@@ -60,6 +60,7 @@ import java.io.IOException;
 import java.sql.Date;
 import java.sql.*;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginMessageListener {
     public static BridgePracticeLobby instance;
@@ -265,7 +266,6 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         getCommand("stats").setExecutor(new StatsCommand());
 
         getCommand("telestick").setExecutor(new TelestickCommand());
-        getCommand("coins").setExecutor(new CoinCommands());
         getCommand("fly").setExecutor(new FlyCommand());
         // every 15 seconds, get the player count. it will be stored and shown to players!
         (new BukkitRunnable() {
@@ -752,7 +752,6 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                 "",
                 "%xp%  XP: ",
                 "%coins%  Coins: ",
-//                "%percentage%    ",
                 "",
                 "  Players Online:",
                 "%total%  §7Total: ",
@@ -766,19 +765,16 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         updatePlayerScoreboard(player);
 
         // show xp, coins and levels and rank
-        (new BukkitRunnable() {
+        new BukkitRunnable() {
             @Override
             public void run() {
                 board.getTeam("xp").setSuffix("§a" + Utils.getPlayerXPSync(player) + "⫯");
-                board.getTeam("level").setSuffix("§a" + level);
                 board.getTeam("coins").setSuffix("§a" + Utils.getPlayerCoinsSync(player) + " ✪");
-                 if (player.hasPermission("group.custom")) {
+                if (player.hasPermission("group.custom")) {
                     if (name.length() < 16) {
-                       board.getTeam("rank").setSuffix(name);
-                    } else {;
-                        Pattern pattern = Pattern.compile("§[0-9|a-g|k-o|r]");
-                        Matcher matcher = pattern.matcher(name);
-                        String result = matcher.replaceAll("");
+                        board.getTeam("rank").setSuffix(name);
+                    } else {
+                        String result = Pattern.compile("§[0-9|a-g|k-o|r]").matcher(name).replaceAll("");
                         board.getTeam("rank").setSuffix(result);
                     }
                 } else if (player.hasPermission("group.godlike")) {
@@ -789,7 +785,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
                     board.getTeam("rank").setSuffix("§aDefault");
                 }
             }
-        }).runTaskAsynchronously(this);
+        }.runTaskAsynchronously(this);
 
         showPlayerNPCs(player);
 
