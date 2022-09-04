@@ -4,6 +4,7 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
 import java.io.IOException;
@@ -44,7 +45,7 @@ public class Coins extends Command {
                 return;
             }
 
-            targetUUID = getUUID(args[2]);
+            targetUUID = getUUID(sender, args[2]);
             if (targetUUID == null) return;
 
             giveCoins(sender, targetUUID, Integer.parseInt(args[1]));
@@ -62,7 +63,7 @@ public class Coins extends Command {
                 sender.sendMessage(new ComponentBuilder("Correct usage: /coins remove <amount> <player>").color(ChatColor.RED).create());
                 return;
             }
-            targetUUID = getUUID(args[2]);
+            targetUUID = getUUID(sender, args[2]);
             if (targetUUID == null) return;
 
             removeCoins(sender, targetUUID, Integer.parseInt(args[1]));
@@ -81,7 +82,7 @@ public class Coins extends Command {
                 return;
             }
 
-            targetUUID = getUUID(args[1]);
+            targetUUID = getUUID(sender, args[1]);
             if (targetUUID == null) return;
 
             resetCoins(sender, targetUUID);
@@ -129,10 +130,14 @@ public class Coins extends Command {
             sender.sendMessage(new ComponentBuilder("SQL error thrown: " + exception.getMessage()).color(ChatColor.RED).create());
         }
     }
-    protected String getUUID(String target) {
+    protected String getUUID(CommandSender sender, String target) {
         try {
             return Utils.getUuidFromNameSync(target);
         } catch (IOException exception) {
+            sender.sendMessage(new ComponentBuilder("x '").color(ChatColor.RED)
+                    .append(new ComponentBuilder(target).color(ChatColor.RED).create())
+                    .append(new ComponentBuilder("' is not a valid username!").color(ChatColor.RED).create())
+                    .create());
             return null;
         }
     }
