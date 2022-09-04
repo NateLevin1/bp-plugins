@@ -66,7 +66,7 @@ public class Duel extends Command {
                             for(BaseComponent component : cycleComponent) {
                                 component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/duel cycle " + request.requester.getName()+" "+request.gameMode));
                             }
-                            request.playerToDuel.sendMessage(new ComponentBuilder().append(beforeDivider).append(new ComponentBuilder("\nYou accepted " + request.playerToDuel.getDisplayName() + "§a's Duel request!").color(ChatColor.GREEN).append(cycleComponent).create()).event((ClickEvent) null).event((HoverEvent) null).append(afterDivider).create());
+                            request.playerToDuel.sendMessage(new ComponentBuilder().append(beforeDivider).append(new ComponentBuilder("\nYou accepted " + request.requester.getDisplayName() + "§a's Duel request!").color(ChatColor.GREEN).append(cycleComponent).create()).event((ClickEvent) null).event((HoverEvent) null).append(afterDivider).create());
                             request.accepted = true;
                             startPrivateGame(request);
                             return;
