@@ -6,6 +6,7 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -39,6 +40,7 @@ public class BPBungee extends Plugin implements Listener {
     public static boolean multiplayerEnabled = true;
     public static boolean chatEnabled = true;
     public static String punishmentWebhook = "https://discord.com/api/webhooks/888106865697894410/bPuDlfi_RXBdY7ulqS_U9JT62rWbsSF_C45SQVM24rb2p4db3mhRWCIwj7peG6a-9zEs";
+    public static String chatWebhook = "https://discord.com/api/webhooks/1008405026777075804/9CY04dveVQd5qVCw9E5XzhdkWCiNrx0Sk7rBY7BGbaPhTGGDUlyXrp602vkdobhL4fHi";
 
     @Override
     public void onEnable() {
@@ -79,6 +81,7 @@ public class BPBungee extends Plugin implements Listener {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Socialspy());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new SetChat());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new GetQueueingGames());
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new SilentMute());
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("bp:messages");
 
@@ -369,7 +372,8 @@ public class BPBungee extends Plugin implements Listener {
             player.sendMessage(new ComponentBuilder()
                     .append(new ComponentBuilder("----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).create())
                     .append(new ComponentBuilder("\nYou cannot chat because you are muted.").strikethrough(false).color(ChatColor.RED).create())
-                    .append(new ComponentBuilder("\nYour mute will expire in ").color(ChatColor.GRAY).append(new ComponentBuilder(mutedPlayers.get(player.getUniqueId()) + " days").color(ChatColor.RED).create()).create())
+                    .append(new ComponentBuilder("\nYour mute will expire in ").color(ChatColor.GRAY).append(new ComponentBuilder(BPBungee.mutedPlayers.get(player.getUniqueId()) + " days").color(ChatColor.RED).create()).create())
+                    .append((new ComponentBuilder("\nReason: ")).color(ChatColor.GRAY).append((new ComponentBuilder(Utils.getMuteReason(player))).color(ChatColor.RED).create()).create())
                     .append(new ComponentBuilder("\n\nTo appeal your mute, ").color(ChatColor.GRAY).append(new ComponentBuilder("join the Discord (click)").color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "http://bridgepractice.net/discord")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§bClick to go to the Discord invite."))).create()).create())
                     .append(new ComponentBuilder("\n----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).underlined(false).event(((ClickEvent) null)).event(((HoverEvent) null)).create())
                     .create());
@@ -386,22 +390,30 @@ public class BPBungee extends Plugin implements Listener {
         if (chatChannel != null && chatChannel.equals("rank") && !event.isCommand()) {
             event.setCancelled(true);
             String text = event.getMessage();
+            String playerName = player.getName();
+            String cleanIgn = playerName.replaceAll("_", "\\_");
             RankChat.sendToRankChat(player.getDisplayName(), text);
+            Utils.rankedChatToDiscord(player.getUniqueId().toString(), text, cleanIgn, player);
             return;
         }
         if (chatChannel != null && chatChannel.equals("message") && !event.isCommand()) {
             event.setCancelled(true);
-            ProxiedPlayer playerToSendMessage = BPBungee.instance.getProxy().getPlayer(BPBungee.playerMessageChannel.get(player.getUniqueId()));
+            ProxiedPlayer playerToSendMessage = instance.getProxy().getPlayer(playerMessageChannel.get(player.getUniqueId()));
             String text = event.getMessage();
-            player.sendMessage(new ComponentBuilder("§dTo "+playerToSendMessage.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
-            playerToSendMessage.sendMessage(new ComponentBuilder("§dFrom "+player.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
-            BPBungee.instance.playerReplyTo.put(playerToSendMessage.getUniqueId(), new BPBungee.NamedPlayer(player.getName(), player.getDisplayName()));
-            Utils.log(new ComponentBuilder("SocialSpy: ").color(ChatColor.AQUA).append("From "+player.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(" To "+playerToSendMessage.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(": "+text).color(ChatColor.GRAY).create(), "bridgepractice.moderation.socialspy");
+            player.sendMessage((new ComponentBuilder("" + playerToSendMessage.getDisplayName())).append(": " + text).color(ChatColor.GRAY).create());
+            playerToSendMessage.sendMessage((new ComponentBuilder("" + player.getDisplayName())).append(": " + text).color(ChatColor.GRAY).create());
+            instance.playerReplyTo.put(playerToSendMessage.getUniqueId(), new NamedPlayer(player.getName(), player.getDisplayName()));
+            Utils.log((new ComponentBuilder("SocialSpy: ")).color(ChatColor.AQUA).append("From " + player.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(" To " + playerToSendMessage.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(": " + text).color(ChatColor.GRAY).create(), "bridgepractice.moderation.socialspy");
             return;
         }
-
-        if (event.getMessage().startsWith("/rc ")) {
+        if (event.getMessage().startsWith("/rc ") && player.hasPermission("group.legend")) {
             RankChat.sendToRankChat(player.getDisplayName(), event.getMessage().replaceAll("/rc ", ""));
+            String text = event.getMessage();
+            String playerName = player.getName();
+            String cleanIgn = playerName.replaceAll("_", "\\_");
+            Utils.rankedChatToDiscord(player.getUniqueId().toString(), text, cleanIgn, player);
+        } else if (player.hasPermission("group.legend") || event.getMessage().startsWith("/rc ")) {
+
         }
     }
     private String addEmojisToMessage(String msg) {

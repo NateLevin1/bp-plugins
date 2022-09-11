@@ -52,6 +52,7 @@ public class Warn extends Command {
             Utils.playSound(player, "mob.wither.spawn");
 
             sender.sendMessage(new ComponentBuilder("Successfully warned '"+playerName+"' for '"+reason+"'.").color(ChatColor.GREEN).create());
+            Utils.sendWarnWebhook(reason, (ProxiedPlayer) sender, playerName, sender);
         } else {
             sender.sendMessage(new ComponentBuilder("You do not have permission to use this command").color(ChatColor.RED).create());
         }
