@@ -2,6 +2,7 @@ package net.bridgepractice.bridgepracticeclub;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.OfflinePlayer;
@@ -165,19 +166,17 @@ public class Leaderboard {
         }
         return -1;
     }
-
-    private static JsonArray getJSONArray(String urlString) throws IOException {
+    public static JsonObject getJSON(String urlString) throws IOException {
         URL url = new URL(urlString);
         BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
         JsonElement parsed = new JsonParser().parse(in);
-        if(!parsed.isJsonArray()) {
-            throw new IOException("Did not get a JSON array from URL "+urlString);
+        if (!parsed.isJsonObject()) {
+            throw new IOException("Did not get a JSON object from URL " + urlString);
         }
-        JsonArray result = parsed.getAsJsonArray();
+        JsonObject result = parsed.getAsJsonObject();
         in.close();
         return result;
     }
-
     private static final ConcurrentHashMap<String, String> cachedUuidToName = new ConcurrentHashMap<>();
     private static final AtomicLong lastCacheEvict = new AtomicLong(System.currentTimeMillis());
     private static String getNameFromUuidSyncCached(String uuid) throws IOException {
@@ -196,7 +195,7 @@ public class Leaderboard {
         }
     }
     private static String getNameFromUuidSync(String uuid) throws IOException {
-        JsonArray names = getJSONArray("https://api.mojang.com/user/profiles/" + uuid + "/names");
-        return names.get(names.size()-1).getAsJsonObject().get("name").getAsString();
+        JsonObject player = getJSON("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
+        return player.get("name").getAsString();
     }
 }

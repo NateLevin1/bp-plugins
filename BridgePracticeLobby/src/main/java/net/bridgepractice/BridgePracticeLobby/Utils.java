@@ -156,20 +156,9 @@ public class Utils {
         in.close();
         return result;
     }
-    public static JsonArray getJSONArray(String urlString) throws IOException {
-        URL url = new URL(urlString);
-        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-        JsonElement parsed = new JsonParser().parse(in);
-        if (!parsed.isJsonArray()) {
-            throw new IOException("Did not get a JSON array from URL " + urlString);
-        }
-        JsonArray result = parsed.getAsJsonArray();
-        in.close();
-        return result;
-    }
     private static String getNameFromUuidSync(String uuid) throws IOException {
-        JsonArray names = getJSONArray("https://api.mojang.com/user/profiles/" + uuid + "/names");
-        return names.get(names.size() - 1).getAsJsonObject().get("name").getAsString();
+        JsonObject player = getJSON("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
+        return player.get("name").getAsString();
     }
     private static final ConcurrentHashMap<String, String> cachedUuidToName = new ConcurrentHashMap<>();
     private static final AtomicLong lastCacheEvict = new AtomicLong(System.currentTimeMillis());
