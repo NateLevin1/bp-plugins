@@ -127,6 +127,8 @@ commands:
   socialspy:
     description: Staff only command
     usage: /socialspy
+  coins:
+    description: Staff only command
 
   rainbow:
     description: Makes your text rainbow! Only available to certain ranked players
