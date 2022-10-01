@@ -115,13 +115,11 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         }
 
         // fix time
-        List<World> worlds = getServer().getWorlds();
+        fixWorldTime();
         (new BukkitRunnable() {
             @Override
             public void run() {
-                for(World world : worlds) {
-                    world.setTime(1000L);
-                }
+                fixWorldTime();
             }
         }).runTaskTimer(this, 0, 10 * 20);
 
@@ -314,6 +312,12 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         connection = DriverManager.getConnection("jdbc:mysql://"
                         + this.host + ":" + this.port + "/" + this.database + "?characterEncoding=latin1&autoReconnect=true",
                 this.username, this.password);
+    }
+    private void fixWorldTime() {
+        List<World> worlds = getServer().getWorlds();
+        for(World world : worlds) {
+            world.setTime(18000L);
+        }
     }
     private static class HotbarItem {
         ItemStack item;
