@@ -49,6 +49,10 @@ public class CommandClutch implements CommandExecutor {
             return true;
         }
 
+        if(player.hasPermission("bridgepractice.lobby.effect.fly")) {
+                player.setAllowFlight(false);
+        }
+
         if(Bridge.disabledGames.getOrDefault("clutch", false)) {
             player.sendMessage("§cQueueing for that game has been temporarily disabled");
             return true;

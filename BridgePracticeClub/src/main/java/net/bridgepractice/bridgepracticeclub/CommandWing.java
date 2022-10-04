@@ -11,6 +11,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
@@ -341,6 +342,21 @@ public class CommandWing implements CommandExecutor {
                         playerTimes.put(player.getName(), timeTakenNum);
                     }
                     updateSessionLeader();
+                }
+
+                if(((CraftPlayer)player).getHandle().ping < 250) {
+                    if(timeTakenNum < 3700) {
+                        info.onDeath.call(info);
+                        // they are cheating. lets ban them!
+                        // FIXME: this should probably use plugin messaging channels. Oh well!
+                        try(PreparedStatement statement = Bridge.connection.prepareStatement("INSERT INTO commandQueue (target, type, content) VALUES ('proxy', 'excmd', ?);")) {
+                            statement.setString(1, "ban "+player.getName()+" 27 IMPOSSIBLE WING TIME");
+                            statement.executeUpdate();
+                            return;
+                        } catch (SQLException throwables) {
+                            throwables.printStackTrace();
+                        }
+                    }
                 }
 
                 player.setGameMode(GameMode.ADVENTURE);

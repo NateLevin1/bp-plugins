@@ -76,6 +76,11 @@ public class CommandSpawn implements CommandExecutor {
 
             Bridge.instance.showPlayerNPCs(player);
 
+            if(player.hasPermission("bridgepractice.lobby.effect.fly")) {
+                player.setAllowFlight(true);
+                player.setFlySpeed(0.07f);
+            }
+
 
             return true;
         } else {

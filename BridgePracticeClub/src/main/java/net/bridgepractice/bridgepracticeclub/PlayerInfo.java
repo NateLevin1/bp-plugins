@@ -49,6 +49,7 @@ public class PlayerInfo {
     AllowedLocation winBox;
     AllowedLocation allowedBox;
     AllBreak[] allowedBreaking;
+    String locName;
     public int[] relXZ;
     static HashMap<PlayerLocation, ArrayList<UUID>> queues = new HashMap<>();
     static HashMap<UUID, PlayerLocation> playerQueue = new HashMap<>();
@@ -69,6 +70,7 @@ public class PlayerInfo {
         position = getPosition(loc);
         switch(loc) {
             case Spawn:
+                locName = "spawn";
                 respawnLocation = new Location(Bridge.instance.world, 0.5, 100, 0.5, 90, 0);
                 break;
             case Wing:
