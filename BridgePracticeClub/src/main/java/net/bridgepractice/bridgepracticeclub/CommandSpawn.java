@@ -26,7 +26,9 @@ public class CommandSpawn implements CommandExecutor {
                 return true;
             }
 
-            Bridge.instance.setPlayer(player.getUniqueId(), new PlayerInfo(PlayerLocation.Spawn, null, null, null, null, null, null, null));
+            Bridge.instance.setPlayer(player.getUniqueId(), new PlayerInfo(PlayerLocation.Spawn, null, null, null, (info) -> {
+                Utils.disableFly(player);
+            }, null, null, null));
 
             player.getInventory().clear();
             // clear potion effects

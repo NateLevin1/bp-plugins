@@ -987,9 +987,9 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
             info.onWin.call(info);
         }
 
-        if((info.locName == "spawn" && (loc.getY() < 80 || loc.getY() > 150
+        if(info.location == PlayerLocation.Spawn && (loc.getY() < 80 || loc.getY() > 150
                         || loc.getX() < -50 || loc.getX() > 50
-                        || loc.getZ() < -70 || loc.getZ() > 90))) {
+                        || loc.getZ() < -70 || loc.getZ() > 90)) {
 
             player.teleport(info.respawnLocation);
         }

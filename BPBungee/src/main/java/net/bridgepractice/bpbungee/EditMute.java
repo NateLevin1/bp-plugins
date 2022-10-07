@@ -13,8 +13,8 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Command;
 
-public class SilentMute extends Command {
-    public SilentMute() {
+public class EditMute extends Command {
+    public EditMute() {
         super("SilentMute");
     }
 
@@ -63,7 +63,7 @@ public class SilentMute extends Command {
                 ProxiedPlayer onlinePlayer = BPBungee.instance.getProxy().getPlayer(playerName);
                 if (onlinePlayer != null)
                     BPBungee.mutedPlayers.put(onlinePlayer.getUniqueId(), Integer.valueOf(days));
-                Utils.sendPunishmentWebhook(false, "silently muted", finalReason, days, sender.getName(), (sender instanceof ProxiedPlayer) ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
+                Utils.sendPunishmentWebhook(false,false, "silently muted", finalReason, days, sender.getName(), (sender instanceof ProxiedPlayer) ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
             }, 0L, TimeUnit.MILLISECONDS);
         } else {
             sender.sendMessage((new ComponentBuilder("You do not have permission to use this command.")).color(ChatColor.RED).create());
