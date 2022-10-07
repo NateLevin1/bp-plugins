@@ -37,4 +37,22 @@ public class Utils {
             e.printStackTrace();
         }
     }
+    
+    public static void banInvalidTime(String player, String reason) {
+        // they are cheating. lets ban them!
+        // FIXME: this should probably use plugin messaging channels. Oh well!
+        try (PreparedStatement statement = Bridge.connection.prepareStatement("INSERT INTO commandQueue (target, type, content) VALUES ('proxy', 'excmd', ?);")) {
+            statement.setString(1, "ban " + player + " 27 " + reason);
+            statement.executeUpdate();
+            return;
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public static void disableFly(Player player) {
+        if(player.hasPermission("bridgepractice.lobby.effect.fly")) {
+            player.setAllowFlight(false);
+        }
+    }
 }
