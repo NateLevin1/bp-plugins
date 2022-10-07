@@ -8,9 +8,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.connection.Server;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
@@ -65,11 +68,11 @@ public class Utils {
         }
     }
 
-    public static void sendWebhook(JsonObject object, CommandSender playerToSendErrorsTo) {
+    public static void sendWebhook(JsonObject object, CommandSender playerToSendErrorsTo, String webhookURL) {
         BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
             // https://stackoverflow.com/a/35013372/13608595
             try {
-                URL url = new URL(BPBungee.punishmentWebhook);
+                URL url = new URL(webhookURL);
                 URLConnection con = url.openConnection();
                 HttpsURLConnection req = (HttpsURLConnection) con;
                 req.setRequestMethod("POST");
@@ -98,78 +101,21 @@ public class Utils {
         }, 0, TimeUnit.MILLISECONDS);
     }
 
-    public static void sendChatWebhook(JsonObject object, CommandSender playerToSendErrorsTo) {
-        try {
-            URL url = new URL(BPBungee.chatWebhook);
-            URLConnection con = url.openConnection();
-            HttpsURLConnection req = (HttpsURLConnection) con;
-            req.setRequestMethod("POST");
-            req.setDoOutput(true);
-            byte[] out = object.toString().getBytes(StandardCharsets.UTF_8);
-            req.setFixedLengthStreamingMode(out.length);
-            req.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-            req.addRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15");
-            req.connect();
-            OutputStream os = req.getOutputStream();
-            os.write(out);
-            os.flush();
-            int responseCode = req.getResponseCode();
-            if ((responseCode < 200 || responseCode >= 300) && playerToSendErrorsTo != null)
-                playerToSendErrorsTo.sendMessage(responseCode + " " + req.getResponseMessage());
-            req.disconnect();
-        } catch (IOException e) {
-            if (playerToSendErrorsTo != null)
-                playerToSendErrorsTo.sendMessage(e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
     public static void rankedChatToDiscord(String uuid, String message, String playerName, CommandSender playerToSendErrorsTo) {
         JsonObject webhook = new JsonObject();
         JsonArray embeds = new JsonArray();
         JsonObject embed = new JsonObject();
         JsonObject author = new JsonObject();
-        JsonArray fields = new JsonArray();
-        webhook.add("embeds", (JsonElement) embeds);
-        embeds.add((JsonElement) embed);
-        String text = message.replace("/rc ", "");
-        embed.add("author", (JsonElement) author);
-        author.addProperty("name", playerName + ": " + text);
+        webhook.add("embeds", embeds);
+        embeds.add(embed);
+        embed.add("author", author);
+        author.addProperty("name", playerName + ": " + message);
         author.addProperty("icon_url", "https://crafatar.com/renders/head/" + uuid + "?overlay=true&size=64");
         embed.addProperty("color", Integer.valueOf(16769280));
-        embed.add("fields", (JsonElement) fields);
-        sendChatWebhook(webhook, playerToSendErrorsTo);
+        sendWebhook(webhook, playerToSendErrorsTo, BPBungee.chatWebhook);
     }
 
-    public static void sendWarnWebhook(String reason, ProxiedPlayer staff, String warnedName, CommandSender playerToSendErrorsTo) {
-        JsonObject webhook = new JsonObject();
-        JsonArray embeds = new JsonArray();
-        JsonObject embed = new JsonObject();
-        JsonObject author = new JsonObject();
-        JsonArray fields = new JsonArray();
-        webhook.add("embeds", embeds);
-        embeds.add((JsonElement) embed);
-        embed.add("author", author);
-        author.addProperty("name", "Player Warned");
-        author.addProperty("icon_url", "https://crafatar.com/renders/head/" + staff.getUniqueId() + "?overlay=true&size=64");
-        embed.addProperty("title", staff.getName() + " warned `" + warnedName + "`");
-        embed.addProperty("color", 0xffff00);
-        embed.add("fields", fields);
-        if (reason != null) {
-            JsonObject reasonField = new JsonObject();
-            reasonField.addProperty("name", "Reason");
-            reasonField.addProperty("value", reason);
-            reasonField.addProperty("inline", Boolean.valueOf(true));
-            fields.add(reasonField);
-        }
-        JsonObject thumbnail = new JsonObject();
-        embed.add("thumbnail", thumbnail);
-        thumbnail.addProperty("url", "https://minotar.net/armor/bust/" + warnedName + "/64");
-        embed.addProperty("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
-        sendWebhook(webhook, playerToSendErrorsTo);
-    }
-
-    public static void sendPunishmentWebhook(boolean isBan, String punishmentVerb, String reason, int length, String bannerName, String bannerUuid, String bannedName, CommandSender playerToSendErrorsTo) {
+    public static void sendPunishmentWebhook(boolean isBan, boolean isWarn, String punishmentVerb, String reason, int length, String bannerName, String bannerUuid, String bannedName, CommandSender playerToSendErrorsTo) {
         JsonObject webhook = new JsonObject();
         JsonArray embeds = new JsonArray();
         JsonObject embed = new JsonObject();
@@ -196,12 +142,13 @@ public class Utils {
             fields.add(reasonField);
         }
 
-
-        JsonObject lengthField = new JsonObject();
-        lengthField.addProperty("name", "Length");
-        lengthField.addProperty("value", length+" days");
-        lengthField.addProperty("inline", true);
-        fields.add(lengthField);
+        if(!isWarn) {
+            JsonObject lengthField = new JsonObject();
+            lengthField.addProperty("name", "Length");
+            lengthField.addProperty("value", length + " days");
+            lengthField.addProperty("inline", true);
+            fields.add(lengthField);
+        }
 
         JsonObject thumbnail = new JsonObject();
         embed.add("thumbnail", thumbnail);
@@ -209,7 +156,7 @@ public class Utils {
 
         embed.addProperty("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
 
-        Utils.sendWebhook(webhook, playerToSendErrorsTo);
+        Utils.sendWebhook(webhook, playerToSendErrorsTo, BPBungee.punishmentWebhook);
     }
 
     public static String getMuteReason(ProxiedPlayer player) {

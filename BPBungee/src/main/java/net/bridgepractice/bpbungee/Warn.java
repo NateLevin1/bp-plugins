@@ -31,6 +31,7 @@ public class Warn extends Command {
 
             String reason = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
 
+            String staffName = sender.getName();
             String senderName;
             if(sender instanceof ProxiedPlayer) {
                 senderName = ((ProxiedPlayer) sender).getDisplayName();
@@ -52,7 +53,7 @@ public class Warn extends Command {
             Utils.playSound(player, "mob.wither.spawn");
 
             sender.sendMessage(new ComponentBuilder("Successfully warned '"+playerName+"' for '"+reason+"'.").color(ChatColor.GREEN).create());
-            Utils.sendWarnWebhook(reason, (ProxiedPlayer) sender, playerName, sender);
+            Utils.sendPunishmentWebhook(false, true, "warned", reason, 0, staffName, player.getUniqueId().toString(), playerName, sender);
         } else {
             sender.sendMessage(new ComponentBuilder("You do not have permission to use this command").color(ChatColor.RED).create());
         }

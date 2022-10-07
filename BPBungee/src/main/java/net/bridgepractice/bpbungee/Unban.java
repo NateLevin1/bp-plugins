@@ -57,7 +57,7 @@ public class Unban extends Command {
                 bannerName = "[Automatic]";
             }
 
-            Utils.sendPunishmentWebhook(false, "unbanned", "[Unban of above uuid]", -1, bannerName, "c06f8906-4c8a-4911-9c29-ea1dbd1aab82", playerUuid, sender);
+            Utils.sendPunishmentWebhook(false, false, "unbanned", "[Unban of above uuid]", -1, bannerName, "c06f8906-4c8a-4911-9c29-ea1dbd1aab82", playerUuid, sender);
         } catch (Exception throwables) {
             throwables.printStackTrace();
             if(sender != null) {

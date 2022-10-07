@@ -61,7 +61,7 @@ public class EditBan extends Command {
 
             sender.sendMessage(new ComponentBuilder("Successfully edited ban of player " + playerName + ".").color(ChatColor.GREEN).create());
 
-            Utils.sendPunishmentWebhook(true, "silently banned", finalReason, days, sender.getName(), sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
+            Utils.sendPunishmentWebhook(true, false,"silently banned", finalReason, days, sender.getName(), sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
         });
     }
 }

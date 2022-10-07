@@ -6,7 +6,6 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -45,7 +44,7 @@ public class BPBungee extends Plugin implements Listener {
     @Override
     public void onEnable() {
         instance = this;
-        luckPerms = LuckPermsProvider.get();
+                   luckPerms = LuckPermsProvider.get();
 
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Lobby());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Hub());
@@ -81,7 +80,6 @@ public class BPBungee extends Plugin implements Listener {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Socialspy());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new SetChat());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new GetQueueingGames());
-        ProxyServer.getInstance().getPluginManager().registerCommand(this, new SilentMute());
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("bp:messages");
 
@@ -324,7 +322,7 @@ public class BPBungee extends Plugin implements Listener {
                 // INSTANTLY BAN IF SEND AN IP ADDRESS
                 BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
                     Ban.applyBan(player.getName(), 30, "Doxxing/Attempt to dox", player.getUniqueId().toString(), false, null);
-                    Utils.sendPunishmentWebhook(true, "automatically banned", "Doxxing/Attempt to dox\n> " + event.getMessage() + "", 30, "Server", "SERVER", player.getName(), null);
+                    Utils.sendPunishmentWebhook(true, false,"automatically banned", "Doxxing/Attempt to dox\n> " + event.getMessage() + "", 30, "Server", "SERVER", player.getName(), null);
                 }, 0, TimeUnit.MILLISECONDS);
                 event.setCancelled(true);
                 return;
@@ -332,7 +330,7 @@ public class BPBungee extends Plugin implements Listener {
                 // liquidbounce always follows this format
                 BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
                     Ban.applyBan(player.getName(), 7, "Chat Abuse/Scam", player.getUniqueId().toString(), true, null);
-                    Utils.sendPunishmentWebhook(true, "automatically banned", "Chat Abuse/Scam\n> " + event.getMessage() + "", 7, "Server", "SERVER", player.getName(), null);
+                    Utils.sendPunishmentWebhook(true, false, "automatically banned", "Chat Abuse/Scam\n> " + event.getMessage() + "", 7, "Server", "SERVER", player.getName(), null);
                 }, 0, TimeUnit.MILLISECONDS);
                 event.setCancelled(true);
                 return;
@@ -400,18 +398,18 @@ public class BPBungee extends Plugin implements Listener {
             event.setCancelled(true);
             ProxiedPlayer playerToSendMessage = instance.getProxy().getPlayer(playerMessageChannel.get(player.getUniqueId()));
             String text = event.getMessage();
-            player.sendMessage((new ComponentBuilder("" + playerToSendMessage.getDisplayName())).append(": " + text).color(ChatColor.GRAY).create());
-            playerToSendMessage.sendMessage((new ComponentBuilder("" + player.getDisplayName())).append(": " + text).color(ChatColor.GRAY).create());
-            instance.playerReplyTo.put(playerToSendMessage.getUniqueId(), new NamedPlayer(player.getName(), player.getDisplayName()));
-            Utils.log((new ComponentBuilder("SocialSpy: ")).color(ChatColor.AQUA).append("From " + player.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(" To " + playerToSendMessage.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(": " + text).color(ChatColor.GRAY).create(), "bridgepractice.moderation.socialspy");
-            return;
+            player.sendMessage(new ComponentBuilder("§dTo "+playerToSendMessage.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
+            playerToSendMessage.sendMessage(new ComponentBuilder("§dFrom "+player.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
+            BPBungee.instance.playerReplyTo.put(playerToSendMessage.getUniqueId(), new BPBungee.NamedPlayer(player.getName(), player.getDisplayName()));
+            Utils.log(new ComponentBuilder("SocialSpy: ").color(ChatColor.AQUA).append("From "+player.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(" To "+playerToSendMessage.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(": "+text).color(ChatColor.GRAY).create(), "bridgepractice.moderation.socialspy");
+
         }
         if (event.getMessage().startsWith("/rc ") && player.hasPermission("group.legend")) {
-            RankChat.sendToRankChat(player.getDisplayName(), event.getMessage().replaceAll("/rc ", ""));
-            String text = event.getMessage();
+            String message = event.getMessage().replaceAll("/rc ", "");
+            RankChat.sendToRankChat(player.getDisplayName(), message);
             String playerName = player.getName();
             String cleanIgn = playerName.replaceAll("_", "\\_");
-            Utils.rankedChatToDiscord(player.getUniqueId().toString(), text, cleanIgn, player);
+            Utils.rankedChatToDiscord(player.getUniqueId().toString(), message, cleanIgn, player);
         } else if (player.hasPermission("group.legend") || event.getMessage().startsWith("/rc ")) {
 
         }
@@ -604,12 +602,14 @@ public class BPBungee extends Plugin implements Listener {
                     String reporterName = in.readUTF();
                     String reportedName = in.readUTF();
                     String reason = in.readUTF();
+                    String server = in.readUTF();
                     Utils.log(new ComponentBuilder("[REPORT] ").color(ChatColor.RED)
                             .append(new ComponentBuilder(reporterName).color(ChatColor.GOLD).create())
                             .append(new ComponentBuilder(" reported ").color(ChatColor.RED).create())
                             .append(new ComponentBuilder(reportedName).color(ChatColor.YELLOW).create())
                             .append(new ComponentBuilder(" for ").color(ChatColor.RED).create())
                             .append(new ComponentBuilder(reason).color(ChatColor.YELLOW).create())
+                            .append(new ComponentBuilder(". (" + server + ")").color(ChatColor.AQUA).create())
                             .create());
                     break;
                 }
@@ -618,13 +618,15 @@ public class BPBungee extends Plugin implements Listener {
                     String reportedName = in.readUTF();
                     String reason = in.readUTF();
                     String messages = in.readUTF();
+                    String server = in.readUTF();
                     Utils.log(new ComponentBuilder("[REPORT] ").color(ChatColor.RED)
                             .append(new ComponentBuilder(reporterName).color(ChatColor.GOLD).create())
                             .append(new ComponentBuilder(" chat reported ").color(ChatColor.RED).create())
                             .append(new ComponentBuilder(reportedName).color(ChatColor.YELLOW).create())
                             .append(new ComponentBuilder(" for ").color(ChatColor.RED).create())
                             .append(new ComponentBuilder(reason).color(ChatColor.YELLOW).create())
-                            .append(new ComponentBuilder(". Messages:\n" + messages).color(ChatColor.GOLD).create())
+                            .append(new ComponentBuilder(". (" + server + ")").color(ChatColor.AQUA).create())
+                            .append(new ComponentBuilder(" Messages:\n" + messages).color(ChatColor.GOLD).create())
                             .create());
                     break;
                 }

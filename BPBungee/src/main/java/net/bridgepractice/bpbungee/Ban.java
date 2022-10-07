@@ -81,7 +81,7 @@ public class Ban extends Command {
             // If the bannedplayer is not offline, then we can use the displayname... However, if the bannedplayer is offline then we are going to use the name that the sender provided
             BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n §c§l✕ §a" + (bannedPlayer != null ? bannedPlayer.getDisplayName() : playerName) + "§c §cwas §d§lbanned§c by " + senderName + "§c!\n").create());
 
-            Utils.sendPunishmentWebhook(true, "banned", finalReason, days, sender.getName(), sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
+            Utils.sendPunishmentWebhook(true, false, "banned", finalReason, days, sender.getName(), sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
         }, 0, TimeUnit.MILLISECONDS);
     }
 
@@ -143,7 +143,7 @@ public class Ban extends Command {
 
 
             BPBungee.instance.getProxy().getScheduler().runAsync(BPBungee.instance, ()-> {
-                Utils.sendWebhook(webhook, errorTo);
+                Utils.sendWebhook(webhook, errorTo, BPBungee.punishmentWebhook);
             });
         } catch (Exception throwables) {
             throwables.printStackTrace();
