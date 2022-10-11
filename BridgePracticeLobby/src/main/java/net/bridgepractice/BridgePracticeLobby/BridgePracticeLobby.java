@@ -1513,6 +1513,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         if (event.getRightClicked().getType() == EntityType.PLAYER && event.getPlayer().getItemInHand().getType() == Material.LEASH) {
            Player target = (Player) event.getRightClicked();
            target.setPassenger(p);
+        } else {
+            event.setCancelled(true);
         }
     }
     @EventHandler
