@@ -900,6 +900,7 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         }
         if (type == PetType.RAINBOW_SHEEP) {
             Sheep sheep = (Sheep) p.getWorld().spawn(p.getLocation(), animal);
+            sheep.setCustomName(petName);
             rainbowSheep.put(p.getUniqueId(), new BukkitRunnable() {
 
                 int dyeIndex = 0;
@@ -1513,6 +1514,8 @@ public class BridgePracticeLobby extends JavaPlugin implements Listener, PluginM
         if (event.getRightClicked().getType() == EntityType.PLAYER && event.getPlayer().getItemInHand().getType() == Material.LEASH) {
            Player target = (Player) event.getRightClicked();
            target.setPassenger(p);
+        } else {
+            event.setCancelled(true);
         }
     }
     @EventHandler
