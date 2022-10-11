@@ -84,10 +84,10 @@ public class Mute extends Command {
                 }
 
                 // if online, make them muted
-                    ProxiedPlayer onlinePlayer = BPBungee.instance.getProxy().getPlayer(playerName);
-                    if (onlinePlayer != null) {
-                        BPBungee.instance.mutedPlayers.put(onlinePlayer.getUniqueId(), days);
-                    }
+                ProxiedPlayer onlinePlayer = BPBungee.instance.getProxy().getPlayer(playerName);
+                if (onlinePlayer != null) {
+                    BPBungee.instance.mutedPlayers.put(onlinePlayer.getUniqueId(), days);
+                }
 
                 if (!silent) {
                     BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n §c§l✕ §a" + (mutedPlayer != null ? mutedPlayer.getDisplayName() : playerName) + "§c §cwas §d§lmuted§c by " + senderName + "§c!\n").create());
