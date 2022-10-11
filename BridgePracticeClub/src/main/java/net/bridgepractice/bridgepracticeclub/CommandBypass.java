@@ -221,7 +221,7 @@ public class CommandBypass implements CommandExecutor {
                 if(((CraftPlayer)player).getHandle().ping < 250) {
                     if(timeTakenNum < 4000) {
                         info.onDeath.call(info);
-                        Utils.banInvalidTime(player.getName(), "INVALID BYPASS TIME TIME");
+                        Utils.banInvalidTime(player.getName(), "INVALID BYPASS TIME");
                     }
                 }
 
