@@ -44,7 +44,7 @@ public class BPBungee extends Plugin implements Listener {
     @Override
     public void onEnable() {
         instance = this;
-                   luckPerms = LuckPermsProvider.get();
+        luckPerms = LuckPermsProvider.get();
 
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Lobby());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Hub());
@@ -602,14 +602,12 @@ public class BPBungee extends Plugin implements Listener {
                     String reporterName = in.readUTF();
                     String reportedName = in.readUTF();
                     String reason = in.readUTF();
-                    String server = in.readUTF();
                     Utils.log(new ComponentBuilder("[REPORT] ").color(ChatColor.RED)
                             .append(new ComponentBuilder(reporterName).color(ChatColor.GOLD).create())
                             .append(new ComponentBuilder(" reported ").color(ChatColor.RED).create())
                             .append(new ComponentBuilder(reportedName).color(ChatColor.YELLOW).create())
                             .append(new ComponentBuilder(" for ").color(ChatColor.RED).create())
                             .append(new ComponentBuilder(reason).color(ChatColor.YELLOW).create())
-                            .append(new ComponentBuilder(". (" + server + ")").color(ChatColor.AQUA).create())
                             .create());
                     break;
                 }
@@ -618,17 +616,15 @@ public class BPBungee extends Plugin implements Listener {
                     String reportedName = in.readUTF();
                     String reason = in.readUTF();
                     String messages = in.readUTF();
-                    String server = in.readUTF();
                     Utils.log(new ComponentBuilder("[REPORT] ").color(ChatColor.RED)
                             .append(new ComponentBuilder(reporterName).color(ChatColor.GOLD).create())
                             .append(new ComponentBuilder(" chat reported ").color(ChatColor.RED).create())
                             .append(new ComponentBuilder(reportedName).color(ChatColor.YELLOW).create())
                             .append(new ComponentBuilder(" for ").color(ChatColor.RED).create())
                             .append(new ComponentBuilder(reason).color(ChatColor.YELLOW).create())
-                            .append(new ComponentBuilder(". (" + server + ")").color(ChatColor.AQUA).create())
-                            .append(new ComponentBuilder(" Messages:\n" + messages).color(ChatColor.GOLD).create())
+                            .append(new ComponentBuilder(". Messages:\n" + messages).color(ChatColor.GOLD).create())
                             .create());
-                    break;
+                    break
                 }
             }
         } catch (IOException e) {
