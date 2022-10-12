@@ -624,7 +624,7 @@ public class BPBungee extends Plugin implements Listener {
                             .append(new ComponentBuilder(reason).color(ChatColor.YELLOW).create())
                             .append(new ComponentBuilder(". Messages:\n" + messages).color(ChatColor.GOLD).create())
                             .create());
-                    break
+                    break;
                 }
             }
         } catch (IOException e) {
