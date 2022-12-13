@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 public class Mute extends Command {
@@ -33,8 +34,25 @@ public class Mute extends Command {
                 return;
             }
 
+            boolean silent;
+            if(args[args.length - 1].equals("-s")) {
+                silent = true;
+                args = Arrays.copyOfRange(args, 0, args.length - 1);
+            } else {
+                silent = false;
+            }
+
+            String reason = "Chat Infraction";
             ProxiedPlayer mutedPlayer = BPBungee.instance.getProxy().getPlayer(playerName);
-            BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, ()->{
+            if (args.length >= 3)
+                reason = String.join(" ", Arrays.copyOfRange((CharSequence[]) args, 2, args.length));
+            if (reason.length() >= 50) {
+                sender.sendMessage((new ComponentBuilder("Reason is too long")).color(ChatColor.RED).create());
+                return;
+            }
+
+            String finalReason = reason;
+            BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
                 String playerUuid;
                 try {
                     playerUuid = Utils.getUuidFromNameSync(playerName);
@@ -44,10 +62,11 @@ public class Mute extends Command {
                 }
 
                 // add to database
-                try(PreparedStatement statement = BPBungee.connection.prepareStatement("UPDATE players SET mutedAt = ?, mutedDays = ? WHERE uuid=?;")) {
+                try (PreparedStatement statement = BPBungee.connection.prepareStatement("UPDATE players SET mutedAt = ?, mutedDays = ?, muteReason = ? WHERE uuid=?;")) {
                     statement.setDate(1, new Date(System.currentTimeMillis()));
                     statement.setInt(2, days);
-                    statement.setString(3, playerUuid); // uuid, set to player uuid
+                    statement.setString(3, finalReason);
+                    statement.setString(4, playerUuid);
                     statement.executeUpdate();
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
@@ -64,15 +83,19 @@ public class Mute extends Command {
                     senderName = sender.getName();
                 }
 
-                BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n §c§l✕ §a" + (mutedPlayer != null ? mutedPlayer.getDisplayName() : playerName) + "§c §cwas §d§lmuted§c by " + senderName + "§c!\n").create());
-
                 // if online, make them muted
                 ProxiedPlayer onlinePlayer = BPBungee.instance.getProxy().getPlayer(playerName);
-                if(onlinePlayer != null) {
+                if (onlinePlayer != null) {
                     BPBungee.instance.mutedPlayers.put(onlinePlayer.getUniqueId(), days);
                 }
 
-                Utils.sendPunishmentWebhook(false, "muted", null, days, sender.getName(), sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
+                if (!silent) {
+                    BPBungee.instance.getProxy().broadcast(new ComponentBuilder("\n §c§l✕ §a" + (mutedPlayer != null ? mutedPlayer.getDisplayName() : playerName) + "§c §cwas §d§lmuted§c by " + senderName + "§c!\n").create());
+                    Utils.sendPunishmentWebhook(false, false, "muted", finalReason, days, sender.getName(), sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
+                } else {
+                    Utils.sendPunishmentWebhook(false, false, "silently muted", finalReason, days, sender.getName(), sender instanceof ProxiedPlayer ? ((ProxiedPlayer) sender).getUniqueId().toString() : "SERVER", playerName, sender);
+                }
+
             }, 0, TimeUnit.MILLISECONDS);
         } else {
             sender.sendMessage(new ComponentBuilder("You do not have permission to use this command.").color(ChatColor.RED).create());

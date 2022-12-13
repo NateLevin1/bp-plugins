@@ -987,10 +987,18 @@ public class Bridge extends JavaPlugin implements Listener, PluginMessageListene
             info.onWin.call(info);
         }
 
+        if(info.location == PlayerLocation.Spawn && (loc.getY() < 80 || loc.getY() > 150
+                        || loc.getX() < -50 || loc.getX() > 50
+                        || loc.getZ() < -70 || loc.getZ() > 90)) {
+
+            player.teleport(info.respawnLocation);
+        }
+
         if(info.onMove != null) {
             info.onMove.call(info);
         }
     }
+
     @EventHandler
     public void onHungerChange(FoodLevelChangeEvent event) {
         // disable hunger

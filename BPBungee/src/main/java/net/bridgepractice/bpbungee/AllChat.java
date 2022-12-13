@@ -29,6 +29,7 @@ public class AllChat extends Command {
                     .append(new ComponentBuilder("----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).create())
                     .append(new ComponentBuilder("\nYou cannot chat because you are muted.").strikethrough(false).color(ChatColor.RED).create())
                     .append(new ComponentBuilder("\nYour mute will expire in ").color(ChatColor.GRAY).append(new ComponentBuilder(BPBungee.mutedPlayers.get(player.getUniqueId()) + " days").color(ChatColor.RED).create()).create())
+                    .append((new ComponentBuilder("\nReason: ")).color(ChatColor.GRAY).append((new ComponentBuilder(Utils.getMuteReason(player))).color(ChatColor.RED).create()).create())
                     .append(new ComponentBuilder("\n\nTo appeal your mute, ").color(ChatColor.GRAY).append(new ComponentBuilder("join the Discord (click)").color(ChatColor.AQUA).underlined(true).event(new ClickEvent(ClickEvent.Action.OPEN_URL, "http://bridgepractice.net/discord")).event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§bClick to go to the Discord invite."))).create()).create())
                     .append(new ComponentBuilder("\n----------------------------------------------------------------").color(ChatColor.RED).strikethrough(true).underlined(false).event(((ClickEvent) null)).event(((HoverEvent) null)).create())
                     .create());

@@ -221,15 +221,7 @@ public class CommandBypass implements CommandExecutor {
                 if(((CraftPlayer)player).getHandle().ping < 250) {
                     if(timeTakenNum < 4000) {
                         info.onDeath.call(info);
-                        // they are cheating. lets ban them!
-                        // FIXME: this should probably use plugin messaging channels. Oh well!
-                        try(PreparedStatement statement = Bridge.connection.prepareStatement("INSERT INTO commandQueue (target, type, content) VALUES ('proxy', 'excmd', ?);")) {
-                            statement.setString(1, "ban "+player.getName()+" 27 IMPOSSIBLE BYPASS TIME");
-                            statement.executeUpdate();
-                            return;
-                        } catch (SQLException throwables) {
-                            throwables.printStackTrace();
-                        }
+                        Utils.banInvalidTime(player.getName(), "INVALID BYPASS TIME");
                     }
                 }
 

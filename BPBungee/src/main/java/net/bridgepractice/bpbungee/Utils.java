@@ -8,9 +8,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.connection.Server;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
@@ -20,6 +23,9 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -62,11 +68,11 @@ public class Utils {
         }
     }
 
-    public static void sendWebhook(JsonObject object, CommandSender playerToSendErrorsTo) {
+    public static void sendWebhook(JsonObject object, CommandSender playerToSendErrorsTo, String webhookURL) {
         BPBungee.instance.getProxy().getScheduler().schedule(BPBungee.instance, () -> {
             // https://stackoverflow.com/a/35013372/13608595
             try {
-                URL url = new URL(BPBungee.punishmentWebhook);
+                URL url = new URL(webhookURL);
                 URLConnection con = url.openConnection();
                 HttpsURLConnection req = (HttpsURLConnection) con;
                 req.setRequestMethod("POST");
@@ -94,7 +100,22 @@ public class Utils {
             }
         }, 0, TimeUnit.MILLISECONDS);
     }
-    public static void sendPunishmentWebhook(boolean isBan, String punishmentVerb, String reason, int length, String bannerName, String bannerUuid, String bannedName, CommandSender playerToSendErrorsTo) {
+
+    public static void rankedChatToDiscord(String uuid, String message, String playerName, CommandSender playerToSendErrorsTo) {
+        JsonObject webhook = new JsonObject();
+        JsonArray embeds = new JsonArray();
+        JsonObject embed = new JsonObject();
+        JsonObject author = new JsonObject();
+        webhook.add("embeds", embeds);
+        embeds.add(embed);
+        embed.add("author", author);
+        author.addProperty("name", playerName + ": " + message);
+        author.addProperty("icon_url", "https://crafatar.com/renders/head/" + uuid + "?overlay=true&size=64");
+        embed.addProperty("color", Integer.valueOf(16769280));
+        sendWebhook(webhook, playerToSendErrorsTo, BPBungee.chatWebhook);
+    }
+
+    public static void sendPunishmentWebhook(boolean isBan, boolean isWarn, String punishmentVerb, String reason, int length, String bannerName, String bannerUuid, String bannedName, CommandSender playerToSendErrorsTo) {
         JsonObject webhook = new JsonObject();
         JsonArray embeds = new JsonArray();
         JsonObject embed = new JsonObject();
@@ -121,12 +142,13 @@ public class Utils {
             fields.add(reasonField);
         }
 
-
-        JsonObject lengthField = new JsonObject();
-        lengthField.addProperty("name", "Length");
-        lengthField.addProperty("value", length+" days");
-        lengthField.addProperty("inline", true);
-        fields.add(lengthField);
+        if(!isWarn) {
+            JsonObject lengthField = new JsonObject();
+            lengthField.addProperty("name", "Length");
+            lengthField.addProperty("value", length + " days");
+            lengthField.addProperty("inline", true);
+            fields.add(lengthField);
+        }
 
         JsonObject thumbnail = new JsonObject();
         embed.add("thumbnail", thumbnail);
@@ -134,7 +156,21 @@ public class Utils {
 
         embed.addProperty("timestamp", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT));
 
-        Utils.sendWebhook(webhook, playerToSendErrorsTo);
+        Utils.sendWebhook(webhook, playerToSendErrorsTo, BPBungee.punishmentWebhook);
+    }
+
+    public static String getMuteReason(ProxiedPlayer player) {
+        try (PreparedStatement statement = BPBungee.connection.prepareStatement("SELECT muteReason FROM players WHERE uuid=?;")) {
+            statement.setString(1, player.getUniqueId().toString());
+            ResultSet res = statement.executeQuery();
+            if (!res.next())
+                throw new SQLException("Did not get a row from the database. Player Name: " + player.getName() + ". Player UUID: " + player.getUniqueId());
+            return res.getString(1);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+            player.sendMessage("§cOh! Something went wrong fetching your reason from our database. Please open a ticket on the discord!");
+            return "Chat Infraction";
+        }
     }
 
     public static BaseComponent[] getBanMessage(int daysLeft, String reason, boolean isIpBan) {

@@ -35,7 +35,6 @@ public class Help extends Command {
                 case "legend":
                     sender.sendMessage(new ComponentBuilder("\n[LEGEND] Rank Help").color(ChatColor.YELLOW).bold(true).create());
                     sender.sendMessage(new ComponentBuilder("/rank").color(ChatColor.GOLD).append(new ComponentBuilder(" - Shows information about your rank").color(ChatColor.GRAY).create()).create());
-                    sender.sendMessage(new ComponentBuilder("/rainbow text goes here").color(ChatColor.GOLD).append(new ComponentBuilder(" - Sends a rainbow chat message").color(ChatColor.GRAY).create()).create());
                     sender.sendMessage(new ComponentBuilder("/fw").color(ChatColor.GOLD).append(new ComponentBuilder(" - Launch a firework! (lobby only)").color(ChatColor.GRAY).create()).create());
                     sender.sendMessage(new ComponentBuilder("/cookie").color(ChatColor.GOLD).append(new ComponentBuilder(" - Gives you a cookie! (lobby only)").color(ChatColor.GRAY).create()).create());
                     sender.sendMessage(new ComponentBuilder("/joinannounce").color(ChatColor.GOLD).append(new ComponentBuilder(" - Toggle join announcement messages").color(ChatColor.GRAY).create()).create());

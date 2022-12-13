@@ -17,7 +17,7 @@ public class RainbowCommand implements CommandExecutor {
         if(!(sender instanceof Player)) return true;
         Player player = ((Player) sender);
         if(System.currentTimeMillis() - startTimes.getOrDefault(player.getUniqueId(), 0L) < 5*60*1000) {
-            player.sendMessage("§cYou must wait 5 minutes between each use!");
+            player.sendMessage("§cYou must wait 2 minutes between each use!");
             return true;
         }
         startTimes.put(player.getUniqueId(), System.currentTimeMillis());
@@ -26,7 +26,7 @@ public class RainbowCommand implements CommandExecutor {
             public void run() {
                 startTimes.remove(player.getUniqueId());
             }
-        }).runTaskLater(Bridge.instance, 5*60*20);
+        }).runTaskLater(Bridge.instance, 2*60*20);
         StringBuilder message = new StringBuilder();
         int i = 0;
         for(String letter : String.join(" ", args).split("")) {

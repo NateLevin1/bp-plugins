@@ -26,7 +26,9 @@ public class CommandSpawn implements CommandExecutor {
                 return true;
             }
 
-            Bridge.instance.setPlayer(player.getUniqueId(), new PlayerInfo(PlayerLocation.Spawn, null, null, null, null, null, null, null));
+            Bridge.instance.setPlayer(player.getUniqueId(), new PlayerInfo(PlayerLocation.Spawn, null, null, null, (info) -> {
+                Utils.disableFly(player);
+            }, null, null, null));
 
             player.getInventory().clear();
             // clear potion effects
@@ -75,6 +77,11 @@ public class CommandSpawn implements CommandExecutor {
             player.getInventory().setItem(8, Bridge.makeItem(Material.BED, 1, "§cReturn to Main Lobby §7(Right Click)", new String[0],-1));
 
             Bridge.instance.showPlayerNPCs(player);
+
+            if(player.hasPermission("bridgepractice.lobby.effect.fly")) {
+                player.setAllowFlight(true);
+                player.setFlySpeed(0.07f);
+            }
 
 
             return true;

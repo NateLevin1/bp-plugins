@@ -11,6 +11,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
@@ -341,6 +342,13 @@ public class CommandWing implements CommandExecutor {
                         playerTimes.put(player.getName(), timeTakenNum);
                     }
                     updateSessionLeader();
+                }
+
+                if(((CraftPlayer)player).getHandle().ping < 250) {
+                    if(timeTakenNum < 3700) {
+                        info.onDeath.call(info);
+                        Utils.banInvalidTime(player.getName(), "INVALID WING TIME");
+                    }
                 }
 
                 player.setGameMode(GameMode.ADVENTURE);
