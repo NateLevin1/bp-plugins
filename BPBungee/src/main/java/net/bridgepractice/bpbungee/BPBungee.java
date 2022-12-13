@@ -402,7 +402,7 @@ public class BPBungee extends Plugin implements Listener {
             playerToSendMessage.sendMessage(new ComponentBuilder("§dFrom "+player.getDisplayName()).append(": "+text).color(ChatColor.GRAY).create());
             BPBungee.instance.playerReplyTo.put(playerToSendMessage.getUniqueId(), new BPBungee.NamedPlayer(player.getName(), player.getDisplayName()));
             Utils.log(new ComponentBuilder("SocialSpy: ").color(ChatColor.AQUA).append("From "+player.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(" To "+playerToSendMessage.getDisplayName()).color(ChatColor.LIGHT_PURPLE).append(": "+text).color(ChatColor.GRAY).create(), "bridgepractice.moderation.socialspy");
-
+            return;
         }
         if (event.getMessage().startsWith("/rc ") && player.hasPermission("group.legend")) {
             String message = event.getMessage().replaceAll("/rc ", "");
