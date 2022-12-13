@@ -56,6 +56,7 @@ public class Utils {
     public static void disableFly(Player player) {
         if(player.hasPermission("bridgepractice.lobby.effect.fly")) {
             player.setAllowFlight(false);
+            player.setFlySpeed(0.1f);
         }
     }
 }
