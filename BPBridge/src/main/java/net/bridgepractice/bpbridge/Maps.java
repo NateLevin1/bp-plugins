@@ -60,6 +60,14 @@ public class Maps {
                 return Utils.getMapSpawnLoc(world, 30, 103, true);
             case "palaestra":
                 return Utils.getMapSpawnLoc(world, 41, 102, true);
+            case "undercity":
+                return Utils.getMapSpawnLoc(world, 24, 100, true);
+            case "flagship":
+                return Utils.getMapSpawnLoc(world, 38, 99, true);
+            case "oasis":
+                return Utils.getMapSpawnLoc(world, 40, 99, true);
+            case "stonehenge":
+                return Utils.getMapSpawnLoc(world, 38, 102, true);
         }
         return new Location(world, 37.5, 105, 0.5, 90, 0);
     }
@@ -120,6 +128,14 @@ public class Maps {
                 return Utils.getMapSpawnLoc(world, -30, 103, false);
             case "palaestra":
                 return Utils.getMapSpawnLoc(world, -41, 102, false);
+            case "undercity":
+                return Utils.getMapSpawnLoc(world, -24, 100, false);
+            case "flagship":
+                return Utils.getMapSpawnLoc(world, -38, 99, false);
+            case "oasis":
+                return Utils.getMapSpawnLoc(world, -40, 99, false);
+            case "stonehenge":
+                return Utils.getMapSpawnLoc(world, -38, 102, false);
         }
         return new Location(world, -36.5, 105, 0.5, -90, 0);
     }
@@ -149,12 +165,16 @@ public class Maps {
             case "condo":
             case "flora":
             case "lighthouse2":
+            case "stonehenge":
                 return 103-5;
             case "dojo":
             case "hyperfrost":
             case "licorice":
             case "treehouse":
             case "twilight":
+            case "flagship":
+            case "oasis":
+            case "crystal":
                 return 104-5;
             case "galaxy":
             case "developedgalaxy":
@@ -164,6 +184,8 @@ public class Maps {
                 return 101-5;
             case "outpost":
                 return 108-5;
+            case "undercity":
+                return 105-5;
         }
         return 99;
     }
@@ -219,6 +241,16 @@ public class Maps {
                 return new Rectangle(33, 89, -1, 3, 3, 3);
             case "palaestra":
                 return new Rectangle(45, 91, -2, 4, 4, 4);
+            case "undercity":
+                return new Rectangle(31, 92, -2, 4, 4, 4);
+            case "flagship":
+                return new Rectangle(41, 90, -1, 3, 3, 3);
+            case "oasis":
+                return new Rectangle(44, 90, -2, 4, 1, 4);
+            case "stonehenge":
+                return new Rectangle(38, 90, -2, 4, 4, 4);
+            case "crystal":
+                return new Rectangle(42, 90, -2, 3, 4, 3);
         }
         return new Rectangle(35, 90, -2, 4, 4, 4);
     }
@@ -277,6 +309,16 @@ public class Maps {
                 return new Rectangle(-35, 89, -1, 3, 3, 3);
             case "palaestra":
                 return new Rectangle(-49, 91, -2, 4, 4, 4);
+            case "undercity":
+                return new Rectangle(-35, 92, -2, 4, 4, 4);
+            case "flagship":
+                return new Rectangle(-44, 90, -1, 3, 3, 3);
+            case "oasis":
+                return new Rectangle(-48, 90, -2, 4, 1, 4);
+            case "stonehenge":
+                return new Rectangle(-42, 90, -2, 4, 4, 4);
+            case "crystal":
+                return new Rectangle(-45, 90, -2, 3, 4, 3);
         }
         return new Rectangle(-39, 90, -2, 4, 4, 4);
     }
@@ -324,7 +366,16 @@ public class Maps {
             case "outpost":
                 return Rectangle.fromMap(-30);
             case "palaestra":
+            case "oasis":
                 return Rectangle.fromMap(-35);
+            case "undercity":
+                return Rectangle.fromMap(-20);
+            case "flagship":
+                return Rectangle.fromMap(-32);
+            case "stonehenge":
+                return Rectangle.fromMap(-33);
+            case "crystal":
+                return Rectangle.fromMap(-38);
         }
         return null;
     }
@@ -390,6 +441,16 @@ public class Maps {
                 return "Tundra V2";
             case "fortress2":
                 return "Fortress V2";
+            case "undercity":
+                return "Undercity";
+            case "flagship":
+                return "Flagship";
+            case "oasis":
+                return "Oasis";
+            case "stonehenge":
+                return "Stonehenge";
+            case "crystal":
+                return "Crystal";
         }
         return "Unknown Map";
     }

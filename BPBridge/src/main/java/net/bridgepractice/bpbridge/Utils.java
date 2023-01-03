@@ -300,6 +300,8 @@ public class Utils {
             return "    PvP";
         } else if (lowercaseGameType.equals("nobridge")) {
             return "NoBridge";
+        } else if (lowercaseGameType.equals("tourney")) {
+            return "Tournament";
         }
         return "Unknown Mode";
     }
@@ -317,7 +319,8 @@ public class Utils {
                 JsonArray embeds = new JsonArray();
                 JsonObject embed = new JsonObject();
 
-                webhook.addProperty("content", "<@729682275897442344>");
+//                webhook.addProperty("content", "<@729682275897442344>");
+                webhook.addProperty("content", "<@450284284117516291>");
 
                 webhook.add("embeds", embeds);
                 embeds.add(embed);
@@ -351,5 +354,16 @@ public class Utils {
             curPlayers = "world is null";
         }
         return "\nGame Info for world "+worldName+":\n**State**: "+game.state+"\n**All Players**: "+game.allPlayers+"\n**Cur Players**: "+curPlayers+"\n**Private:** "+game.shouldCountAsStats;
+    }
+
+
+    public static void sendToTourneyCommandQueue(String type, String content) {
+        try (PreparedStatement cmdq = BPBridge.connection.prepareStatement("INSERT INTO commandQueue (type, content, target) VALUES (?, ?, 'tourneydiscord')")) {
+            cmdq.setString(1, type);
+            cmdq.setString(2, content);
+            cmdq.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

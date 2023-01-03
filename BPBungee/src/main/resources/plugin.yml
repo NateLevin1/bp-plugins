@@ -138,3 +138,8 @@ commands:
 
   changetag:
     description: Change your [CUSTOM] tag
+
+  jointourneygame:
+    description: Join a tournament game!
+  verify:
+    description: Link your Discord and your Minecraft account!

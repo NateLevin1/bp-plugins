@@ -9,7 +9,10 @@ import com.google.gson.JsonParser;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -20,9 +23,14 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class Utils {
@@ -159,6 +167,8 @@ public class Utils {
                 return "Bridge Duel";
             case nobridge:
                 return "NoBridge Duel";
+            case tourney:
+                return "Tournament";
             default:
                 return "Unknown";
         }
@@ -172,5 +182,135 @@ public class Utils {
     }
     public static void log(BaseComponent[] components) {
         log(components, "bridgepractice.moderation.chat");
+    }
+
+    private static final BaseComponent[] beforeDivider = new ComponentBuilder("----------------------------------------------------").color(ChatColor.GOLD).create();
+    private static final BaseComponent[] afterDivider = new ComponentBuilder("\n----------------------------------------------------").color(ChatColor.GOLD).create();
+
+    public static void checkTourneyGameAnnouncement() {
+        if (BPBungee.tourneyPlayersNotPlayedYet.size() < 2 && BPBungee.validTourneyPlayers.size() >= 2) {
+            BPBungee.amountOfGamesEachCurrent++;
+            BPBungee.tourneyPlayersNotPlayedYet = new ArrayList<>(BPBungee.validTourneyPlayers);
+        }
+        sendToTourneyCommandQueue("aogames", String.valueOf(BPBungee.amountOfGamesEachCurrent));
+    }
+
+    public static void checkTourneyGameAnnouncementForPlayer(ProxiedPlayer player) {
+        if (BPBungee.tourneyPlayersNotPlayedYet.size() < 2 && BPBungee.validTourneyPlayers.size() >= 2) {
+            BPBungee.amountOfGamesEachCurrent++;
+            BPBungee.tourneyPlayersNotPlayedYet = new ArrayList<>(BPBungee.validTourneyPlayers);
+        }
+        sendToTourneyCommandQueue("aogamesp", BPBungee.amountOfGamesEachCurrent +"|"+player.getUniqueId().toString());
+    }
+
+    public static void showTourneyGameAnnouncement() {
+        for (UUID uuid : BPBungee.tourneyPlayersNotPlayedYet) {
+            ProxiedPlayer player = BPBungee.instance.getProxy().getPlayer(uuid);
+            HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§aClick to join the tournament game!"));
+            ClickEvent click = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/jointourneygame");
+            player.sendMessage(new ComponentBuilder()
+                    .append(beforeDivider)
+                    .append(new ComponentBuilder("\n                 ").create())
+                    .append(new ComponentBuilder("A new tournament game is starting").color(ChatColor.AQUA).create())
+                    .append(new ComponentBuilder("!").color(ChatColor.AQUA).create())
+                    .append(new ComponentBuilder("\n   CLICK HERE").event(hover).event(click).color(ChatColor.GOLD).bold(true).append(new ComponentBuilder(" to join! Be quick, there are only 2 spaces!").color(ChatColor.YELLOW).bold(false).event(hover).event(click).create()).create())
+                    .append(afterDivider.clone()).event((ClickEvent) null).event((HoverEvent) null)
+                    .create());
+        }
+    }
+
+    public static void showTourneyGameAnnouncementToPlayer(ProxiedPlayer player) {
+        HoverEvent hover = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("§aClick to join the tournament game!"));
+        ClickEvent click = new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/jointourneygame");
+        player.sendMessage(new ComponentBuilder()
+                .append(beforeDivider)
+                .append(new ComponentBuilder("\n                 ").create())
+                .append(new ComponentBuilder("A new tournament game is starting").color(ChatColor.AQUA).create())
+                .append(new ComponentBuilder("!").color(ChatColor.AQUA).create())
+                .append(new ComponentBuilder("\n   CLICK HERE").event(hover).event(click).color(ChatColor.GOLD).bold(true).append(new ComponentBuilder(" to join! Be quick, there are only 2 spaces!").color(ChatColor.YELLOW).bold(false).event(hover).event(click).create()).create())
+                .append(afterDivider.clone()).event((ClickEvent) null).event((HoverEvent) null)
+                .create());
+    }
+
+    public static boolean verifyDiscordCode(int code, ProxiedPlayer player) {
+        try(PreparedStatement statement = BPBungee.connection.prepareStatement("SELECT * FROM discordPlayers WHERE code=? AND uuid=?;")) {
+            statement.setString(1, String.valueOf(code));
+            statement.setString(2, player.getUniqueId().toString());
+            ResultSet res = statement.executeQuery();
+            if(!res.next()) {
+                return false;
+            }
+            try(PreparedStatement updateStatement = BPBungee.connection.prepareStatement("UPDATE discordPlayers SET code=null WHERE code=? AND uuid=?;")) {
+                updateStatement.setString(1, String.valueOf(code));
+                updateStatement.setString(2, player.getUniqueId().toString());
+                updateStatement.executeUpdate();
+                return true;
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean isInTourney(ProxiedPlayer player) {
+        try (PreparedStatement select = BPBungee.connection.prepareStatement("SELECT * FROM tourneyPlayers WHERE uuid=?;")) {
+            select.setString(1, player.getUniqueId().toString());
+            ResultSet res = select.executeQuery();
+            return res.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static int getSkillLevel(ProxiedPlayer player) {
+        try (PreparedStatement select = BPBungee.connection.prepareStatement("SELECT * FROM tourneyPlayers WHERE uuid=?;")) {
+            select.setString(1, player.getUniqueId().toString());
+            ResultSet res = select.executeQuery();
+            if (!res.next()) {
+                return -1;
+            }
+            return res.getInt("skillLevel");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    public static int getGamesPlayed(ProxiedPlayer player) {
+        try (PreparedStatement select = BPBungee.connection.prepareStatement("SELECT * FROM tourneyPlayers WHERE uuid=?;")) {
+            select.setString(1, player.getUniqueId().toString());
+            ResultSet res = select.executeQuery();
+            if (!res.next()) {
+                return -1;
+            }
+            return res.getInt("gamesPlayed");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    public static void addGamePlayed(ProxiedPlayer player) {
+        try (PreparedStatement add = BPBungee.connection.prepareStatement("UPDATE tourneyPlayers SET gamesPlayed = gamesPlayed + 1 WHERE uuid=?;")) {
+            add.setString(1, player.getUniqueId().toString());
+            add.executeUpdate();
+            BPBungee.playersGamesPlayed.put(player.getUniqueId(), BPBungee.playersGamesPlayed.get(player.getUniqueId())+1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void sendToTourneyCommandQueue(String type, String content) {
+        try (PreparedStatement cmdq = BPBungee.connection.prepareStatement("INSERT INTO commandQueue (type, content, target) VALUES (?, ?, 'tourneydiscord')")) {
+            cmdq.setString(1, type);
+            cmdq.setString(2, content);
+            cmdq.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

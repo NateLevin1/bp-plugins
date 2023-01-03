@@ -13,11 +13,8 @@ import com.grinderwolf.swm.api.loaders.SlimeLoader;
 import com.grinderwolf.swm.api.world.SlimeWorld;
 import com.grinderwolf.swm.api.world.properties.SlimeProperties;
 import com.grinderwolf.swm.api.world.properties.SlimePropertyMap;
-import com.lunarclient.bukkitapi.LunarClientAPI;
-import net.bridgepractice.bpbridge.bridgemodifiers.BridgeModifier;
-import net.bridgepractice.bpbridge.bridgemodifiers.NoBridgeModifier;
-import net.bridgepractice.bpbridge.bridgemodifiers.PvpModifier;
-import net.bridgepractice.bpbridge.bridgemodifiers.UnrankedModifier;
+//import com.lunarclient.bukkitapi.LunarClientAPI;
+import net.bridgepractice.bpbridge.bridgemodifiers.*;
 import net.bridgepractice.bpbridge.games.BridgeBase;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
@@ -74,7 +71,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
     HashMap<String, Game> gamesByWorld = new HashMap<>();
     HashMap<UUID, Long> lastRequests = new HashMap<>();
     public static String discordWebhook = "https://discord.com/api/webhooks/879108049489514506/tpuJCqR_TbUn1tzUyFGTU7OBdUFl4oYqyQ4AYcL__X7MsMhke5dr0xwCPOF1nNxx-Z5u";
-    LunarClientAPI lunarClientAPI;
+//    LunarClientAPI lunarClientAPI;
     public static LuckPerms luckPerms;
 
     // db related things
@@ -99,6 +96,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
 
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getMessenger().registerIncomingPluginChannel(this, "bp:messages", this);
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "bp:tourneys");
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
 
         plugin = (SlimePlugin) getServer().getPluginManager().getPlugin("SlimeWorldManager");
@@ -117,7 +115,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
 
         // Right now, we don't do much with the LC API. In the future, we should
         // add a level head implementation for ranked players!
-        lunarClientAPI = LunarClientAPI.getInstance();
+//        lunarClientAPI = LunarClientAPI.getInstance();
 
         getLogger().addHandler(new Handler() {
             @Override
@@ -355,7 +353,7 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         event.setJoinMessage("");
         Player player = event.getPlayer();
         if(player.hasPermission("group.admin")) {
-            lunarClientAPI.giveAllStaffModules(player);
+//            lunarClientAPI.giveAllStaffModules(player);
         }
 
         // reset to new player
@@ -676,13 +674,17 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
         }
     }
 
-    private final String[] mapNames = {"aquatica", "ashgate", "atlantis", "boo", "cheesy", "chronon", "condo", "dojo", "flora", "fortress2", "galaxy", "hyperfrost", "licorice", "lighthouse2", "outpost", "palaestra", "sorcery", "stumped", "sunstone", "treehouse", "tundra2", "twilight", "urban"};
+    private final String[] mapNames = {"aquatica", "ashgate", "atlantis", "boo", "cheesy", "chronon", "condo", "dojo", "flora", "fortress2", "galaxy", "hyperfrost", "licorice", "lighthouse2", "outpost", "palaestra", "sorcery", "stumped", "sunstone", "treehouse", "tundra2", "twilight", "urban", "undercity"};
     private final String[] pvpMapNames = {"developedatlantis", "developedgalaxy", "developedsorcery", "developedstumped"};
+    private final String[] tourneyMapNames = {"aquatica", "atlantis", "boo", "chronon", "condo", "dojo", "fortress2", "galaxy", "hyperfrost", "lighthouse2", "outpost", "sorcery", "stumped", "tundra2", "urban", "crystal", "flagship", "oasis", "stonehenge"};
     private String getRandomUnrankedMap() {
         return mapNames[ThreadLocalRandom.current().nextInt(mapNames.length)];
     }
     private String getRandomPvpMap() {
         return pvpMapNames[ThreadLocalRandom.current().nextInt(pvpMapNames.length)];
+    }
+    private String getRandomTourneyMap() {
+        return tourneyMapNames[ThreadLocalRandom.current().nextInt(tourneyMapNames.length)];
     }
 
     public void createQueue(Player player, String map, String gameType) {
@@ -711,6 +713,8 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
             modifier = new PvpModifier();
         } else if(gameType.equals("nobridge")) {
             modifier = new NoBridgeModifier();
+        } else if(gameType.equals("tourney")) {
+            modifier = new TourneyModifier();
         }
         if(modifier == null) {
             Utils.sendDebugErrorWebhook("Uh Oh!!! Could not find modifier \""+gameType+"\"");
@@ -840,6 +844,8 @@ public class BPBridge extends JavaPlugin implements Listener, PluginMessageListe
                         map = getRandomPvpMap();
                     } else if(gameType.equals("nobridge")) {
                         map = getRandomUnrankedMap();
+                    } else if(gameType.equals("tourney")) {
+                        map = getRandomTourneyMap();
                     } else {
                         map = "urban";
                     }

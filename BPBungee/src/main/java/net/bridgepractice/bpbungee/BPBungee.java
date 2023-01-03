@@ -79,6 +79,8 @@ public class BPBungee extends Plugin implements Listener {
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new Socialspy());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new SetChat());
         ProxyServer.getInstance().getPluginManager().registerCommand(this, new GetQueueingGames());
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new JoinTourneyGame());
+        ProxyServer.getInstance().getPluginManager().registerCommand(this, new Verify());
         getProxy().getPluginManager().registerListener(this, this);
         getProxy().registerChannel("bp:messages");
 
@@ -87,6 +89,7 @@ public class BPBungee extends Plugin implements Listener {
         queueingGames.put(MultiplayerMode.unranked, new ArrayList<>());
         queueingGames.put(MultiplayerMode.pvp, new ArrayList<>());
         queueingGames.put(MultiplayerMode.nobridge, new ArrayList<>());
+        queueingGames.put(MultiplayerMode.tourney, new ArrayList<>());
     }
 
     public static HashMap<UUID, Integer> mutedPlayers = new HashMap<>();
@@ -102,6 +105,16 @@ public class BPBungee extends Plugin implements Listener {
             this.rankedName = rankedName;
         }
     }
+
+    // Tourneys
+    public static boolean isTourneyRunning = false;
+    public static boolean isTourneyGameRunning = false;
+    public static HashMap<UUID, Integer> playersInTourneySkillLevel = new HashMap<>();
+    public static HashMap<UUID, Integer> playersGamesPlayed = new HashMap<>();
+    public static ArrayList<UUID> validTourneyPlayers = new ArrayList<>();
+    public static ArrayList<UUID> tourneyPlayersNotPlayedYet = new ArrayList<>();
+    public static ArrayList<UUID> playersInGame = new ArrayList<>();
+    public static int amountOfGamesEachCurrent = 0;
 
     // db related things
     String host = "localhost";
@@ -244,6 +257,40 @@ public class BPBungee extends Plugin implements Listener {
                 }
             }
         }
+
+        if (isTourneyRunning) {
+            if (Utils.isInTourney(player)) {
+                int skillLvl = Utils.getSkillLevel(player);
+                int gamesPlayed = Utils.getGamesPlayed(player);
+                System.out.println("New Tourney Player: " + player.getName() + " Game Player: " + gamesPlayed + " AOGEC: " + amountOfGamesEachCurrent);
+                if (skillLvl < 0 || gamesPlayed < 0) {
+                    player.sendMessage(new ComponentBuilder("Something went wrong registering you for the tournament. Please report this in #support on the discord!").color(ChatColor.RED).create());
+                } else if (gamesPlayed < amountOfGamesEachCurrent-1) {
+                    player.sendMessage(new ComponentBuilder("Unfortunately, you have been eliminated from the tournament because you have turned up late!").color(ChatColor.RED).create());
+                } else {
+                    validTourneyPlayers.add(player.getUniqueId());
+                    playersInTourneySkillLevel.put(player.getUniqueId(), skillLvl);
+                    playersGamesPlayed.put(player.getUniqueId(), gamesPlayed);
+                    if (gamesPlayed < amountOfGamesEachCurrent) {
+                        tourneyPlayersNotPlayedYet.add(player.getUniqueId());
+                    }
+                }
+            }
+
+            if (!isTourneyGameRunning && validTourneyPlayers.contains(player.getUniqueId())) {
+                final Timer t = new java.util.Timer();
+                t.schedule(
+                        new java.util.TimerTask() {
+                            @Override
+                            public void run() {
+                                Utils.checkTourneyGameAnnouncementForPlayer(player);
+                                t.cancel();
+                            }
+                        },
+                        5000
+                );
+            }
+        }
     }
     @EventHandler
     public void onPlayerDisconnect(PlayerDisconnectEvent event) {
@@ -265,6 +312,14 @@ public class BPBungee extends Plugin implements Listener {
             }
             playerSessionLogOnTime.remove(uuid);
         }
+
+        if (playersInGame.contains(player.getUniqueId())) {
+            isTourneyGameRunning = false;
+            playersInGame.clear();
+        }
+        validTourneyPlayers.remove(uuid);
+        playersInTourneySkillLevel.remove(uuid);
+        tourneyPlayersNotPlayedYet.remove(uuid);
 
         // Staff Leave Message
         if (player.hasPermission("group.helper") || player.hasPermission("group.youtube")) {
@@ -614,6 +669,12 @@ public class BPBungee extends Plugin implements Listener {
                             .append(new ComponentBuilder(reason).color(ChatColor.YELLOW).create())
                             .append(new ComponentBuilder(". Messages:\n" + messages).color(ChatColor.GOLD).create())
                             .create());
+                    break;
+                }
+                case "JoinTourneyGame": {
+                    String uuid = in.readUTF();
+                    ProxiedPlayer player = instance.getProxy().getPlayer(UUID.fromString(uuid));
+                    JoinTourneyGame.joinTourneyGame(player);
                     break;
                 }
             }

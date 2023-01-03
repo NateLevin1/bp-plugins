@@ -183,6 +183,7 @@ public class BridgeBase extends Game {
                         }
 
                         int secsLeft = 5 - times;
+                        System.out.println(secsLeft);
 
                         for(Player p : allPlayers) {
                             Team timerTeam = p.getScoreboard().getTeam("timer");
@@ -227,6 +228,7 @@ public class BridgeBase extends Game {
         }
     }
     public void startImpl() {
+        System.out.println("Running onBeforeStart");
         bridgeModifier.onBeforeStart(this);
 
         Location redPlayerSpawnCageLoc = redSpawnLoc.clone();
@@ -236,6 +238,12 @@ public class BridgeBase extends Game {
             placeCages();
             redPlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 6.1);
             bluePlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 6.1);
+
+            // New map
+            if (map.equals("stonehenge")) {
+                redPlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 10.1);
+                bluePlayerSpawnCageLoc.setY(Maps.getHeightOfMap(map) + 10.1);
+            }
         }
 
         String blueTeamFormatted = blueTeamPlayers.stream().map(Utils::getRankedName).collect(Collectors.joining(", "));
@@ -279,8 +287,8 @@ public class BridgeBase extends Game {
                     bridgeModifier.getCustomStatistic(),
                     "",
                     "§fMode: §a" + bridgeModifier.getPrettyGameType(),
-                    (gameType.equals("nobridge")) ? "%cws%§fWinstreak: %§cNONE" : "%cws%§fWinstreak: %§a" + currentWinstreaks.getOrDefault(player.getUniqueId(), 0),
-                    (gameType.equals("nobridge")) ? "%bws%§fBest Winstreak%§f: §cNONE" : "%bws%§fBest Winstreak%§f: §a" + allTimeWinstreaks.getOrDefault(player.getUniqueId(), 0),
+                    (gameType.equals("nobridge") || gameType.equals("tourney")) ? "%cws%§fWinstreak: %§cNONE" : "%cws%§fWinstreak: %§a" + currentWinstreaks.getOrDefault(player.getUniqueId(), 0),
+                    (gameType.equals("nobridge") || gameType.equals("tourney")) ? "%bws%§fBest Winstreak%§f: §cNONE" : "%bws%§fBest Winstreak%§f: §a" + allTimeWinstreaks.getOrDefault(player.getUniqueId(), 0),
                     "",
                     "§ebridgepractice.net"
             });
@@ -380,6 +388,13 @@ public class BridgeBase extends Game {
         Location blueCageLoc = blueSpawnLoc.clone();
         redCageLoc.setY(Maps.getHeightOfMap(map));
         blueCageLoc.setY(Maps.getHeightOfMap(map));
+
+        // Unfortunately this map, made by Mega, has its cages higher than the other maps.
+        if (map.equals("stonehenge")) {
+            redCageLoc.setY(Maps.getHeightOfMap(map)+4);
+            blueCageLoc.setY(Maps.getHeightOfMap(map)+4);
+        }
+
         redCageLoc.subtract(3, 0, 4);
         blueCageLoc.subtract(3, 0, 4);
 
@@ -388,7 +403,7 @@ public class BridgeBase extends Game {
         BPBridge.instance.getLogger().info("placed cages; took " + (System.currentTimeMillis() - startTime) + "ms");
     }
     private void loadPlayerSidebar(Player player) {
-        if (gameType.equals("nobridge")) return;
+        if (gameType.equals("nobridge") || gameType.equals("tourney")) return;
         (new BukkitRunnable() {
             @Override
             public void run() {
@@ -560,6 +575,12 @@ public class BridgeBase extends Game {
             goalsTeam.setSuffix("§a" + playerGoals.get(player.getUniqueId()));
         }
 
+        // If we are in a tournament, we need to update discord
+        if (gameType.equals("tourney")) {
+            String content = getMemberOfTeam("red").getUniqueId().toString()+"|"+getMemberOfTeam("blue").getUniqueId().toString()+"|"+playerGoals.get(getMemberOfTeam("red").getUniqueId())+"|"+playerGoals.get(getMemberOfTeam("blue").getUniqueId());
+            Utils.sendToTourneyCommandQueue("sscore", content.replaceAll("null", "0"));
+        }
+
         int teamGoals = (team.equals("blue") ? blueGoals : redGoals);
         String teamColor = team.equals("blue") ? "9" : "c";
         String suffix = "§" + teamColor + StringUtils.repeat("⬤", teamGoals);
@@ -673,6 +694,8 @@ public class BridgeBase extends Game {
                 "\n§" + teamColor + "██" + "            §fTop Killer §7§l- " + (topKillerOnBlue ? "§9" : "§c") + nameOfTopKiller + " §6§l[" + topKillerKills + "]" +
                 "\n§" + teamColor + "██";
 
+        Utils.sendToTourneyCommandQueue("wgame", team);
+
         for(Player p : allPlayers) {
             Utils.sendTitle(p, team.equals("draw") ? "§fIt's a Draw!" : ("§" + (team.equals("blue") ? "9BLUE" : "cRED") + " WINS!"), score, 0, 10, 5 * 20);
 
@@ -757,7 +780,7 @@ public class BridgeBase extends Game {
         }).runTaskLater(BPBridge.instance, 10 * 20);
     }
     private void givePlayerWin(OfflinePlayer player) {
-        if(!shouldCountAsStats || gameType.equals("nobridge")) return;
+        if(!shouldCountAsStats || gameType.equals("nobridge") || gameType.equals("tourney")) return;
         (new BukkitRunnable() {
             @Override
             public void run() {
@@ -775,7 +798,7 @@ public class BridgeBase extends Game {
         }).runTaskAsynchronously(BPBridge.instance);
     }
     private void givePlayerLoss(OfflinePlayer player) {
-        if(!shouldCountAsStats || gameType.equals("nobridge")) return;
+        if(!shouldCountAsStats || gameType.equals("nobridge") || gameType.equals("tourney")) return;
         (new BukkitRunnable() {
             @Override
             public void run() {

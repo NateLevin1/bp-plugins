@@ -3,5 +3,6 @@ package net.bridgepractice.bpbungee;
 public enum MultiplayerMode {
     unranked,
     pvp,
-    nobridge
+    nobridge,
+    tourney
 }
